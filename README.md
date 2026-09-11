@@ -84,6 +84,7 @@ Run the same checks CI does:
 ```bash
 npm run format
 npm run lint
+npm test
 npm run build
 ```
 
