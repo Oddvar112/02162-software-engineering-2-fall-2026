@@ -9,5 +9,5 @@ vi.mock("@/components/auth-button", () => ({
 it("shows the course code on the landing page", () => {
   render(<Home />);
 
-  expect(screen.getByText(/02163/)).toBeDefined();
+  expect(screen.getByText(/02162/)).toBeDefined();
 });
