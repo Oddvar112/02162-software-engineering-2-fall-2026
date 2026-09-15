@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-
 
 export default async function LobbyPage({
   params,
 }: {
   params: Promise<{ lobbyId: string }>;
 }) {
-  const {lobbyId} = await params;
+  const { lobbyId } = await params;
   const supabase = await createClient();
   const { data: lobby, error: lobbyError } = await supabase
     .from("lobbies")
@@ -35,7 +35,7 @@ export default async function LobbyPage({
         <nav className="flex h-16 w-full justify-center border-b border-b-foreground/10">
           <div className="flex w-full max-w-5xl items-center justify-between p-3 px-5 text-sm">
             <div className="flex items-center gap-5 font-semibold">
-              <a href="/">RoboRally</a>
+              <Link href="/">RoboRally</Link>
             </div>
           </div>
         </nav>
