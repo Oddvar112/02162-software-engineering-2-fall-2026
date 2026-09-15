@@ -227,72 +227,7 @@ export function GameStateView() {
       <div className={styles.workspace}>
         <section className={styles.boardPanel} aria-label="Game board">
           <RoboBoard gameState={gameState} />
-          <div className={styles.boardHelp}>
-            Drag to rotate · Scroll to zoom
-          </div>
-          <div className={styles.legend} aria-label="Board legend">
-            <span>
-              <i className={styles.wallKey} />
-              Wall
-            </span>
-            <span>
-              <i className={styles.checkpointKey} />
-              Checkpoint
-            </span>
-            <span>
-              <i className={styles.pitKey} />
-              Pit
-            </span>
-            <span>
-              <i className={styles.conveyorKey} />
-              Conveyor
-            </span>
-            <span>
-              <i className={styles.gearKey} />
-              Gear
-            </span>
-          </div>
-        </section>
-
-        <aside className={styles.sidebar} aria-label="Game information">
-          <section className={styles.cardsPanel} aria-label="Your action cards">
-            <div className={styles.sectionHeading}>
-              <div>
-                <p className={styles.eyebrow}>Private hand</p>
-                <h2>Action cards</h2>
-              </div>
-              <LockKeyhole aria-label="Only visible to you" />
-            </div>
-
-            {gameState.phase === "programming" ? (
-              <div className={styles.actionCards}>
-                {gameState.availableCards.map((card) => (
-                  <article className={styles.actionCard} key={card.id}>
-                    <div className={styles.cardIcon}>
-                      <CardIcon type={card.type} />
-                    </div>
-                    <div>
-                      <strong>{card.name}</strong>
-                      <span>Priority {card.priority}</span>
-                    </div>
-                    <b>
-                      {card.type === "move"
-                        ? `×${card.value}`
-                        : card.value < 0
-                          ? "−"
-                          : "+"}
-                    </b>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.cardsUnavailable}>
-                Cards return during programming.
-              </div>
-            )}
-          </section>
-
-          <section className={styles.playersPanel}>
+          <section className={styles.boardPlayers} aria-label="Players">
             <div className={styles.sectionHeading}>
               <div>
                 <p className={styles.eyebrow}>At the table</p>
@@ -371,7 +306,41 @@ export function GameStateView() {
               })}
             </div>
           </section>
-        </aside>
+
+          <section className={styles.boardCards} aria-label="Your action cards">
+            <div className={styles.cardsHeading}>
+              <LockKeyhole aria-hidden="true" />
+              <span>Private hand</span>
+            </div>
+
+            {gameState.phase === "programming" ? (
+              <div className={styles.actionCards}>
+                {gameState.availableCards.map((card) => (
+                  <article className={styles.actionCard} key={card.id}>
+                    <div className={styles.cardIcon}>
+                      <CardIcon type={card.type} />
+                    </div>
+                    <div>
+                      <strong>{card.name}</strong>
+                      <span>Priority {card.priority}</span>
+                    </div>
+                    <b>
+                      {card.type === "move"
+                        ? `×${card.value}`
+                        : card.value < 0
+                          ? "−"
+                          : "+"}
+                    </b>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.cardsUnavailable}>
+                Cards return during programming.
+              </div>
+            )}
+          </section>
+        </section>
       </div>
     </main>
   );
