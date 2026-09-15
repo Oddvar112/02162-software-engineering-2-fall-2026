@@ -74,6 +74,7 @@ export function GameStateView() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [playersCollapsed, setPlayersCollapsed] = useState(false);
   const requestInFlight = useRef(false);
 
   const loadGameState = useCallback(async () => {
@@ -227,84 +228,101 @@ export function GameStateView() {
       <div className={styles.workspace}>
         <section className={styles.boardPanel} aria-label="Game board">
           <RoboBoard gameState={gameState} />
-          <section className={styles.boardPlayers} aria-label="Players">
-            <div className={styles.sectionHeading}>
+          <section
+            className={`${styles.boardPlayers} ${playersCollapsed ? styles.playersCollapsed : ""}`}
+            aria-label="Players"
+          >
+            <button
+              type="button"
+              className={styles.playersToggle}
+              aria-expanded={!playersCollapsed}
+              aria-controls="board-player-list"
+              onClick={() => setPlayersCollapsed((collapsed) => !collapsed)}
+            >
               <div>
                 <p className={styles.eyebrow}>At the table</p>
                 <h2>Players</h2>
               </div>
-              <span className={styles.playerCount}>
-                {gameState.players.length}
+              <span className={styles.playersToggleEnd}>
+                <span className={styles.playerCount}>
+                  {gameState.players.length}
+                </span>
+                <ChevronDown
+                  className={styles.playersChevron}
+                  aria-hidden="true"
+                />
               </span>
-            </div>
+            </button>
 
-            <div className={styles.playerList}>
-              {gameState.players.map((player) => {
-                const robot = robotById.get(player.robotId);
-                const isCurrent = player.id === gameState.currentPlayerId;
+            {!playersCollapsed && (
+              <div className={styles.playerList} id="board-player-list">
+                {gameState.players.map((player) => {
+                  const robot = robotById.get(player.robotId);
+                  const isCurrent = player.id === gameState.currentPlayerId;
 
-                return (
-                  <article
-                    key={player.id}
-                    className={`${styles.playerCard} ${isCurrent ? styles.currentPlayer : ""}`}
-                  >
-                    <div className={styles.playerHeader}>
-                      <span
-                        className={styles.robotSwatch}
-                        style={{ backgroundColor: robot?.color }}
-                        aria-hidden="true"
-                      />
-                      <div className={styles.playerName}>
-                        <strong>{player.name}</strong>
+                  return (
+                    <article
+                      key={player.id}
+                      className={`${styles.playerCard} ${isCurrent ? styles.currentPlayer : ""}`}
+                    >
+                      <div className={styles.playerHeader}>
+                        <span
+                          className={styles.robotSwatch}
+                          style={{ backgroundColor: robot?.color }}
+                          aria-hidden="true"
+                        />
+                        <div className={styles.playerName}>
+                          <strong>{player.name}</strong>
+                          <span>
+                            {robot?.name} ·{" "}
+                            {robot
+                              ? DIRECTION_LABELS[robot.direction]
+                              : "Unknown"}
+                            {robot ? ` · ${robot.x + 1},${robot.z + 1}` : ""}
+                          </span>
+                        </div>
+                        {isCurrent ? (
+                          <span className={styles.youBadge}>You</span>
+                        ) : (
+                          <span
+                            className={
+                              player.connected
+                                ? styles.onlineDot
+                                : styles.offlineDot
+                            }
+                            title={
+                              player.connected ? "Connected" : "Disconnected"
+                            }
+                            aria-label={
+                              player.connected ? "Connected" : "Disconnected"
+                            }
+                          />
+                        )}
+                      </div>
+
+                      <div className={styles.playerStats}>
                         <span>
-                          {robot?.name} ·{" "}
-                          {robot
-                            ? DIRECTION_LABELS[robot.direction]
-                            : "Unknown"}
-                          {robot ? ` · ${robot.x + 1},${robot.z + 1}` : ""}
+                          <Shield aria-label="Damage" />
+                          {player.damage}
+                        </span>
+                        <span>
+                          <Heart aria-label="Lives" />
+                          {player.lives}
+                        </span>
+                        <span>
+                          <Flag aria-label="Checkpoints" />
+                          {player.checkpointsReached}
+                        </span>
+                        <span className={styles.hiddenCards}>
+                          <LockKeyhole aria-hidden="true" />
+                          {player.programmedCardCount}/5
                         </span>
                       </div>
-                      {isCurrent ? (
-                        <span className={styles.youBadge}>You</span>
-                      ) : (
-                        <span
-                          className={
-                            player.connected
-                              ? styles.onlineDot
-                              : styles.offlineDot
-                          }
-                          title={
-                            player.connected ? "Connected" : "Disconnected"
-                          }
-                          aria-label={
-                            player.connected ? "Connected" : "Disconnected"
-                          }
-                        />
-                      )}
-                    </div>
-
-                    <div className={styles.playerStats}>
-                      <span>
-                        <Shield aria-label="Damage" />
-                        {player.damage}
-                      </span>
-                      <span>
-                        <Heart aria-label="Lives" />
-                        {player.lives}
-                      </span>
-                      <span>
-                        <Flag aria-label="Checkpoints" />
-                        {player.checkpointsReached}
-                      </span>
-                      <span className={styles.hiddenCards}>
-                        <LockKeyhole aria-hidden="true" />
-                        {player.programmedCardCount}/5
-                      </span>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           <section className={styles.boardCards} aria-label="Your action cards">
