@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { RoboBoard } from "@/components/game/board/robo-board";
+import { GameStateView } from "@/components/game/game-state-view";
 
 export const metadata: Metadata = {
-  title: "The Factory Misfits · RoboRally",
-  description: "Ten distinct robot characters on the RoboRally board.",
+  title: "Game state · RoboRally",
+  description: "The current RoboRally board, players, phase, and action cards.",
 };
 
 export default function GamePage() {
-  return <RoboBoard />;
+  return <GameStateView />;
 }
