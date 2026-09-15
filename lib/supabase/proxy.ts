@@ -13,6 +13,11 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // The 3D board is a public, frontend-only prototype and does not need a session.
+  if (request.nextUrl.pathname === "/game") {
+    return supabaseResponse;
+  }
+
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
   const supabase = createServerClient(
