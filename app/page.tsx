@@ -3,6 +3,7 @@ import { AuthButton } from "@/components/auth-button";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
+import { CreateLobbyButton } from "@/components/create-lobby-button";
 
 export default function Home() {
   return (
@@ -28,6 +29,7 @@ export default function Home() {
             02162 Software Engineering 2 - Gruppe 7
           </p>
           <p className="text-sm text-foreground/50">In the making</p>
+          <CreateLobbyButton />
         </div>
       </div>
     </main>
