@@ -80,7 +80,7 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
   players: [
     {
       id: "player-1",
-      name: "You",
+      name: "Alex",
       robotId: "robot-1",
       damage: 0,
       lives: 3,

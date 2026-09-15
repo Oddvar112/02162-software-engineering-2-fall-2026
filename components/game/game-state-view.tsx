@@ -3,6 +3,7 @@
 import {
   AlertTriangle,
   Bot,
+  ChevronDown,
   Flag,
   Heart,
   LoaderCircle,
@@ -19,18 +20,19 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/app/game/game.module.css";
 import { Button } from "@/components/ui/button";
-import type { ActionCard, GamePhase, GameState } from "@/lib/game/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { ActionCard, GameState } from "@/lib/game/types";
 import { DIRECTION_LABELS, PHASE_LABELS } from "@/lib/game/types";
 import { RoboBoard } from "./robo-board";
 
 const SYNC_INTERVAL_MS = 5_000;
-const PHASES: GamePhase[] = [
-  "programming",
-  "waiting",
-  "execution",
-  "board-activation",
-  "end-of-round",
-];
 
 function CardIcon({ type }: Pick<ActionCard, "type">) {
   if (type === "rotate") return <RotateCw aria-hidden="true" />;
@@ -88,7 +90,6 @@ export function GameStateView() {
 
       const state = (await response.json()) as GameState;
       setGameState(state);
-      setError(null);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -130,10 +131,12 @@ export function GameStateView() {
   const currentPlayer = gameState.players.find(
     (player) => player.id === gameState.currentPlayerId,
   );
+  const currentRobot = currentPlayer
+    ? robotById.get(currentPlayer.robotId)
+    : undefined;
   const syncedAt = new Date(gameState.updatedAt).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
   });
 
   return (
@@ -144,48 +147,80 @@ export function GameStateView() {
             <Bot />
           </span>
           <div>
-            <p className={styles.eyebrow}>Live match · {gameState.gameId}</p>
+            <p className={styles.eyebrow}>{gameState.gameId}</p>
             <h1>Factory Floor</h1>
           </div>
         </div>
 
         <div className={styles.roundStatus}>
-          <div className={styles.roundBlock}>
-            <span>Round</span>
-            <strong>{gameState.round}</strong>
-          </div>
-          <div className={styles.phaseBadge}>
+          <span className={styles.roundNumber}>Round {gameState.round}</span>
+          <span className={styles.phaseBadge}>
             <Radio aria-hidden="true" />
             {PHASE_LABELS[gameState.phase]}
-          </div>
+          </span>
         </div>
 
-        <div className={styles.syncArea}>
-          <div className={error ? styles.syncError : styles.syncStatus}>
+        <div className={styles.accountArea}>
+          <span className={error ? styles.syncError : styles.syncStatus}>
             {error ? (
               <WifiOff aria-hidden="true" />
             ) : (
               <Wifi aria-hidden="true" />
             )}
-            <span>
-              {error
-                ? "Sync paused"
-                : isSyncing
-                  ? "Syncing…"
-                  : `Synced ${syncedAt}`}
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={styles.refreshButton}
-            onClick={loadGameState}
-            disabled={isSyncing}
-            aria-label="Refresh game state"
-          >
-            <RefreshCw className={isSyncing ? styles.spinner : undefined} />
-          </Button>
+            <span>{error ? "Offline" : isSyncing ? "Syncing" : "Live"}</span>
+          </span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={styles.playerMenuTrigger} type="button">
+                <span
+                  className={styles.accountSwatch}
+                  style={{ backgroundColor: currentRobot?.color }}
+                  aria-hidden="true"
+                />
+                <span>{currentPlayer?.name ?? "Player"}</span>
+                <ChevronDown
+                  className={styles.profileChevron}
+                  aria-hidden="true"
+                />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className={styles.playerMenu}>
+              <DropdownMenuLabel className={styles.playerMenuLabel}>
+                <strong>{currentPlayer?.name ?? "Player"}</strong>
+                <span>
+                  {currentRobot?.name} ·{" "}
+                  {currentRobot
+                    ? DIRECTION_LABELS[currentRobot.direction]
+                    : "Robot"}
+                </span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className={styles.menuSeparator} />
+              <div className={styles.menuStats}>
+                <span>
+                  <Shield aria-hidden="true" />
+                  {currentPlayer?.damage ?? 0} damage
+                </span>
+                <span>
+                  <Heart aria-hidden="true" />
+                  {currentPlayer?.lives ?? 0} lives
+                </span>
+                <span>
+                  <Flag aria-hidden="true" />
+                  {currentPlayer?.checkpointsReached ?? 0} checkpoints
+                </span>
+              </div>
+              <DropdownMenuSeparator className={styles.menuSeparator} />
+              <DropdownMenuItem
+                className={styles.menuItem}
+                onSelect={loadGameState}
+              >
+                <RefreshCw className={isSyncing ? styles.spinner : undefined} />
+                Refresh game state
+                <span>{syncedAt}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -220,13 +255,52 @@ export function GameStateView() {
         </section>
 
         <aside className={styles.sidebar} aria-label="Game information">
-          <section className={styles.panelSection}>
+          <section className={styles.cardsPanel} aria-label="Your action cards">
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>Private hand</p>
+                <h2>Action cards</h2>
+              </div>
+              <LockKeyhole aria-label="Only visible to you" />
+            </div>
+
+            {gameState.phase === "programming" ? (
+              <div className={styles.actionCards}>
+                {gameState.availableCards.map((card) => (
+                  <article className={styles.actionCard} key={card.id}>
+                    <div className={styles.cardIcon}>
+                      <CardIcon type={card.type} />
+                    </div>
+                    <div>
+                      <strong>{card.name}</strong>
+                      <span>Priority {card.priority}</span>
+                    </div>
+                    <b>
+                      {card.type === "move"
+                        ? `×${card.value}`
+                        : card.value < 0
+                          ? "−"
+                          : "+"}
+                    </b>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.cardsUnavailable}>
+                Cards return during programming.
+              </div>
+            )}
+          </section>
+
+          <section className={styles.playersPanel}>
             <div className={styles.sectionHeading}>
               <div>
                 <p className={styles.eyebrow}>At the table</p>
                 <h2>Players</h2>
               </div>
-              <span>{gameState.players.length}</span>
+              <span className={styles.playerCount}>
+                {gameState.players.length}
+              </span>
             </div>
 
             <div className={styles.playerList}>
@@ -276,93 +350,29 @@ export function GameStateView() {
 
                     <div className={styles.playerStats}>
                       <span>
-                        <Shield aria-hidden="true" />
-                        {player.damage} damage
+                        <Shield aria-label="Damage" />
+                        {player.damage}
                       </span>
                       <span>
-                        <Heart aria-hidden="true" />
-                        {player.lives} lives
+                        <Heart aria-label="Lives" />
+                        {player.lives}
                       </span>
                       <span>
-                        <Flag aria-hidden="true" />
-                        {player.checkpointsReached} checkpoints
+                        <Flag aria-label="Checkpoints" />
+                        {player.checkpointsReached}
                       </span>
-                    </div>
-
-                    <div className={styles.cardPrivacy}>
-                      <LockKeyhole aria-hidden="true" />
-                      {isCurrent
-                        ? `${player.programmedCardCount} of 5 registers programmed`
-                        : `${player.programmedCardCount} cards programmed · hidden`}
+                      <span className={styles.hiddenCards}>
+                        <LockKeyhole aria-hidden="true" />
+                        {player.programmedCardCount}/5
+                      </span>
                     </div>
                   </article>
                 );
               })}
             </div>
           </section>
-
-          <section className={styles.panelSection}>
-            <div className={styles.sectionHeading}>
-              <div>
-                <p className={styles.eyebrow}>Round sequence</p>
-                <h2>Current phase</h2>
-              </div>
-            </div>
-            <ol className={styles.phaseList}>
-              {PHASES.map((phase, index) => (
-                <li
-                  key={phase}
-                  className={
-                    phase === gameState.phase ? styles.activePhase : undefined
-                  }
-                >
-                  <span>{index + 1}</span>
-                  {PHASE_LABELS[phase]}
-                </li>
-              ))}
-            </ol>
-          </section>
         </aside>
       </div>
-
-      <section className={styles.cardTray} aria-label="Your action cards">
-        <div className={styles.trayHeading}>
-          <div>
-            <p className={styles.eyebrow}>
-              Private hand · {currentPlayer?.name ?? "Current player"}
-            </p>
-            <h2>Your action cards</h2>
-          </div>
-          <span>Only visible to you</span>
-        </div>
-
-        {gameState.phase === "programming" ? (
-          <div className={styles.actionCards}>
-            {gameState.availableCards.map((card) => (
-              <article className={styles.actionCard} key={card.id}>
-                <div className={styles.cardIcon}>
-                  <CardIcon type={card.type} />
-                </div>
-                <div>
-                  <strong>{card.name}</strong>
-                  <span>Priority {card.priority}</span>
-                </div>
-                <b>
-                  {card.type === "move"
-                    ? `×${card.value}`
-                    : card.value < 0
-                      ? "−"
-                      : "+"}
-                </b>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className={styles.cardsUnavailable}>
-            Cards are hidden outside the programming phase.
-          </div>
-        )}
-      </section>
     </main>
   );
 }

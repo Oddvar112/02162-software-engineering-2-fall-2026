@@ -27,53 +27,103 @@ function tilePosition(value: number, size: number) {
 function Conveyor({ direction }: { direction: Direction }) {
   return (
     <group
-      position={[0, 0.12, 0]}
+      position={[0, 0.135, 0]}
       rotation={[0, DIRECTION_ROTATION[direction], 0]}
     >
-      {[-0.24, 0, 0.24].map((x) => (
-        <mesh key={x} position={[x, 0, 0]}>
-          <boxGeometry args={[0.1, 0.035, 0.7]} />
+      <mesh receiveShadow>
+        <boxGeometry args={[0.82, 0.05, 0.82]} />
+        <meshStandardMaterial
+          color="#18252b"
+          metalness={0.62}
+          roughness={0.38}
+        />
+      </mesh>
+      {[-0.36, 0.36].map((x) => (
+        <mesh key={x} position={[x, 0.045, 0]}>
+          <boxGeometry args={[0.06, 0.08, 0.78]} />
           <meshStandardMaterial
-            color="#36b7cb"
-            metalness={0.55}
-            roughness={0.35}
+            color="#32c5d6"
+            emissive="#18899a"
+            emissiveIntensity={0.35}
+            metalness={0.72}
+            roughness={0.28}
           />
         </mesh>
       ))}
-      <mesh position={[0, 0.035, -0.12]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.16, 0.34, 3]} />
-        <meshStandardMaterial
-          color="#b9f7ff"
-          emissive="#2cc5dc"
-          emissiveIntensity={0.45}
-        />
-      </mesh>
+      {[-0.25, 0, 0.25].map((z) => (
+        <mesh key={z} position={[0, 0.065, z]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.065, 0.065, 0.64, 12]} />
+          <meshStandardMaterial
+            color="#81949c"
+            metalness={0.85}
+            roughness={0.24}
+          />
+        </mesh>
+      ))}
+      {[-0.105, 0.105].map((x) => (
+        <mesh
+          key={x}
+          position={[x, 0.145, -0.08]}
+          rotation={[0, x < 0 ? -Math.PI / 4 : Math.PI / 4, 0]}
+        >
+          <boxGeometry args={[0.29, 0.025, 0.065]} />
+          <meshBasicMaterial color="#d6fbff" />
+        </mesh>
+      ))}
     </group>
   );
 }
 
 function Checkpoint({ order }: { order: number }) {
+  const checks = [
+    [-0.19, -0.19, "#f5c452"],
+    [0.19, -0.19, "#20292e"],
+    [-0.19, 0.19, "#20292e"],
+    [0.19, 0.19, "#f5c452"],
+  ] as const;
+
   return (
-    <group position={[0, 0.14, 0]}>
-      <mesh>
-        <cylinderGeometry args={[0.31, 0.31, 0.055, 28]} />
+    <group position={[0, 0.135, 0]}>
+      <mesh receiveShadow>
+        <boxGeometry args={[0.84, 0.05, 0.84]} />
         <meshStandardMaterial
-          color="#d8a62d"
-          metalness={0.65}
-          roughness={0.3}
+          color="#111a1f"
+          metalness={0.6}
+          roughness={0.34}
         />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0.035, 0]}>
-        <torusGeometry args={[0.22, 0.045, 8, 24]} />
+      {checks.map(([x, z, color]) => (
+        <mesh key={`${x}-${z}`} position={[x, 0.035, z]}>
+          <boxGeometry args={[0.34, 0.025, 0.34]} />
+          <meshStandardMaterial
+            color={color}
+            metalness={0.5}
+            roughness={0.42}
+          />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.075, 0]}>
+        <cylinderGeometry args={[0.19, 0.19, 0.075, 24]} />
+        <meshStandardMaterial
+          color="#17242a"
+          metalness={0.78}
+          roughness={0.25}
+        />
+      </mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0.12, 0]}>
+        <torusGeometry args={[0.13, 0.035, 8, 24]} />
         <meshStandardMaterial
           color="#fff0a8"
           emissive="#f4b942"
-          emissiveIntensity={0.45}
+          emissiveIntensity={0.9}
         />
       </mesh>
       {Array.from({ length: order }, (_, index) => (
-        <mesh key={index} position={[(index - (order - 1) / 2) * 0.1, 0.08, 0]}>
-          <sphereGeometry args={[0.03, 8, 8]} />
+        <mesh
+          key={index}
+          position={[(index - (order - 1) / 2) * 0.075, 0.155, 0]}
+        >
+          <sphereGeometry args={[0.025, 10, 10]} />
           <meshBasicMaterial color="#fff7d6" />
         </mesh>
       ))}
@@ -85,32 +135,57 @@ function Gear({ rotation }: { rotation: "clockwise" | "counter-clockwise" }) {
   const direction = rotation === "clockwise" ? 1 : -1;
 
   return (
-    <group position={[0, 0.14, 0]} rotation={[0, direction * 0.18, 0]}>
-      <mesh>
-        <cylinderGeometry args={[0.27, 0.27, 0.06, 16]} />
+    <group position={[0, 0.14, 0]} rotation={[0, direction * 0.12, 0]}>
+      <mesh receiveShadow>
+        <cylinderGeometry args={[0.39, 0.39, 0.045, 24]} />
         <meshStandardMaterial
-          color="#c8793c"
+          color="#162229"
           metalness={0.72}
-          roughness={0.34}
+          roughness={0.3}
         />
       </mesh>
-      {Array.from({ length: 8 }, (_, index) => {
-        const angle = (index / 8) * Math.PI * 2;
+      {Array.from({ length: 12 }, (_, index) => {
+        const angle = (index / 12) * Math.PI * 2;
         return (
           <mesh
             key={angle}
-            position={[Math.cos(angle) * 0.31, 0, Math.sin(angle) * 0.31]}
+            position={[Math.cos(angle) * 0.38, 0.045, Math.sin(angle) * 0.38]}
             rotation={[0, -angle, 0]}
           >
-            <boxGeometry args={[0.12, 0.07, 0.1]} />
+            <boxGeometry args={[0.115, 0.055, 0.105]} />
             <meshStandardMaterial
-              color="#e19a58"
-              metalness={0.68}
-              roughness={0.36}
+              color="#a7b8be"
+              metalness={0.86}
+              roughness={0.22}
             />
           </mesh>
         );
       })}
+      <mesh position={[0, 0.065, 0]}>
+        <cylinderGeometry args={[0.285, 0.285, 0.075, 24]} />
+        <meshStandardMaterial
+          color="#d78136"
+          emissive="#8f3f10"
+          emissiveIntensity={0.18}
+          metalness={0.72}
+          roughness={0.3}
+        />
+      </mesh>
+      <mesh position={[0, 0.12, 0]}>
+        <cylinderGeometry args={[0.09, 0.09, 0.055, 16]} />
+        <meshStandardMaterial
+          color="#263840"
+          metalness={0.86}
+          roughness={0.22}
+        />
+      </mesh>
+      <mesh
+        position={[direction * 0.16, 0.12, -0.15]}
+        rotation={[-Math.PI / 2, 0, direction * 0.7]}
+      >
+        <circleGeometry args={[0.075, 3]} />
+        <meshBasicMaterial color="#fff1b7" />
+      </mesh>
     </group>
   );
 }
