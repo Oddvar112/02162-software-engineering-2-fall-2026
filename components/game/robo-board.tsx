@@ -1,11 +1,16 @@
 "use client";
 
 import { ContactShadows, OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
+import { useLayoutEffect } from "react";
+import * as THREE from "three";
 import styles from "@/app/game/game.module.css";
 
 const BOARD_SIZE = 8;
 const HALF_BOARD = (BOARD_SIZE - 1) / 2;
+const BOARD_EDGE = BOARD_SIZE + 0.7;
+const SCENE_RADIUS = Math.hypot(BOARD_EDGE / 2, BOARD_EDGE / 2, 1.25);
+const CAMERA_DIRECTION = new THREE.Vector3(8, 9, 10).normalize();
 const BOARD_TILES = Array.from(
   { length: BOARD_SIZE * BOARD_SIZE },
   (_, index) => ({
@@ -18,11 +23,11 @@ function Board() {
   return (
     <group>
       <mesh position={[0, -0.28, 0]} receiveShadow>
-        <boxGeometry args={[BOARD_SIZE + 0.7, 0.42, BOARD_SIZE + 0.7]} />
+        <boxGeometry args={[BOARD_EDGE, 0.42, BOARD_EDGE]} />
         <meshStandardMaterial
-          color="#13212b"
-          metalness={0.65}
-          roughness={0.45}
+          color="#2b3f4b"
+          metalness={0.48}
+          roughness={0.52}
         />
       </mesh>
 
@@ -34,9 +39,9 @@ function Board() {
         >
           <boxGeometry args={[0.94, 0.2, 0.94]} />
           <meshStandardMaterial
-            color={(x + z) % 2 === 0 ? "#354650" : "#2e3d47"}
-            metalness={0.58}
-            roughness={0.5}
+            color={(x + z) % 2 === 0 ? "#667b88" : "#536a77"}
+            metalness={0.42}
+            roughness={0.56}
           />
         </mesh>
       ))}
@@ -46,22 +51,22 @@ function Board() {
 
 function Robot() {
   return (
-    <group position={[-0.5, 0.62, 1.5]}>
+    <group position={[-0.5, 0.33, 1.5]}>
       <mesh castShadow position={[0, 0.02, 0]}>
         <boxGeometry args={[0.58, 0.5, 0.6]} />
         <meshStandardMaterial
           color="#ed5a54"
-          metalness={0.72}
-          roughness={0.28}
+          metalness={0.58}
+          roughness={0.34}
         />
       </mesh>
 
       <mesh castShadow position={[0, 0.38, -0.02]}>
         <boxGeometry args={[0.43, 0.28, 0.42]} />
         <meshStandardMaterial
-          color="#29343b"
-          metalness={0.88}
-          roughness={0.22}
+          color="#43545e"
+          metalness={0.72}
+          roughness={0.3}
         />
       </mesh>
 
@@ -121,18 +126,54 @@ function Robot() {
   );
 }
 
+function ResponsiveCameraControls() {
+  const { camera, size, invalidate } = useThree();
+  const perspectiveCamera = camera as THREE.PerspectiveCamera;
+  const aspect = Math.max(size.width, 1) / Math.max(size.height, 1);
+  const verticalHalfFov = THREE.MathUtils.degToRad(perspectiveCamera.fov / 2);
+  const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
+  const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
+  const fitDistance = (SCENE_RADIUS / Math.sin(limitingHalfFov)) * 1.08;
+
+  useLayoutEffect(() => {
+    perspectiveCamera.position
+      .copy(CAMERA_DIRECTION)
+      .multiplyScalar(fitDistance);
+    perspectiveCamera.near = 0.1;
+    perspectiveCamera.far = Math.max(80, fitDistance * 4);
+    perspectiveCamera.aspect = aspect;
+    perspectiveCamera.lookAt(0, 0, 0);
+    perspectiveCamera.updateProjectionMatrix();
+    const frame = requestAnimationFrame(invalidate);
+
+    return () => cancelAnimationFrame(frame);
+  }, [aspect, fitDistance, invalidate, perspectiveCamera]);
+
+  return (
+    <OrbitControls
+      makeDefault
+      enablePan={false}
+      minDistance={fitDistance * 0.55}
+      maxDistance={fitDistance * 1.5}
+      minPolarAngle={0.5}
+      maxPolarAngle={1.18}
+      target={[0, 0, 0]}
+    />
+  );
+}
+
 function Scene() {
   return (
     <>
-      <color attach="background" args={["#071019"]} />
-      <fog attach="fog" args={["#071019", 11, 23]} />
-      <ambientLight intensity={0.68} />
-      <hemisphereLight args={["#a5efff", "#17222b", 1.1]} />
+      <color attach="background" args={["#172833"]} />
+      <fog attach="fog" args={["#172833", 30, 70]} />
+      <ambientLight intensity={1.15} />
+      <hemisphereLight args={["#d6f7ff", "#344550", 1.6]} />
       <directionalLight
         castShadow
         position={[-5, 9, 5]}
-        intensity={2.7}
-        color="#d9f5ff"
+        intensity={3.2}
+        color="#f1fbff"
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-camera-far={22}
@@ -144,21 +185,14 @@ function Scene() {
       <Board />
       <Robot />
       <ContactShadows
+        frames={1}
         position={[0, -0.47, 0]}
         opacity={0.38}
         scale={12}
         blur={2.5}
         far={7}
       />
-      <OrbitControls
-        makeDefault
-        enablePan={false}
-        minDistance={7}
-        maxDistance={15}
-        minPolarAngle={0.5}
-        maxPolarAngle={1.18}
-        target={[0, 0, 0]}
-      />
+      <ResponsiveCameraControls />
     </>
   );
 }
@@ -168,6 +202,7 @@ export function RoboBoard() {
     <main className={styles.page} aria-label="RoboRally board with one robot">
       <Canvas
         shadows
+        frameloop="demand"
         dpr={[1, 1.75]}
         camera={{ position: [8, 9, 10], fov: 42, near: 0.1, far: 50 }}
         gl={{ antialias: true, powerPreference: "high-performance" }}

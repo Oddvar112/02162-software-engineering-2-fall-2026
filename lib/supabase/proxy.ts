@@ -14,7 +14,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // The 3D board is a public, frontend-only prototype and does not need a session.
-  if (request.nextUrl.pathname.startsWith("/game")) {
+  if (request.nextUrl.pathname === "/game") {
     return supabaseResponse;
   }
 
