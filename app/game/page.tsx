@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { RoboBoard } from "@/components/game/robo-board";
+import { GameStateView } from "@/components/game/game-state-view";
 
 export const metadata: Metadata = {
-  title: "Board and Robot · RoboRally",
-  description: "A frontend-only RoboRally board with one robot.",
+  title: "Game state · RoboRally",
+  description: "The current RoboRally board, players, phase, and action cards.",
 };
 
 export default function GamePage() {
-  return <RoboBoard />;
+  return <GameStateView />;
 }

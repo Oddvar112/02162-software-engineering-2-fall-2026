@@ -13,8 +13,11 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // The 3D board is a public, frontend-only prototype and does not need a session.
-  if (request.nextUrl.pathname === "/game") {
+  // The game-state prototype and its mock data source are public for now.
+  if (
+    request.nextUrl.pathname === "/game" ||
+    request.nextUrl.pathname === "/api/game-state"
+  ) {
     return supabaseResponse;
   }
 
