@@ -29,8 +29,6 @@ export function CreateLobbyButton() {
         return;
       }
 
-      console.log("User ID:", user.id);
-
       // Insert lobby
       const { data: lobby, error: lobbyError } = await supabase
         .from("lobbies")
@@ -45,8 +43,6 @@ export function CreateLobbyButton() {
         return;
       }
 
-      console.log("Lobby created:", lobby);
-
       // Insert into lobby_players
       const { error: playerError } = await supabase
         .from("lobby_players")
@@ -58,8 +54,6 @@ export function CreateLobbyButton() {
         setIsLoading(false);
         return;
       }
-
-      console.log("Player joined lobby");
 
       // Redirect
       router.push(`/${lobby.id}`);
