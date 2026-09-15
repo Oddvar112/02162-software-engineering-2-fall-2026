@@ -30,8 +30,7 @@
 .gameIdentity,
 .roundStatus,
 .accountArea,
-.playerHeader,
-.sectionHeading {
+.playerHeader {
   display: flex;
   align-items: center;
 }
@@ -68,7 +67,6 @@
 }
 
 .gameIdentity h1,
-.sectionHeading h2,
 .stateCard h1 {
   margin: 0;
   font-weight: 650;
@@ -284,7 +282,7 @@
 .boardPlayers {
   top: 0.8rem;
   right: 0.8rem;
-  width: min(25rem, calc(100% - 1.6rem));
+  width: min(16rem, calc(100% - 1.6rem));
   max-height: calc(100% - 6.5rem);
   overflow-y: auto;
   padding: 0.72rem;
@@ -293,7 +291,7 @@
 
 .boardCards {
   bottom: 0.8rem;
-  left: 0.8rem;
+  left: 50%;
   width: min(59rem, calc(100% - 1.6rem));
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -301,6 +299,7 @@
   gap: 0.7rem;
   padding: 0.62rem;
   border-radius: 0.72rem;
+  transform: translateX(-50%);
 }
 
 .cardsHeading {
@@ -318,14 +317,54 @@
   width: 0.85rem;
 }
 
-.sectionHeading {
+.playersToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.55rem;
+  padding: 0;
+  color: inherit;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.sectionHeading h2 {
+.playersToggle:focus-visible {
+  border-radius: 0.35rem;
+  outline: 2px solid var(--cyan);
+  outline-offset: 0.2rem;
+}
+
+.playersToggle h2 {
+  margin: 0;
+  color: var(--text);
   font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.playersToggleEnd {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.playersChevron {
+  width: 0.95rem;
+  color: #8ea5ac;
+  transition: transform 150ms ease;
+}
+
+.playersToggle[aria-expanded="true"] .playersChevron {
+  transform: rotate(180deg);
+}
+
+.boardPlayers.playersCollapsed {
+  width: 10.5rem;
+  overflow: hidden;
 }
 
 .playerCount {
@@ -414,8 +453,9 @@
 
 .playerList {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.42rem;
+  margin-top: 0.55rem;
 }
 
 .playerCard {
@@ -643,10 +683,9 @@
   }
 
   .boardCards {
-    right: 0.55rem;
     bottom: 0.55rem;
-    left: 0.55rem;
-    width: auto;
+    left: 50%;
+    width: calc(100% - 1.1rem);
     grid-template-columns: 1fr;
     gap: 0.4rem;
     padding: 0.5rem;
@@ -654,10 +693,6 @@
 
   .cardsHeading {
     display: none;
-  }
-
-  .playerList {
-    grid-template-columns: 1fr;
   }
 
   .actionCards {
