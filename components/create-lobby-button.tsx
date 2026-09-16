@@ -16,48 +16,18 @@ export function CreateLobbyButton() {
     try {
       const supabase = createClient();
 
-      // Get current user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const { data: lobbyId, error: rpcError } = await supabase.rpc(
+        "create_lobby_with_game",
+      );
 
-      if (userError || !user) {
-        console.error("User fetch error:", userError);
-        setError("Failed to get user");
-        setIsLoading(false);
-        router.push("/auth/login");
-        return;
-      }
-
-      // Insert lobby
-      const { data: lobby, error: lobbyError } = await supabase
-        .from("lobbies")
-        .insert([{ created_by: user.id, max_players: 4 }])
-        .select()
-        .single();
-
-      if (lobbyError) {
-        console.error("Lobby insert error:", lobbyError);
-        setError(`Failed to create lobby: ${lobbyError.message}`);
-        setIsLoading(false);
-        return;
-      }
-
-      // Insert into lobby_players
-      const { error: playerError } = await supabase
-        .from("lobby_players")
-        .insert([{ lobby_id: lobby.id, user_id: user.id }]);
-
-      if (playerError) {
-        console.error("Player insert error:", playerError);
-        setError(`Failed to join lobby: ${playerError.message}`);
-        setIsLoading(false);
+      if (rpcError) {
+        console.error("Create lobby error:", rpcError);
+        setError(`Failed to create lobby: ${rpcError.message}`);
         return;
       }
 
       // Redirect
-      router.push(`/${lobby.id}`);
+      router.push(`/${lobbyId}`);
     } catch (err) {
       console.error("Unexpected error:", err);
       setError("An unexpected error occurred");
