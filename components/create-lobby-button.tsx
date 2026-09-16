@@ -26,6 +26,7 @@ export function CreateLobbyButton() {
         console.error("User fetch error:", userError);
         setError("Failed to get user");
         setIsLoading(false);
+        router.push("/auth/login");
         return;
       }
 
