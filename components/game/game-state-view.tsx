@@ -40,14 +40,20 @@ function CardIcon({ type }: Pick<ActionCard, "type">) {
   return <MoveUp aria-hidden="true" />;
 }
 
+function cardOpcode(card: ActionCard) {
+  if (card.type === "move") return `M${String(card.value).padStart(2, "0")}`;
+  if (card.type === "backup") return "B01";
+  return card.value < 0 ? "R.L" : "R.R";
+}
+
 function GameLoading() {
   return (
     <main className={styles.stateScreen}>
       <div className={styles.stateCard} role="status">
         <LoaderCircle className={styles.spinner} aria-hidden="true" />
-        <p className={styles.stateEyebrow}>Connecting to game</p>
-        <h1>Loading the board…</h1>
-        <p>Fetching the latest round, robots, and player status.</p>
+        <p className={styles.stateEyebrow}>Boot sequence</p>
+        <h1>Reading game state…</h1>
+        <p>Connecting to the board controller.</p>
       </div>
     </main>
   );
@@ -58,9 +64,9 @@ function GameError({ onRetry }: { onRetry: () => void }) {
     <main className={styles.stateScreen}>
       <div className={styles.stateCard} role="alert">
         <AlertTriangle className={styles.errorIcon} aria-hidden="true" />
-        <p className={styles.stateEyebrow}>Connection error</p>
-        <h1>Could not load the game</h1>
-        <p>Check your connection and try fetching the game state again.</p>
+        <p className={styles.stateEyebrow}>Link failure</p>
+        <h1>Game state unavailable</h1>
+        <p>Check the connection and retry the board controller.</p>
         <Button className={styles.retryButton} onClick={onRetry}>
           <RefreshCw aria-hidden="true" />
           Try again
@@ -148,16 +154,20 @@ export function GameStateView() {
             <Bot />
           </span>
           <div>
-            <p className={styles.eyebrow}>{gameState.gameId}</p>
-            <h1>Factory Floor</h1>
+            <p className={styles.eyebrow}>SYS::{gameState.gameId}</p>
+            <h1>
+              FACTORY FLOOR / {gameState.board.width}×{gameState.board.height}
+            </h1>
           </div>
         </div>
 
         <div className={styles.roundStatus}>
-          <span className={styles.roundNumber}>Round {gameState.round}</span>
+          <span className={styles.roundNumber}>
+            ROUND {String(gameState.round).padStart(2, "0")}
+          </span>
           <span className={styles.phaseBadge}>
             <Radio aria-hidden="true" />
-            {PHASE_LABELS[gameState.phase]}
+            MODE / {PHASE_LABELS[gameState.phase]}
           </span>
         </div>
 
@@ -168,7 +178,7 @@ export function GameStateView() {
             ) : (
               <Wifi aria-hidden="true" />
             )}
-            <span>{error ? "Offline" : isSyncing ? "Syncing" : "Live"}</span>
+            <span>{error ? "LINK DOWN" : isSyncing ? "SYNC" : "LINK OK"}</span>
           </span>
 
           <DropdownMenu>
@@ -240,8 +250,8 @@ export function GameStateView() {
               onClick={() => setPlayersCollapsed((collapsed) => !collapsed)}
             >
               <div>
-                <p className={styles.eyebrow}>At the table</p>
-                <h2>Players</h2>
+                <p className={styles.eyebrow}>Network</p>
+                <h2>CONNECTED UNITS</h2>
               </div>
               <span className={styles.playersToggleEnd}>
                 <span className={styles.playerCount}>
@@ -278,7 +288,7 @@ export function GameStateView() {
                             {robot
                               ? DIRECTION_LABELS[robot.direction]
                               : "Unknown"}
-                            {robot ? ` · ${robot.x + 1},${robot.z + 1}` : ""}
+                            {robot ? ` · X${robot.x + 1} Y${robot.z + 1}` : ""}
                           </span>
                         </div>
                         {isCurrent ? (
@@ -328,7 +338,7 @@ export function GameStateView() {
           <section className={styles.boardCards} aria-label="Your action cards">
             <div className={styles.cardsHeading}>
               <LockKeyhole aria-hidden="true" />
-              <span>Private hand</span>
+              <span>PROGRAM BUFFER // PRIVATE</span>
             </div>
 
             {gameState.phase === "programming" ? (
@@ -340,15 +350,9 @@ export function GameStateView() {
                     </div>
                     <div>
                       <strong>{card.name}</strong>
-                      <span>Priority {card.priority}</span>
+                      <span>P.{card.priority}</span>
                     </div>
-                    <b>
-                      {card.type === "move"
-                        ? `×${card.value}`
-                        : card.value < 0
-                          ? "−"
-                          : "+"}
-                    </b>
+                    <b>{cardOpcode(card)}</b>
                   </article>
                 ))}
               </div>

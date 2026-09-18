@@ -240,7 +240,7 @@ function Board({ gameState }: { gameState: GameState }) {
       <mesh position={[0, -0.28, 0]} receiveShadow>
         <boxGeometry args={[width + 0.7, 0.42, height + 0.7]} />
         <meshStandardMaterial
-          color="#2b3f4b"
+          color="#272d2e"
           metalness={0.48}
           roughness={0.52}
         />
@@ -261,7 +261,7 @@ function Board({ gameState }: { gameState: GameState }) {
               <boxGeometry args={[0.94, 0.2, 0.94]} />
               <meshStandardMaterial
                 color={
-                  isPit ? "#1a2831" : (x + z) % 2 === 0 ? "#667b88" : "#536a77"
+                  isPit ? "#141819" : (x + z) % 2 === 0 ? "#606766" : "#4d5554"
                 }
                 metalness={isPit ? 0.18 : 0.42}
                 roughness={isPit ? 0.82 : 0.56}
@@ -298,7 +298,7 @@ function Robot({
       {isCurrent && (
         <mesh position={[0, -0.215, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.38, 0.45, 28]} />
-          <meshBasicMaterial color="#73edf4" transparent opacity={0.88} />
+          <meshBasicMaterial color="#b5f23b" transparent opacity={0.88} />
         </mesh>
       )}
 
@@ -420,8 +420,8 @@ function ResponsiveCameraControls({
 function Scene({ gameState }: { gameState: GameState }) {
   return (
     <>
-      <color attach="background" args={["#152630"]} />
-      <fog attach="fog" args={["#152630", 32, 78]} />
+      <color attach="background" args={["#0d1112"]} />
+      <fog attach="fog" args={["#0d1112", 32, 78]} />
       <ambientLight intensity={1.12} />
       <hemisphereLight args={["#d6f7ff", "#344550", 1.55]} />
       <directionalLight
