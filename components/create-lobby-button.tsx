@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "./ui/button";
 
 export function CreateLobbyButton() {
   const router = useRouter();
@@ -38,13 +39,12 @@ export function CreateLobbyButton() {
 
   return (
     <div>
-      <button
+      <Button
         onClick={handleCreateLobby}
         disabled={isLoading}
-        className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
       >
         {isLoading ? "Creating..." : "Create Lobby"}
-      </button>
+      </Button>
       {error && <p className="mt-2 text-red-600">{error}</p>}
     </div>
   );
