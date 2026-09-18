@@ -2,6 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 
+const PUBLIC_ROUTES = new Set(["/game", "/api/game-state"]);
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -13,8 +15,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // The 3D board is a public, frontend-only prototype and does not need a session.
-  if (request.nextUrl.pathname === "/game") {
+  if (PUBLIC_ROUTES.has(request.nextUrl.pathname)) {
     return supabaseResponse;
   }
 
