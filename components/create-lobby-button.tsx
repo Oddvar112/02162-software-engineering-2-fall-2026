@@ -39,10 +39,7 @@ export function CreateLobbyButton() {
 
   return (
     <div>
-      <Button
-        onClick={handleCreateLobby}
-        disabled={isLoading}
-      >
+      <Button onClick={handleCreateLobby} disabled={isLoading}>
         {isLoading ? "Creating..." : "Create Lobby"}
       </Button>
       {error && <p className="mt-2 text-red-600">{error}</p>}
