@@ -90,6 +90,18 @@ npm run build
 
 CI runs `format:check`, which only reports. Run `format` locally so it fixes the formatting instead.
 
+For database changes, start Docker and run the local pgTAP suite too:
+
+```bash
+npx supabase db start
+npm run test:db
+```
+
+On its first start, the local database applies all migrations. If it is already
+running, apply new migrations with `npx supabase migration up --local` before
+testing. The tests use a transaction and roll back their fixtures. CI runs them
+against a fresh local database; these commands do not change the shared project.
+
 If you added a dependency, commit `package-lock.json` with it. CI installs with `npm ci`, which fails when the lockfile is missing or out of sync.
 
 ## Project structure

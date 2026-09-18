@@ -22,11 +22,13 @@ describe("isPublicRoute", () => {
     expect(isPublicRoute("/lobbies")).toBe(false);
     expect(isPublicRoute("/lobbies/abc")).toBe(false);
     expect(isPublicRoute("/games/abc")).toBe(false);
+    expect(isPublicRoute("/game/abc")).toBe(false);
     expect(isPublicRoute("/protected")).toBe(false);
   });
 
   it("stops at a segment boundary, so a prefix does not leak access", () => {
     expect(isPublicRoute("/games")).toBe(false);
     expect(isPublicRoute("/authorize")).toBe(false);
+    expect(isPublicRoute("/game-admin")).toBe(false);
   });
 });
