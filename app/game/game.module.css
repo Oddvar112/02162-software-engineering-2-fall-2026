@@ -1,8 +1,5 @@
 .page {
-  --surface: #111516;
-  --surface-raised: #181d1e;
   --line: #354043;
-  --line-faint: rgba(114, 132, 132, 0.18);
   --muted: #7f8d8b;
   --text: #e0e7e3;
   --cyan: #b5f23b;
@@ -495,6 +492,10 @@
   margin-top: 0.55rem;
 }
 
+.playerList[hidden] {
+  display: none;
+}
+
 .playerCard {
   padding: 0.62rem;
   border: 1px solid #303a3c;
@@ -595,7 +596,7 @@
 }
 
 .hiddenCards {
-  color: #7e969d !important;
+  color: #7e969d;
 }
 
 .stateScreen {

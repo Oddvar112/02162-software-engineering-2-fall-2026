@@ -2,6 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 
+const PUBLIC_ROUTES = new Set(["/game", "/api/game-state"]);
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -13,11 +15,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // The game-state prototype and its mock data source are public for now.
-  if (
-    request.nextUrl.pathname === "/game" ||
-    request.nextUrl.pathname === "/api/game-state"
-  ) {
+  if (PUBLIC_ROUTES.has(request.nextUrl.pathname)) {
     return supabaseResponse;
   }
 

@@ -17,7 +17,14 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "@/app/game/game.module.css";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,31 +88,43 @@ export function GameStateView() {
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [playersCollapsed, setPlayersCollapsed] = useState(false);
-  const requestInFlight = useRef(false);
+  const requestController = useRef<AbortController | null>(null);
+  const playerListId = useId();
 
   const loadGameState = useCallback(async () => {
-    if (requestInFlight.current) return;
+    if (requestController.current) return;
 
-    requestInFlight.current = true;
+    const controller = new AbortController();
+    requestController.current = controller;
+
     setIsSyncing(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/game-state", { cache: "no-store" });
+      const response = await fetch("/api/game-state", {
+        cache: "no-store",
+        signal: controller.signal,
+      });
       if (!response.ok)
         throw new Error(`Request failed with ${response.status}`);
 
       const state = (await response.json()) as GameState;
       setGameState(state);
     } catch (requestError) {
+      if (requestError instanceof Error && requestError.name === "AbortError") {
+        return;
+      }
+
       setError(
         requestError instanceof Error
           ? requestError.message
           : "The game state is unavailable",
       );
     } finally {
-      requestInFlight.current = false;
-      setIsSyncing(false);
+      if (requestController.current === controller) {
+        requestController.current = null;
+        setIsSyncing(false);
+      }
     }
   }, []);
 
@@ -124,6 +143,8 @@ export function GameStateView() {
       window.clearInterval(interval);
       window.removeEventListener("online", loadGameState);
       document.removeEventListener("visibilitychange", syncWhenVisible);
+      requestController.current?.abort();
+      requestController.current = null;
     };
   }, [loadGameState]);
 
@@ -246,7 +267,7 @@ export function GameStateView() {
               type="button"
               className={styles.playersToggle}
               aria-expanded={!playersCollapsed}
-              aria-controls="board-player-list"
+              aria-controls={playerListId}
               onClick={() => setPlayersCollapsed((collapsed) => !collapsed)}
             >
               <div>
@@ -264,75 +285,77 @@ export function GameStateView() {
               </span>
             </button>
 
-            {!playersCollapsed && (
-              <div className={styles.playerList} id="board-player-list">
-                {gameState.players.map((player) => {
-                  const robot = robotById.get(player.robotId);
-                  const isCurrent = player.id === gameState.currentPlayerId;
+            <div
+              className={styles.playerList}
+              id={playerListId}
+              hidden={playersCollapsed}
+            >
+              {gameState.players.map((player) => {
+                const robot = robotById.get(player.robotId);
+                const isCurrent = player.id === gameState.currentPlayerId;
 
-                  return (
-                    <article
-                      key={player.id}
-                      className={`${styles.playerCard} ${isCurrent ? styles.currentPlayer : ""}`}
-                    >
-                      <div className={styles.playerHeader}>
+                return (
+                  <article
+                    key={player.id}
+                    className={`${styles.playerCard} ${isCurrent ? styles.currentPlayer : ""}`}
+                  >
+                    <div className={styles.playerHeader}>
+                      <span
+                        className={styles.robotSwatch}
+                        style={{ backgroundColor: robot?.color }}
+                        aria-hidden="true"
+                      />
+                      <div className={styles.playerName}>
+                        <strong>{player.name}</strong>
+                        <span>
+                          {robot?.name} ·{" "}
+                          {robot
+                            ? DIRECTION_LABELS[robot.direction]
+                            : "Unknown"}
+                          {robot ? ` · X${robot.x + 1} Y${robot.z + 1}` : ""}
+                        </span>
+                      </div>
+                      {isCurrent ? (
+                        <span className={styles.youBadge}>You</span>
+                      ) : (
                         <span
-                          className={styles.robotSwatch}
-                          style={{ backgroundColor: robot?.color }}
-                          aria-hidden="true"
+                          className={
+                            player.connected
+                              ? styles.onlineDot
+                              : styles.offlineDot
+                          }
+                          title={
+                            player.connected ? "Connected" : "Disconnected"
+                          }
+                          aria-label={
+                            player.connected ? "Connected" : "Disconnected"
+                          }
                         />
-                        <div className={styles.playerName}>
-                          <strong>{player.name}</strong>
-                          <span>
-                            {robot?.name} ·{" "}
-                            {robot
-                              ? DIRECTION_LABELS[robot.direction]
-                              : "Unknown"}
-                            {robot ? ` · X${robot.x + 1} Y${robot.z + 1}` : ""}
-                          </span>
-                        </div>
-                        {isCurrent ? (
-                          <span className={styles.youBadge}>You</span>
-                        ) : (
-                          <span
-                            className={
-                              player.connected
-                                ? styles.onlineDot
-                                : styles.offlineDot
-                            }
-                            title={
-                              player.connected ? "Connected" : "Disconnected"
-                            }
-                            aria-label={
-                              player.connected ? "Connected" : "Disconnected"
-                            }
-                          />
-                        )}
-                      </div>
+                      )}
+                    </div>
 
-                      <div className={styles.playerStats}>
-                        <span>
-                          <Shield aria-label="Damage" />
-                          {player.damage}
-                        </span>
-                        <span>
-                          <Heart aria-label="Lives" />
-                          {player.lives}
-                        </span>
-                        <span>
-                          <Flag aria-label="Checkpoints" />
-                          {player.checkpointsReached}
-                        </span>
-                        <span className={styles.hiddenCards}>
-                          <LockKeyhole aria-hidden="true" />
-                          {player.programmedCardCount}/5
-                        </span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
+                    <div className={styles.playerStats}>
+                      <span>
+                        <Shield aria-label="Damage" />
+                        {player.damage}
+                      </span>
+                      <span>
+                        <Heart aria-label="Lives" />
+                        {player.lives}
+                      </span>
+                      <span>
+                        <Flag aria-label="Checkpoints" />
+                        {player.checkpointsReached}
+                      </span>
+                      <span className={styles.hiddenCards}>
+                        <LockKeyhole aria-hidden="true" />
+                        {player.programmedCardCount}/5
+                      </span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </section>
 
           <section className={styles.boardCards} aria-label="Your action cards">
@@ -343,7 +366,7 @@ export function GameStateView() {
 
             {gameState.phase === "programming" ? (
               <div className={styles.actionCards}>
-                {gameState.availableCards.map((card) => (
+                {gameState.currentPlayerCards.map((card) => (
                   <article className={styles.actionCard} key={card.id}>
                     <div className={styles.cardIcon}>
                       <CardIcon type={card.type} />
