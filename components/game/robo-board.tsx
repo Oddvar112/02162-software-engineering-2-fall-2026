@@ -33,18 +33,18 @@ function Conveyor({ direction }: { direction: Direction }) {
       <mesh receiveShadow>
         <boxGeometry args={[0.82, 0.05, 0.82]} />
         <meshStandardMaterial
-          color="#111516"
-          metalness={0.72}
-          roughness={0.3}
+          color="#18252b"
+          metalness={0.62}
+          roughness={0.38}
         />
       </mesh>
       {[-0.36, 0.36].map((x) => (
         <mesh key={x} position={[x, 0.045, 0]}>
           <boxGeometry args={[0.06, 0.08, 0.78]} />
           <meshStandardMaterial
-            color="#d39116"
-            emissive="#7a4700"
-            emissiveIntensity={0.18}
+            color="#32c5d6"
+            emissive="#18899a"
+            emissiveIntensity={0.35}
             metalness={0.72}
             roughness={0.28}
           />
@@ -67,7 +67,7 @@ function Conveyor({ direction }: { direction: Direction }) {
           rotation={[0, x < 0 ? -Math.PI / 4 : Math.PI / 4, 0]}
         >
           <boxGeometry args={[0.29, 0.025, 0.065]} />
-          <meshBasicMaterial color="#b5f23b" />
+          <meshBasicMaterial color="#d6fbff" />
         </mesh>
       ))}
     </group>
@@ -75,11 +75,11 @@ function Conveyor({ direction }: { direction: Direction }) {
 }
 
 function Checkpoint({ order }: { order: number }) {
-  const corners = [
-    [-0.3, -0.3],
-    [0.3, -0.3],
-    [-0.3, 0.3],
-    [0.3, 0.3],
+  const checks = [
+    [-0.19, -0.19, "#f5c452"],
+    [0.19, -0.19, "#20292e"],
+    [-0.19, 0.19, "#20292e"],
+    [0.19, 0.19, "#f5c452"],
   ] as const;
 
   return (
@@ -87,37 +87,35 @@ function Checkpoint({ order }: { order: number }) {
       <mesh receiveShadow>
         <boxGeometry args={[0.84, 0.05, 0.84]} />
         <meshStandardMaterial
-          color="#111516"
-          metalness={0.72}
-          roughness={0.3}
+          color="#111a1f"
+          metalness={0.6}
+          roughness={0.34}
         />
       </mesh>
-      {corners.map(([x, z]) => (
+      {checks.map(([x, z, color]) => (
         <mesh key={`${x}-${z}`} position={[x, 0.035, z]}>
-          <boxGeometry args={[0.16, 0.035, 0.16]} />
+          <boxGeometry args={[0.34, 0.025, 0.34]} />
           <meshStandardMaterial
-            color="#d39116"
-            emissive="#754500"
-            emissiveIntensity={0.18}
-            metalness={0.66}
-            roughness={0.3}
+            color={color}
+            metalness={0.5}
+            roughness={0.42}
           />
         </mesh>
       ))}
       <mesh position={[0, 0.075, 0]}>
-        <cylinderGeometry args={[0.235, 0.235, 0.075, 8]} />
+        <cylinderGeometry args={[0.19, 0.19, 0.075, 24]} />
         <meshStandardMaterial
-          color="#252d2d"
-          metalness={0.84}
+          color="#17242a"
+          metalness={0.78}
           roughness={0.25}
         />
       </mesh>
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0.12, 0]}>
-        <torusGeometry args={[0.155, 0.025, 8, 24]} />
+        <torusGeometry args={[0.13, 0.035, 8, 24]} />
         <meshStandardMaterial
-          color="#cfff65"
-          emissive="#84c900"
-          emissiveIntensity={1.1}
+          color="#fff0a8"
+          emissive="#f4b942"
+          emissiveIntensity={0.9}
         />
       </mesh>
       {Array.from({ length: order }, (_, index) => (
@@ -125,8 +123,8 @@ function Checkpoint({ order }: { order: number }) {
           key={index}
           position={[(index - (order - 1) / 2) * 0.075, 0.155, 0]}
         >
-          <boxGeometry args={[0.035, 0.035, 0.035]} />
-          <meshBasicMaterial color="#ffb000" />
+          <sphereGeometry args={[0.025, 10, 10]} />
+          <meshBasicMaterial color="#fff7d6" />
         </mesh>
       ))}
     </group>
@@ -141,8 +139,8 @@ function Gear({ rotation }: { rotation: "clockwise" | "counter-clockwise" }) {
       <mesh receiveShadow>
         <cylinderGeometry args={[0.39, 0.39, 0.045, 24]} />
         <meshStandardMaterial
-          color="#101415"
-          metalness={0.82}
+          color="#162229"
+          metalness={0.72}
           roughness={0.3}
         />
       </mesh>
@@ -156,7 +154,7 @@ function Gear({ rotation }: { rotation: "clockwise" | "counter-clockwise" }) {
           >
             <boxGeometry args={[0.115, 0.055, 0.105]} />
             <meshStandardMaterial
-              color="#657071"
+              color="#a7b8be"
               metalness={0.86}
               roughness={0.22}
             />
@@ -166,17 +164,17 @@ function Gear({ rotation }: { rotation: "clockwise" | "counter-clockwise" }) {
       <mesh position={[0, 0.065, 0]}>
         <cylinderGeometry args={[0.285, 0.285, 0.075, 24]} />
         <meshStandardMaterial
-          color="#252c2c"
-          emissive="#756000"
-          emissiveIntensity={0.08}
-          metalness={0.82}
+          color="#d78136"
+          emissive="#8f3f10"
+          emissiveIntensity={0.18}
+          metalness={0.72}
           roughness={0.3}
         />
       </mesh>
       <mesh position={[0, 0.12, 0]}>
         <cylinderGeometry args={[0.09, 0.09, 0.055, 16]} />
         <meshStandardMaterial
-          color="#0d1011"
+          color="#263840"
           metalness={0.86}
           roughness={0.22}
         />
@@ -186,7 +184,7 @@ function Gear({ rotation }: { rotation: "clockwise" | "counter-clockwise" }) {
         rotation={[-Math.PI / 2, 0, direction * 0.7]}
       >
         <circleGeometry args={[0.075, 3]} />
-        <meshBasicMaterial color="#b5f23b" />
+        <meshBasicMaterial color="#fff1b7" />
       </mesh>
     </group>
   );
@@ -197,70 +195,10 @@ function Wall({ side }: { side: Direction }) {
   const edge = side === "north" || side === "west" ? -0.47 : 0.47;
 
   return (
-    <group position={vertical ? [edge, 0.39, 0] : [0, 0.39, edge]}>
-      <mesh castShadow>
-        <boxGeometry
-          args={vertical ? [0.11, 0.58, 0.94] : [0.94, 0.58, 0.11]}
-        />
-        <meshStandardMaterial
-          color="#252c2d"
-          metalness={0.82}
-          roughness={0.26}
-        />
-      </mesh>
-      {[-0.32, -0.1, 0.12, 0.34].map((offset, index) => (
-        <mesh
-          key={offset}
-          position={vertical ? [0, 0.31, offset] : [offset, 0.31, 0]}
-        >
-          <boxGeometry
-            args={vertical ? [0.13, 0.035, 0.14] : [0.14, 0.035, 0.13]}
-          />
-          <meshStandardMaterial
-            color={index % 2 === 0 ? "#ffb000" : "#111516"}
-            emissive={index % 2 === 0 ? "#6f4300" : "#000000"}
-            emissiveIntensity={0.16}
-            metalness={0.66}
-            roughness={0.32}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-function Pit() {
-  return (
-    <group position={[0, 0.115, 0]}>
-      <mesh position={[0, -0.025, 0]}>
-        <boxGeometry args={[0.74, 0.035, 0.74]} />
-        <meshStandardMaterial
-          color="#030505"
-          metalness={0.12}
-          roughness={0.92}
-        />
-      </mesh>
-      {[-0.36, 0.36].map((x) => (
-        <mesh key={`x-${x}`} position={[x, 0.015, 0]}>
-          <boxGeometry args={[0.035, 0.035, 0.76]} />
-          <meshStandardMaterial
-            color="#9e6b0b"
-            metalness={0.64}
-            roughness={0.36}
-          />
-        </mesh>
-      ))}
-      {[-0.36, 0.36].map((z) => (
-        <mesh key={`z-${z}`} position={[0, 0.015, z]}>
-          <boxGeometry args={[0.76, 0.035, 0.035]} />
-          <meshStandardMaterial
-            color="#9e6b0b"
-            metalness={0.64}
-            roughness={0.36}
-          />
-        </mesh>
-      ))}
-    </group>
+    <mesh castShadow position={vertical ? [edge, 0.38, 0] : [0, 0.38, edge]}>
+      <boxGeometry args={vertical ? [0.08, 0.56, 0.94] : [0.94, 0.56, 0.08]} />
+      <meshStandardMaterial color="#d7dde0" metalness={0.72} roughness={0.3} />
+    </mesh>
   );
 }
 
@@ -275,7 +213,16 @@ function BoardElementMesh({ element }: { element: BoardElement }) {
     case "wall":
       return <Wall side={element.side} />;
     case "pit":
-      return <Pit />;
+      return (
+        <mesh position={[0, 0.105, 0]}>
+          <boxGeometry args={[0.76, 0.025, 0.76]} />
+          <meshStandardMaterial
+            color="#071018"
+            metalness={0.1}
+            roughness={0.9}
+          />
+        </mesh>
+      );
   }
 }
 
@@ -293,59 +240,11 @@ function Board({ gameState }: { gameState: GameState }) {
       <mesh position={[0, -0.28, 0]} receiveShadow>
         <boxGeometry args={[width + 0.7, 0.42, height + 0.7]} />
         <meshStandardMaterial
-          color="#15191a"
-          metalness={0.68}
-          roughness={0.38}
+          color="#272d2e"
+          metalness={0.48}
+          roughness={0.52}
         />
       </mesh>
-
-      {[-1, 1].map((edge) => (
-        <mesh
-          key={`rail-x-${edge}`}
-          position={[edge * (width / 2 + 0.14), 0, 0]}
-        >
-          <boxGeometry args={[0.18, 0.32, height + 0.38]} />
-          <meshStandardMaterial
-            color="#242a2b"
-            metalness={0.82}
-            roughness={0.26}
-          />
-        </mesh>
-      ))}
-      {[-1, 1].map((edge) => (
-        <mesh
-          key={`rail-z-${edge}`}
-          position={[0, 0, edge * (height / 2 + 0.14)]}
-        >
-          <boxGeometry args={[width + 0.38, 0.32, 0.18]} />
-          <meshStandardMaterial
-            color="#242a2b"
-            metalness={0.82}
-            roughness={0.26}
-          />
-        </mesh>
-      ))}
-      {[-1, 1].flatMap((xEdge) =>
-        [-1, 1].map((zEdge) => (
-          <mesh
-            key={`node-${xEdge}-${zEdge}`}
-            position={[
-              xEdge * (width / 2 + 0.14),
-              0.2,
-              zEdge * (height / 2 + 0.14),
-            ]}
-          >
-            <boxGeometry args={[0.16, 0.08, 0.16]} />
-            <meshStandardMaterial
-              color="#b5f23b"
-              emissive="#629400"
-              emissiveIntensity={0.7}
-              metalness={0.46}
-              roughness={0.3}
-            />
-          </mesh>
-        )),
-      )}
 
       {Array.from({ length: width * height }, (_, index) => {
         const x = index % width;
@@ -362,22 +261,12 @@ function Board({ gameState }: { gameState: GameState }) {
               <boxGeometry args={[0.94, 0.2, 0.94]} />
               <meshStandardMaterial
                 color={
-                  isPit ? "#111415" : (x + z) % 2 === 0 ? "#343a39" : "#2b3030"
+                  isPit ? "#141819" : (x + z) % 2 === 0 ? "#606766" : "#4d5554"
                 }
-                metalness={isPit ? 0.28 : 0.66}
-                roughness={isPit ? 0.76 : 0.42}
+                metalness={isPit ? 0.18 : 0.42}
+                roughness={isPit ? 0.82 : 0.56}
               />
             </mesh>
-            {!isPit && (
-              <mesh position={[0, 0.11, 0]} receiveShadow>
-                <boxGeometry args={[0.79, 0.025, 0.79]} />
-                <meshStandardMaterial
-                  color={(x + z) % 2 === 0 ? "#454c4a" : "#3c4241"}
-                  metalness={0.72}
-                  roughness={0.36}
-                />
-              </mesh>
-            )}
             {tileElements.map((element) => (
               <BoardElementMesh key={element.id} element={element} />
             ))}
@@ -413,102 +302,72 @@ function Robot({
         </mesh>
       )}
 
-      <mesh castShadow position={[0, -0.05, 0]}>
-        <boxGeometry args={[0.66, 0.22, 0.66]} />
-        <meshStandardMaterial
-          color="#171b1c"
-          metalness={0.82}
-          roughness={0.28}
-        />
-      </mesh>
-      <mesh castShadow position={[0, 0.14, 0]}>
-        <boxGeometry args={[0.5, 0.32, 0.52]} />
-        <meshStandardMaterial
-          color="#2b3232"
-          metalness={0.76}
-          roughness={0.32}
-        />
-      </mesh>
-      <mesh castShadow position={[0, 0.15, -0.27]}>
-        <boxGeometry args={[0.34, 0.22, 0.025]} />
+      <mesh castShadow position={[0, 0.02, 0]}>
+        <boxGeometry args={[0.58, 0.5, 0.6]} />
         <meshStandardMaterial
           color={robot.color}
-          emissive={robot.color}
-          emissiveIntensity={0.12}
-          metalness={0.62}
+          metalness={0.58}
           roughness={0.34}
         />
       </mesh>
-      {[-0.265, 0.265].map((x) => (
-        <mesh key={`armor-${x}`} castShadow position={[x, 0.13, 0]}>
-          <boxGeometry args={[0.035, 0.18, 0.36]} />
-          <meshStandardMaterial
-            color={robot.color}
-            metalness={0.68}
-            roughness={0.3}
-          />
-        </mesh>
-      ))}
-      <mesh castShadow position={[0, 0.38, 0.02]}>
-        <boxGeometry args={[0.34, 0.16, 0.34]} />
+      <mesh castShadow position={[0, 0.38, -0.02]}>
+        <boxGeometry args={[0.43, 0.28, 0.42]} />
         <meshStandardMaterial
-          color="#171b1c"
-          metalness={0.84}
-          roughness={0.24}
-        />
-      </mesh>
-      <mesh position={[0, 0.39, -0.16]}>
-        <boxGeometry args={[0.2, 0.065, 0.018]} />
-        <meshStandardMaterial
-          color="#cfff65"
-          emissive="#79b900"
-          emissiveIntensity={1.3}
-        />
-      </mesh>
-      <mesh castShadow position={[0, 0.59, 0.04]}>
-        <cylinderGeometry args={[0.035, 0.045, 0.28, 8]} />
-        <meshStandardMaterial
-          color="#667172"
-          metalness={0.88}
-          roughness={0.22}
-        />
-      </mesh>
-      <mesh position={[0, 0.75, 0.04]}>
-        <boxGeometry args={[0.1, 0.08, 0.1]} />
-        <meshStandardMaterial
-          color="#ffb000"
-          emissive="#a96200"
-          emissiveIntensity={1.2}
-          metalness={0.4}
+          color="#43545e"
+          metalness={0.72}
           roughness={0.3}
         />
       </mesh>
+      <mesh position={[0, 0.4, -0.225]}>
+        <boxGeometry args={[0.25, 0.09, 0.03]} />
+        <meshStandardMaterial
+          color="#b9f7ff"
+          emissive="#2cc5dc"
+          emissiveIntensity={1.1}
+        />
+      </mesh>
+      <mesh castShadow position={[0, 0.67, 0.03]}>
+        <cylinderGeometry args={[0.045, 0.055, 0.32, 10]} />
+        <meshStandardMaterial
+          color="#82939c"
+          metalness={0.82}
+          roughness={0.25}
+        />
+      </mesh>
+      <mesh position={[0, 0.84, 0.03]}>
+        <sphereGeometry args={[0.075, 12, 12]} />
+        <meshStandardMaterial
+          color="#fff0a8"
+          emissive="#f4b942"
+          emissiveIntensity={1.5}
+        />
+      </mesh>
       {[-0.34, 0.34].map((x) => (
-        <group key={x} position={[x, -0.08, 0]}>
+        <group key={x} position={[x, -0.06, 0]}>
           <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.145, 0.145, 0.12, 12]} />
+            <cylinderGeometry args={[0.17, 0.17, 0.13, 12]} />
             <meshStandardMaterial
-              color="#080a0a"
-              metalness={0.38}
-              roughness={0.82}
+              color="#151b20"
+              metalness={0.4}
+              roughness={0.75}
             />
           </mesh>
           <mesh rotation={[0, 0, Math.PI / 2]}>
-            <torusGeometry args={[0.1, 0.02, 7, 14]} />
+            <torusGeometry args={[0.12, 0.025, 7, 14]} />
             <meshStandardMaterial
-              color="#737e7e"
-              metalness={0.86}
-              roughness={0.24}
+              color="#9aabb3"
+              metalness={0.8}
+              roughness={0.3}
             />
           </mesh>
         </group>
       ))}
-      <mesh position={[0, 0.01, -0.35]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.085, 0.2, 3]} />
+      <mesh position={[0, 0.04, -0.38]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.1, 0.24, 3]} />
         <meshStandardMaterial
-          color="#b5f23b"
-          emissive="#659800"
-          emissiveIntensity={0.8}
+          color="#fff0a8"
+          emissive="#f4b942"
+          emissiveIntensity={0.7}
         />
       </mesh>
     </group>
@@ -563,13 +422,13 @@ function Scene({ gameState }: { gameState: GameState }) {
     <>
       <color attach="background" args={["#0d1112"]} />
       <fog attach="fog" args={["#0d1112", 32, 78]} />
-      <ambientLight intensity={0.92} />
-      <hemisphereLight args={["#dfe8df", "#242b28", 1.35]} />
+      <ambientLight intensity={1.12} />
+      <hemisphereLight args={["#d6f7ff", "#344550", 1.55]} />
       <directionalLight
         castShadow
         position={[-6, 10, 6]}
-        intensity={2.8}
-        color="#f3f1dd"
+        intensity={3.1}
+        color="#f1fbff"
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-camera-far={28}
@@ -577,18 +436,6 @@ function Scene({ gameState }: { gameState: GameState }) {
         shadow-camera-right={8}
         shadow-camera-top={8}
         shadow-camera-bottom={-8}
-      />
-      <pointLight
-        position={[5, 4, -5]}
-        intensity={2.2}
-        distance={16}
-        color="#b5f23b"
-      />
-      <pointLight
-        position={[-5, 3, 5]}
-        intensity={1.5}
-        distance={13}
-        color="#ffb000"
       />
       <Board gameState={gameState} />
       {gameState.robots.map((robot) => (
