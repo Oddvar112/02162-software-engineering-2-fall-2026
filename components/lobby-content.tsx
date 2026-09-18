@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { StartGameButton } from "@/components/start-game-button";
 import { redirect } from "next/navigation";
 
 export default async function LobbyContent({
@@ -58,6 +59,8 @@ export default async function LobbyContent({
               <p className="text-foreground/50">No players yet</p>
             )}
           </div>
+
+          <StartGameButton />
         </div>
       </div>
     </main>
