@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
@@ -9,8 +9,13 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "RoboRally",
-  description: "App for 02162 Software Engineering 2",
+  title: "RoboRally Reimagined",
+  description:
+    "Program your robot. Outsmart your friends. A little strategy, a little sabotage, and a lot of chaos — right in your browser.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#11130f",
 };
 
 const geistSans = Geist({

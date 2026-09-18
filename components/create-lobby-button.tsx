@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function CreateLobbyButton() {
+export function CreateLobbyButton({ className }: { className?: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,10 @@ export function CreateLobbyButton() {
       <button
         onClick={handleCreateLobby}
         disabled={isLoading}
-        className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+        className={
+          className ??
+          "rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        }
       >
         {isLoading ? "Creating..." : "Create Lobby"}
       </button>
