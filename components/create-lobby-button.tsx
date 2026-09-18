@@ -27,7 +27,7 @@ export function CreateLobbyButton() {
       }
 
       // Redirect
-      router.push(`/${lobbyId}`);
+      router.push(`/lobbies/${lobbyId}`);
     } catch (err) {
       console.error("Unexpected error:", err);
       setError("An unexpected error occurred");
