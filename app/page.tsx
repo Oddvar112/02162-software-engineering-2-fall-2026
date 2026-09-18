@@ -30,7 +30,13 @@ export default function Home() {
             02162 Software Engineering 2 - Gruppe 7
           </p>
           <p className="text-sm text-foreground/50">In the making</p>
-          <CreateLobbyButton />
+          <div className="flex flex-row gap-4">
+            <CreateLobbyButton />
+            <Button asChild>
+              <Link href={"/lobbies"}>Join Lobby</Link>
+            </Button>
+          </div>
+
           <Button asChild className="mt-3">
             <Link href="/game">Open 3D board prototype</Link>
           </Button>

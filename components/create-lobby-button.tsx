@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "./ui/button";
 
 export function CreateLobbyButton() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export function CreateLobbyButton() {
       }
 
       // Redirect
-      router.push(`/${lobbyId}`);
+      router.push(`/lobbies/${lobbyId}`);
     } catch (err) {
       console.error("Unexpected error:", err);
       setError("An unexpected error occurred");
@@ -38,13 +39,9 @@ export function CreateLobbyButton() {
 
   return (
     <div>
-      <button
-        onClick={handleCreateLobby}
-        disabled={isLoading}
-        className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-      >
+      <Button onClick={handleCreateLobby} disabled={isLoading}>
         {isLoading ? "Creating..." : "Create Lobby"}
-      </button>
+      </Button>
       {error && <p className="mt-2 text-red-600">{error}</p>}
     </div>
   );
