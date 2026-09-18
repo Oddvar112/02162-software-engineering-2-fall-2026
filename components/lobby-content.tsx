@@ -59,7 +59,6 @@ export default async function LobbyContent({
               <p className="text-foreground/50">No players yet</p>
             )}
           </div>
-
           <StartGameButton />
         </div>
       </div>

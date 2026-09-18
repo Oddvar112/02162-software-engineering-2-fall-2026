@@ -6,11 +6,11 @@ import { useState } from "react";
 
 export function StartGameButton() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [notReady, setNotReady] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreateLobby = async () => {
-    setIsLoading(true);
+    setNotReady(true);
     setError(null);
 
     try {
@@ -32,7 +32,7 @@ export function StartGameButton() {
       console.error("Unexpected error:", err);
       setError("An unexpected error occurred");
     } finally {
-      setIsLoading(false);
+      setNotReady(false);
     }
   };
 
@@ -40,7 +40,7 @@ export function StartGameButton() {
     <div>
       <button
         onClick={handleCreateLobby}
-        disabled={isLoading}
+        disabled={notReady}
         className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
       >
         {"Start game"}
