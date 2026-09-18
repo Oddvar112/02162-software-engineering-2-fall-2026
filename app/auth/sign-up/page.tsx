@@ -1,11 +1,10 @@
 import { SignUpForm } from "@/components/sign-up-form";
+import { LandingPage } from "@/components/landing/landing-page";
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <SignUpForm />
-      </div>
-    </div>
+    <LandingPage>
+      <SignUpForm />
+    </LandingPage>
   );
 }
