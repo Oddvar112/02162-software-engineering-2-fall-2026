@@ -119,7 +119,7 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
       connected: false,
     },
   ],
-  availableCards: [
+  currentPlayerCards: [
     { id: "card-1", name: "Move 3", type: "move", value: 3, priority: 840 },
     { id: "card-2", name: "Move 2", type: "move", value: 2, priority: 670 },
     { id: "card-3", name: "Move 1", type: "move", value: 1, priority: 510 },
@@ -152,7 +152,9 @@ export function getMockGameState(): GameState {
     },
     robots: BASE_GAME_STATE.robots.map((robot) => ({ ...robot })),
     players: BASE_GAME_STATE.players.map((player) => ({ ...player })),
-    availableCards: BASE_GAME_STATE.availableCards.map((card) => ({ ...card })),
+    currentPlayerCards: BASE_GAME_STATE.currentPlayerCards.map((card) => ({
+      ...card,
+    })),
     updatedAt: new Date().toISOString(),
   };
 }

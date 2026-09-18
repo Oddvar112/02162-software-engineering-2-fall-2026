@@ -80,7 +80,7 @@ export type GameState = {
   };
   robots: RobotState[];
   players: PlayerState[];
-  availableCards: ActionCard[];
+  currentPlayerCards: ActionCard[];
   updatedAt: string;
 };
 

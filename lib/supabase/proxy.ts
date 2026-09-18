@@ -2,10 +2,16 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthEntryRoute, isPublicRoute } from "@/lib/routes";
 
+const PUBLIC_ROUTES = new Set(["/game", "/api/game-state"]);
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
+
+  if (PUBLIC_ROUTES.has(request.nextUrl.pathname)) {
+    return supabaseResponse;
+  }
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.

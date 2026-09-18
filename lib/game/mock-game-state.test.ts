@@ -26,7 +26,7 @@ describe("mock game state", () => {
       (player) => player.id !== state.currentPlayerId,
     );
 
-    expect(state.availableCards.length).toBeGreaterThan(0);
+    expect(state.currentPlayerCards.length).toBeGreaterThan(0);
     opponents.forEach((opponent) => {
       expect(opponent).not.toHaveProperty("cards");
       expect(opponent).not.toHaveProperty("actionCards");
@@ -41,5 +41,8 @@ describe("mock game state", () => {
     expect(firstState).not.toBe(secondState);
     expect(firstState.robots).not.toBe(secondState.robots);
     expect(firstState.board.elements).not.toBe(secondState.board.elements);
+    expect(firstState.currentPlayerCards).not.toBe(
+      secondState.currentPlayerCards,
+    );
   });
 });
