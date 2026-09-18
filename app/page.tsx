@@ -4,6 +4,7 @@ import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CreateLobbyButton } from "@/components/create-lobby-button";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -30,6 +31,9 @@ export default function Home() {
           </p>
           <p className="text-sm text-foreground/50">In the making</p>
           <CreateLobbyButton />
+          <Button asChild className="mt-3">
+            <Link href="/game">Open 3D board prototype</Link>
+          </Button>
         </div>
       </div>
     </main>
