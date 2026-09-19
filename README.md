@@ -55,21 +55,28 @@ Cloning the repo is not enough. Without these two commands you cannot push migra
 
 ## Database changes
 
-**Do not create or alter tables in the Supabase dashboard.** Every schema change goes through a migration file in git, or the rest of the group has no idea what changed.
+Do not create or alter tables in the Supabase dashboard. Every schema change goes
+through a migration file in git, or the rest of the group has no idea what changed.
 
-```bash
-npx supabase migration new add_player_color
-```
+    npx supabase migration new add_player_color
 
-Write the SQL in the file that appears under `supabase/migrations/`, then:
+Write the SQL in the file that appears under `supabase/migrations/`, then apply and
+test it locally:
 
-```bash
-npx supabase db push
-```
+    npx supabase migration up --local
+    npm run test:db
 
-Commit the migration file with the rest of your change.
+Commit the migration file with the rest of your change and open a PR. CI rebuilds a
+fresh database from the whole folder and runs the tests against it.
 
-Never edit a migration that has already been pushed. Supabase tracks which ones have run by their timestamp, so edits to an old file are silently skipped — the repo and the database drift apart and nobody notices until something breaks. Make a new migration instead.
+Only after the PR is merged does the shared project get the change. Whoever merges runs:
+
+    npx supabase db push
+
+Never edit a migration that has been pushed to the shared project. Supabase records
+which versions have run by the timestamp in the filename, so edits to an old file are
+silently skipped — the repo and the database drift apart and nobody notices until
+something breaks. Add a new migration instead.
 
 ## Branching
 
