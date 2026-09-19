@@ -40,3 +40,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local robot handoff copies, obsolete prototype, and Blender/Python backups
+/assets/robots/crew/factory-misfits-glb.zip
+/assets/robots/crew/lineup.png
+/assets/robots/rivet/
+/public/models/rivet.glb
+/assets/robots/**/__pycache__/
+/assets/robots/**/*.blend[1-9]
