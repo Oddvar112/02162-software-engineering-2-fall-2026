@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Factory Misfits · RoboRally</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #101f29;
+        color: #f3eee1;
+        font-family: Arial, Helvetica, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        max-width: 1800px;
+        margin: auto;
+        padding: 38px 44px 28px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        margin-bottom: 28px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        color: #9eb8c5;
+        font-weight: 700;
+        margin: 0 0 12px;
+      }
+      h1 {
+        font-size: 43px;
+        letter-spacing: -0.045em;
+        line-height: 1;
+        margin: 0;
+      }
+      .subtitle {
+        color: #abc0cb;
+        font-size: 14px;
+        line-height: 1.6;
+        max-width: 310px;
+        margin: 0;
+      }
+      .subtitle strong {
+        font-weight: 400;
+        color: #eee6d6;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 16px;
+      }
+      article {
+        background: #1a303d;
+        border: 1px solid #304550;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .portrait {
+        position: relative;
+        background: radial-gradient(ellipse at 50% 58%, #2e4856, #1a303d 75%);
+        height: 280px;
+      }
+      .portrait img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      .number {
+        position: absolute;
+        left: 15px;
+        top: 15px;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: #819ba9;
+      }
+      .details {
+        padding: 16px 19px 18px;
+        background: #162b37;
+      }
+      .title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      h2 {
+        font-size: 25px;
+        letter-spacing: -0.035em;
+        margin: 0;
+        color: var(--paint);
+      }
+      .swatch {
+        height: 9px;
+        width: 9px;
+        flex: none;
+        background: var(--paint);
+        border-radius: 50%;
+      }
+      .role {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.065em;
+        color: #c7d5dc;
+        margin: 9px 0 11px;
+        font-weight: 700;
+      }
+      .quote {
+        font-size: 12px;
+        line-height: 1.55;
+        color: #94afbd;
+        min-height: 38px;
+        margin: 0 0 13px;
+      }
+      a {
+        font-size: 11px;
+        color: #dbe5e9;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      a:focus-visible {
+        outline: 2px solid var(--paint);
+        outline-offset: 5px;
+      }
+      a span {
+        margin-left: 5px;
+        color: var(--paint);
+      }
+      footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 22px;
+        font-size: 10px;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: #708d9e;
+        gap: 20px;
+      }
+      @media (min-width: 1700px) {
+        .portrait {
+          height: 320px;
+        }
+      }
+      @media (max-width: 1050px) {
+        .grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        header {
+          align-items: flex-start;
+        }
+        h1 {
+          font-size: 36px;
+        }
+        main {
+          padding: 28px;
+        }
+      }
+      @media (max-width: 680px) {
+        main {
+          padding: 24px 16px;
+        }
+        header {
+          display: block;
+        }
+        h1 {
+          font-size: 34px;
+        }
+        .subtitle {
+          margin-top: 15px;
+          max-width: none;
+        }
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+        .portrait {
+          height: 215px;
+        }
+        .details {
+          padding: 13px;
+        }
+        h2 {
+          font-size: 24px;
+        }
+        .role {
+          font-size: 9px;
+          line-height: 1.4;
+        }
+        .quote {
+          font-size: 11px;
+          min-height: 52px;
+        }
+        footer {
+          font-size: 8px;
+          line-height: 1.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">ROBORALLY / CHARACTER LINEUP / 01—10</p>
+          <h1>The Factory Misfits.</h1>
+        </div>
+        <p class="subtitle">
+          <strong>Ten robots. Zero quality control.</strong><br />A very
+          questionable team of factory-floor originals.<br /><a href="/game"
+            >Try idle and movement animations ↗</a
+          >
+        </p>
+      </header>
+      <section class="grid" aria-label="Ten distinct robot characters">
+        <article style="--paint: #f45b55">
+          <div class="portrait">
+            <span class="number">01</span
+            ><img
+              src="/robots/previews/bolt.png"
+              alt="Bolt: Low racing wedge, swept fins, three wheels"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Bolt</h2>
+              <span class="swatch" aria-label="#f45b55"></span>
+            </div>
+            <p class="role">The reckless racer</p>
+            <p class="quote">Brakes are a manufacturing defect.</p>
+            <a href="/models/robots/bolt.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #ffd34f">
+          <div class="portrait">
+            <span class="number">02</span
+            ><img
+              src="/robots/previews/gizmo.png"
+              alt="Gizmo: Pear-shaped cyclops on three little feet"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Gizmo</h2>
+              <span class="swatch" aria-label="#ffd34f"></span>
+            </div>
+            <p class="role">The nervous optimist</p>
+            <p class="quote">Has a backup plan for the backup plan.</p>
+            <a href="/models/robots/gizmo.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #427cf5">
+          <div class="portrait">
+            <span class="number">03</span
+            ><img
+              src="/robots/previews/brutus.png"
+              alt="Brutus: Broad tracked brick with an enormous boxing claw"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Brutus</h2>
+              <span class="swatch" aria-label="#427cf5"></span>
+            </div>
+            <p class="role">The gentle bulldozer</p>
+            <p class="quote">Would help you up. Has already run you over.</p>
+            <a href="/models/robots/brutus.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #64deb4">
+          <div class="portrait">
+            <span class="number">04</span
+            ><img
+              src="/robots/previews/noodle.png"
+              alt="Noodle: Tall spring spine, sideways capsule head, giant boots"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Noodle</h2>
+              <span class="swatch" aria-label="#64deb4"></span>
+            </div>
+            <p class="role">The distracted genius</p>
+            <p class="quote">Head in the clouds. Feet in the conveyor belt.</p>
+            <a href="/models/robots/noodle.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #a16aef">
+          <div class="portrait">
+            <span class="number">05</span
+            ><img
+              src="/robots/previews/disco.png"
+              alt="Disco: Faceted disco ball, headphones, equalizer crown"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Disco</h2>
+              <span class="swatch" aria-label="#a16aef"></span>
+            </div>
+            <p class="role">The attention magnet</p>
+            <p class="quote">Every laser hit is a lighting cue.</p>
+            <a href="/models/robots/disco.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #b4df35">
+          <div class="portrait">
+            <span class="number">06</span
+            ><img
+              src="/robots/previews/chomp.png"
+              alt="Chomp: Low crab shell, eye stalks, four legs, oversized pincer"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Chomp</h2>
+              <span class="swatch" aria-label="#b4df35"></span>
+            </div>
+            <p class="role">The tiny menace</p>
+            <p class="quote">If it fits in the claw, it is a snack.</p>
+            <a href="/models/robots/chomp.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #f46db2">
+          <div class="portrait">
+            <span class="number">07</span
+            ><img
+              src="/robots/previews/pixel.png"
+              alt="Pixel: Huge CRT head, pixel face, rabbit aerials, tiny wheels"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Pixel</h2>
+              <span class="swatch" aria-label="#f46db2"></span>
+            </div>
+            <p class="role">The chaotic sweetheart</p>
+            <p class="quote">Error 404: self-preservation not found.</p>
+            <a href="/models/robots/pixel.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #f99a3b">
+          <div class="portrait">
+            <span class="number">08</span
+            ><img
+              src="/robots/previews/snooze.png"
+              alt="Snooze: Wind-up snail, round shell, sleepy low-slung face"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Snooze</h2>
+              <span class="swatch" aria-label="#f99a3b"></span>
+            </div>
+            <p class="role">The unbothered veteran</p>
+            <p class="quote">Will get there. Eventually. Probably.</p>
+            <a href="/models/robots/snooze.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #e8dec4">
+          <div class="portrait">
+            <span class="number">09</span
+            ><img
+              src="/robots/previews/captain.png"
+              alt="Captain: Conical brass-trimmed body, peaked cap, monocle, moustache"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Captain</h2>
+              <span class="swatch" aria-label="#e8dec4"></span>
+            </div>
+            <p class="role">The self-appointed boss</p>
+            <p class="quote">No idea where north is. Extremely confident.</p>
+            <a href="/models/robots/captain.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+        <article style="--paint: #39cde5">
+          <div class="portrait">
+            <span class="number">10</span
+            ><img
+              src="/robots/previews/glitch.png"
+              alt="Glitch: Crooked offset cubes, unequal eyes, one huge wheel"
+              width="850"
+              height="900"
+            />
+          </div>
+          <div class="details">
+            <div class="title">
+              <h2>Glitch</h2>
+              <span class="swatch" aria-label="#39cde5"></span>
+            </div>
+            <p class="role">The beautiful malfunction</p>
+            <p class="quote">That was absolutely, probably intentional.</p>
+            <a href="/models/robots/glitch.glb" download
+              >Download animated GLB <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </article>
+      </section>
+      <footer>
+        <span>Original 3D models · Shared world, individual personalities</span
+        ><span>Blender source + self-contained GLB assets</span>
+      </footer>
+    </main>
+  </body>
+</html>
