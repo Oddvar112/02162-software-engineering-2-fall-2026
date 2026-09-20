@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 export default async function LobbyContent({
   params,
@@ -9,25 +9,20 @@ export default async function LobbyContent({
 }) {
   const { lobbyId } = await params;
   const supabase = await createClient();
-  const { data: lobby, error: lobbyError } = await supabase
+
+  const { data: lobby } = await supabase
     .from("lobbies")
-    .select("*")
+    .select("id, max_players, status, lobby_players(user_id, joined_at)")
     .eq("id", lobbyId)
-    .single();
+    .maybeSingle();
 
-  if (lobbyError || !lobby) {
-    redirect("/");
+  if (!lobby) {
+    notFound();
   }
 
-  const { data: players, error: playersError } = await supabase
-    .from("lobby_players")
-    .select("user_id, joined_at")
-    .eq("lobby_id", lobbyId)
-    .order("joined_at", { ascending: true });
-
-  if (playersError) {
-    redirect("/");
-  }
+  const players = [...lobby.lobby_players].sort((a, b) =>
+    a.joined_at.localeCompare(b.joined_at),
+  );
 
   return (
     <main className="flex min-h-screen flex-col items-center">
@@ -42,21 +37,22 @@ export default async function LobbyContent({
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
           <h1 className="text-4xl font-bold tracking-tight">Lobby</h1>
           <p className="text-lg text-foreground/70">
-            {players?.length || 0} / {lobby.max_players} players
+            {players.length} / {lobby.max_players} players
           </p>
+          {lobby.status !== "open" && (
+            <p className="text-sm text-foreground/50">
+              This game has already started.
+            </p>
+          )}
           <div className="mt-4 rounded border p-4">
             <h2 className="mb-2 text-xl font-semibold">Players</h2>
-            {players && players.length > 0 ? (
-              <ul className="text-left">
-                {players.map((player) => (
-                  <li key={player.user_id} className="py-1">
-                    {player.user_id}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-foreground/50">No players yet</p>
-            )}
+            <ul className="text-left">
+              {players.map((player) => (
+                <li key={player.user_id} className="py-1">
+                  {player.user_id}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

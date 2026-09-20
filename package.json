@@ -6,6 +6,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:db": "supabase test db --local",
     "format": "prettier --write . --ignore-path .gitignore --ignore-path supabase/.gitignore",
     "format:check": "prettier --check . --ignore-path .gitignore --ignore-path supabase/.gitignore"
   },
