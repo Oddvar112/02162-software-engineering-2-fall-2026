@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { hasEnvVars } from "../utils";
-import { isPublicRoute } from "../routes";
+import { hasEnvVars } from "@/lib/utils";
+import { isPublicRoute } from "@/lib/routes";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
