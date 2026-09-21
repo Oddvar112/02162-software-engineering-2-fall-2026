@@ -18,6 +18,12 @@ type PreviewSettings = {
 
 const BOARD_SIZE = 8;
 const HALF_BOARD = (BOARD_SIZE - 1) / 2;
+const FOCUSED_TILE_INDEX = Math.floor(BOARD_SIZE / 2);
+const FOCUSED_ROBOT_POSITION: [number, number, number] = [
+  FOCUSED_TILE_INDEX - HALF_BOARD,
+  0.1,
+  FOCUSED_TILE_INDEX - HALF_BOARD,
+];
 const BOARD_EDGE = BOARD_SIZE + 0.7;
 const SCENE_RADIUS = Math.hypot(BOARD_EDGE / 2, BOARD_EDGE / 2, 1.25);
 const CAMERA_DIRECTION = new THREE.Vector3(8, 9, 10).normalize();
@@ -78,7 +84,7 @@ function Robots({
           position={
             selected === "all"
               ? [(index % 5) - 2.5, 0.1, Math.floor(index / 5) * 3 - 1.5]
-              : [0, 0.1, 0]
+              : FOCUSED_ROBOT_POSITION
           }
           rotation={[0, Math.PI, 0]}
         >
@@ -106,7 +112,9 @@ function ResponsiveCameraControls({ focused }: { focused: boolean }) {
   const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
   const fitDistance =
     ((focused ? 1.15 : SCENE_RADIUS) / Math.sin(limitingHalfFov)) * 1.08;
+  const targetX = focused ? FOCUSED_ROBOT_POSITION[0] : 0;
   const targetY = focused ? 0.65 : 0;
+  const targetZ = focused ? FOCUSED_ROBOT_POSITION[2] : 0;
 
   useLayoutEffect(() => {
     perspectiveCamera.position
@@ -114,16 +122,25 @@ function ResponsiveCameraControls({ focused }: { focused: boolean }) {
         focused ? new THREE.Vector3(2.8, 1.8, 4).normalize() : CAMERA_DIRECTION,
       )
       .multiplyScalar(fitDistance)
-      .add(new THREE.Vector3(0, targetY, 0));
+      .add(new THREE.Vector3(targetX, targetY, targetZ));
     perspectiveCamera.near = 0.1;
     perspectiveCamera.far = Math.max(80, fitDistance * 4);
     perspectiveCamera.aspect = aspect;
-    perspectiveCamera.lookAt(0, targetY, 0);
+    perspectiveCamera.lookAt(targetX, targetY, targetZ);
     perspectiveCamera.updateProjectionMatrix();
     const frame = requestAnimationFrame(invalidate);
 
     return () => cancelAnimationFrame(frame);
-  }, [aspect, fitDistance, focused, invalidate, perspectiveCamera, targetY]);
+  }, [
+    aspect,
+    fitDistance,
+    focused,
+    invalidate,
+    perspectiveCamera,
+    targetX,
+    targetY,
+    targetZ,
+  ]);
 
   return (
     <OrbitControls
@@ -133,7 +150,7 @@ function ResponsiveCameraControls({ focused }: { focused: boolean }) {
       maxDistance={fitDistance * 1.5}
       minPolarAngle={0.5}
       maxPolarAngle={1.18}
-      target={[0, targetY, 0]}
+      target={[targetX, targetY, targetZ]}
     />
   );
 }

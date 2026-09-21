@@ -37,16 +37,19 @@ export function createRobotAnimator(source: Object3D, clips: AnimationClip[]) {
   let current: RobotAnimation = "Idle";
   let blend = 1;
   let from = { Idle: 1, Move: 0 };
+  let stopped = false;
 
   return {
     root,
     mixer,
     actions,
     start() {
+      stopped = false;
       for (const action of Object.values(actions)) action.paused = false;
       mixer.update(0);
     },
     stop() {
+      stopped = true;
       for (const action of Object.values(actions)) action.paused = true;
       // Release per-instance GPU textures on React detach. Three recreates them
       // when the same skeleton renders again after an effect replay.
@@ -70,6 +73,7 @@ export function createRobotAnimator(source: Object3D, clips: AnimationClip[]) {
     },
     update(delta: number, playbackRate = 1) {
       if (
+        stopped ||
         !Number.isFinite(delta) ||
         delta <= 0 ||
         !Number.isFinite(playbackRate) ||
@@ -86,6 +90,7 @@ export function createRobotAnimator(source: Object3D, clips: AnimationClip[]) {
       mixer.update(delta * Math.max(0, playbackRate));
     },
     dispose() {
+      stopped = true;
       mixer.stopAllAction();
       mixer.uncacheRoot(root);
       for (const skeleton of skeletons) skeleton.dispose();

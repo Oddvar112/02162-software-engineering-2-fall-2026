@@ -98,8 +98,9 @@ robot.dispose();
 ```
 
 Plain Three.js callers should skip updates when paused, hidden or reduced motion
-is requested. `stop()` / `start()` pause and resume action clocks; `dispose()` is
-final cleanup. Shared geometry/materials belong to the loader and are not disposed
+is requested. `stop()` / `start()` freeze and resume clip clocks and blend progress,
+even if the render loop keeps calling `update()`. `dispose()` is final cleanup.
+Shared geometry/materials belong to the loader and are not disposed
 by the controller.
 
 ## Model and animation conventions
@@ -144,5 +145,6 @@ Validation loads all ten GLBs using the project's `GLTFLoader`, checks unique
 roster IDs/colors, normals, normalized skin weights, rest bounds, centered origins,
 ground contact, self-contained resources and both clips. It checks loop endpoints,
 in-place root bones and 49 sampled poses per clip for ground contact and tile fit.
-Controller tests cover independent skeletons, interrupted blends, effect replay,
-looping and speed. The web preview is also checked with real browser playback.
+Controller tests cover independent skeletons, interrupted and stopped blends,
+effect replay, looping and speed. The web preview is also checked with real browser
+playback.

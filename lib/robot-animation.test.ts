@@ -17,6 +17,22 @@ beforeAll(async () => {
   );
 });
 const create = () => createRobotAnimator(model.scene, model.animations);
+const snapshotPlayback = (robot: ReturnType<typeof create>) => {
+  const boneMatrices: number[] = [];
+  robot.root.updateMatrixWorld(true);
+  robot.root.traverse((node) => {
+    if (node.type === "Bone") boneMatrices.push(...node.matrixWorld.elements);
+  });
+  return {
+    mixerTime: robot.mixer.time,
+    clipTimes: [robot.actions.Idle.time, robot.actions.Move.time],
+    weights: [
+      robot.actions.Idle.getEffectiveWeight(),
+      robot.actions.Move.getEffectiveWeight(),
+    ],
+    boneMatrices,
+  };
+};
 
 describe("robot animation playback", () => {
   it("keeps cloned skeletons and playback independent while sharing geometry", () => {
@@ -79,6 +95,48 @@ describe("robot animation playback", () => {
     robot.start();
     robot.update(0.1);
     expect(robot.actions.Idle.time).toBeCloseTo(time + 0.2);
+    robot.dispose();
+  });
+
+  it("freezes weights, clocks and bone poses when stopped during a transition", () => {
+    const robot = create();
+    robot.setAnimation("Move");
+    robot.update(0.08);
+    expect(robot.actions.Move.getEffectiveWeight()).toBeCloseTo(0.4);
+    const stopped = snapshotPlayback(robot);
+    expect(stopped.boneMatrices.length).toBeGreaterThan(0);
+
+    robot.stop();
+    for (const delta of [0.1, 0.35, 1]) robot.update(delta);
+    expect(snapshotPlayback(robot)).toEqual(stopped);
+
+    robot.start();
+    expect(snapshotPlayback(robot)).toEqual(stopped);
+    robot.update(0.02);
+    expect(robot.actions.Move.getEffectiveWeight()).toBeCloseTo(0.5);
+    expect(robot.actions.Move.time).toBeCloseTo(0.1);
+    expect(snapshotPlayback(robot).boneMatrices).not.toEqual(
+      stopped.boneMatrices,
+    );
+    robot.dispose();
+  });
+
+  it("defers a retargeted transition until a stopped controller resumes", () => {
+    const robot = create();
+    robot.setAnimation("Move");
+    robot.update(0.08);
+    robot.stop();
+    const stopped = snapshotPlayback(robot);
+
+    robot.setAnimation("Idle");
+    robot.update(1);
+    expect(snapshotPlayback(robot)).toEqual(stopped);
+
+    robot.start();
+    expect(snapshotPlayback(robot)).toEqual(stopped);
+    robot.update(0.1);
+    expect(robot.actions.Move.getEffectiveWeight()).toBeCloseTo(0.2);
+    expect(robot.actions.Idle.getEffectiveWeight()).toBeCloseTo(0.8);
     robot.dispose();
   });
 
