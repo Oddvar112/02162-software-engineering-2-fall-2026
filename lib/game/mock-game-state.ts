@@ -5,6 +5,10 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
   round: 1,
   phase: "programming",
   currentPlayerId: "player-1",
+  registerCount: 5,
+  currentPlayerProgram: [],
+  executionLog: [],
+  executionFrames: [],
   board: {
     width: 10,
     height: 10,
@@ -86,6 +90,7 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
       lives: 3,
       checkpointsReached: 0,
       programmedCardCount: 0,
+      programLocked: false,
       connected: true,
     },
     {
@@ -95,7 +100,8 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
       damage: 0,
       lives: 3,
       checkpointsReached: 0,
-      programmedCardCount: 3,
+      programmedCardCount: 0,
+      programLocked: false,
       connected: true,
     },
     {
@@ -105,7 +111,8 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
       damage: 0,
       lives: 3,
       checkpointsReached: 0,
-      programmedCardCount: 5,
+      programmedCardCount: 0,
+      programLocked: false,
       connected: true,
     },
     {
@@ -115,8 +122,9 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
       damage: 0,
       lives: 3,
       checkpointsReached: 0,
-      programmedCardCount: 2,
-      connected: false,
+      programmedCardCount: 0,
+      programLocked: false,
+      connected: true,
     },
   ],
   currentPlayerCards: [
@@ -144,6 +152,9 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
 export function getMockGameState(): GameState {
   return {
     ...BASE_GAME_STATE,
+    currentPlayerProgram: [],
+    executionLog: [],
+    executionFrames: [],
     board: {
       ...BASE_GAME_STATE.board,
       elements: BASE_GAME_STATE.board.elements.map((element) => ({

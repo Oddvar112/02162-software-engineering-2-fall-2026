@@ -1,8 +1,8 @@
 "use client";
 
 import { ContactShadows, OrbitControls } from "@react-three/drei";
-import { Canvas, useThree } from "@react-three/fiber";
-import { useLayoutEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useLayoutEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type {
   BoardElement,
@@ -286,14 +286,50 @@ function Robot({
   board: GameState["board"];
   isCurrent: boolean;
 }) {
+  const group = useRef<THREE.Group>(null);
+  const invalidate = useThree((state) => state.invalidate);
+  const targetX = tilePosition(robot.x, board.width);
+  const targetZ = tilePosition(robot.z, board.height);
+  const targetAngle = DIRECTION_ROTATION[robot.direction];
+  const [initialPose] = useState(() => ({
+    position: [targetX, 0.33, targetZ] as [number, number, number],
+    rotation: [0, targetAngle, 0] as [number, number, number],
+  }));
+
+  useLayoutEffect(() => {
+    invalidate();
+  }, [targetX, targetZ, targetAngle, invalidate]);
+
+  useFrame((_, delta) => {
+    const model = group.current;
+    if (!model) return;
+    const angleDifference = Math.atan2(
+      Math.sin(targetAngle - model.rotation.y),
+      Math.cos(targetAngle - model.rotation.y),
+    );
+    const distance = Math.hypot(
+      targetX - model.position.x,
+      targetZ - model.position.z,
+    );
+    if (distance < 0.001 && Math.abs(angleDifference) < 0.001) {
+      model.position.set(targetX, 0.33, targetZ);
+      model.rotation.y = targetAngle;
+      return;
+    }
+    // Limit the first idle frame's delta so a demand-rendered scene cannot
+    // skip an entire movement when the next program starts.
+    const factor = 1 - Math.exp(-12 * Math.min(delta, 1 / 30));
+    model.position.x += (targetX - model.position.x) * factor;
+    model.position.z += (targetZ - model.position.z) * factor;
+    model.rotation.y += angleDifference * factor;
+    invalidate();
+  });
+
   return (
     <group
-      position={[
-        tilePosition(robot.x, board.width),
-        0.33,
-        tilePosition(robot.z, board.height),
-      ]}
-      rotation={[0, DIRECTION_ROTATION[robot.direction], 0]}
+      ref={group}
+      position={initialPose.position}
+      rotation={initialPose.rotation}
     >
       {isCurrent && (
         <mesh position={[0, -0.215, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -447,7 +483,7 @@ function Scene({ gameState }: { gameState: GameState }) {
         />
       ))}
       <ContactShadows
-        frames={1}
+        frames={gameState.phase === "execution" ? Infinity : 1}
         position={[0, -0.47, 0]}
         opacity={0.32}
         scale={Math.max(gameState.board.width, gameState.board.height) + 4}

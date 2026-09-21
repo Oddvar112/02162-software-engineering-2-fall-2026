@@ -100,3 +100,26 @@ components/       UI components
 lib/supabase/     Supabase clients for browser and server
 supabase/         config and migrations
 ```
+
+## Programming phase demo
+
+Open `/game` and click five cards in execution order, then **Lock In**. Each
+selected card shows its position in the program. Click it again to remove it
+and renumber the remaining cards; select it again to place it at the end.
+You can remove or replace cards until you submit. The player
+menu includes a **Demo player** switcher. For now, **Lock In** immediately
+executes only the selected player's five cards in order, without waiting for
+other players. Other robots do not run programs, but can still be pushed by
+movement. Every tab receives the updated board through polling. The execution
+list shows what ran. The board animates each movement step and rotation, and
+highlights the card being executed. **Replay movement** plays the stored sequence
+again without resubmitting. **Start next round** clears the program for another turn.
+
+This builds on the mock game, not authenticated multiplayer: the server holds
+one shared game in memory, and the `player` query parameter selects a demo seat.
+Locked programs survive page reloads but reset when the server process restarts;
+separate server instances do not share state. The same six-card hands are reused
+between rounds. Movement, rotation, backing up, walls, robot pushing, falling,
+rebooting and ordered checkpoints are supported. Conveyors, gears, lasers,
+damage-based register locking and victory rules await the full game engine.
+Do not use the demo player selector as an authorization mechanism.
