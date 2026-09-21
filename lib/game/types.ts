@@ -57,6 +57,7 @@ export type PlayerState = {
   lives: number;
   checkpointsReached: number;
   programmedCardCount: number;
+  programLocked: boolean;
   connected: boolean;
 };
 
@@ -66,6 +67,14 @@ export type ActionCard = {
   type: "move" | "rotate" | "backup";
   value: number;
   priority: number;
+};
+
+export type ExecutionFrame = {
+  register: number;
+  cardId: string | null;
+  message: string;
+  robots: RobotState[];
+  players: PlayerState[];
 };
 
 export type GameState = {
@@ -81,6 +90,10 @@ export type GameState = {
   robots: RobotState[];
   players: PlayerState[];
   currentPlayerCards: ActionCard[];
+  currentPlayerProgram: ActionCard[];
+  registerCount: number;
+  executionLog: { register: number; playerId: string; card: ActionCard }[];
+  executionFrames: ExecutionFrame[];
   updatedAt: string;
 };
 
