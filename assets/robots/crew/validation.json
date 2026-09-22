@@ -1,0 +1,192 @@
+[
+  {
+    "id": "bolt",
+    "triangles": 5644,
+    "meshes": 7,
+    "bytes": 532504,
+    "size": [0.726, 0.842, 0.754],
+    "animations": {
+      "Idle": {
+        "duration": 3.2,
+        "envelope": [0.726, 0.865, 0.756],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 0.9,
+        "envelope": [0.726, 0.871, 0.753],
+        "groundTolerance": 0.00128
+      }
+    }
+  },
+  {
+    "id": "gizmo",
+    "triangles": 6116,
+    "meshes": 6,
+    "bytes": 480720,
+    "size": [0.783, 1.035, 0.582],
+    "animations": {
+      "Idle": {
+        "duration": 4,
+        "envelope": [0.786, 1.041, 0.582],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 0.8,
+        "envelope": [0.788, 1.041, 0.608],
+        "groundTolerance": 0.00022
+      }
+    }
+  },
+  {
+    "id": "brutus",
+    "triangles": 6460,
+    "meshes": 7,
+    "bytes": 795660,
+    "size": [0.86, 0.816, 0.652],
+    "animations": {
+      "Idle": {
+        "duration": 4.8,
+        "envelope": [0.86, 0.816, 0.661],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 1.6,
+        "envelope": [0.865, 0.825, 0.659],
+        "groundTolerance": 0.00176
+      }
+    }
+  },
+  {
+    "id": "noodle",
+    "triangles": 7172,
+    "meshes": 7,
+    "bytes": 433704,
+    "size": [0.68, 1.23, 0.368],
+    "animations": {
+      "Idle": {
+        "duration": 4,
+        "envelope": [0.744, 1.278, 0.381],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 1.2,
+        "envelope": [0.726, 1.275, 0.526],
+        "groundTolerance": 0.00007
+      }
+    }
+  },
+  {
+    "id": "disco",
+    "triangles": 4788,
+    "meshes": 9,
+    "bytes": 421488,
+    "size": [0.835, 1.1, 0.52],
+    "animations": {
+      "Idle": {
+        "duration": 2.4,
+        "envelope": [0.874, 1.1, 0.536],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 1.2,
+        "envelope": [0.877, 1.1, 0.563],
+        "groundTolerance": 0.00115
+      }
+    }
+  },
+  {
+    "id": "chomp",
+    "triangles": 6122,
+    "meshes": 8,
+    "bytes": 552572,
+    "size": [0.86, 0.698, 0.754],
+    "animations": {
+      "Idle": {
+        "duration": 3.2,
+        "envelope": [0.892, 0.698, 0.754],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 0.8,
+        "envelope": [0.862, 0.7, 0.817],
+        "groundTolerance": 0.00062
+      }
+    }
+  },
+  {
+    "id": "pixel",
+    "triangles": 7540,
+    "meshes": 8,
+    "bytes": 681532,
+    "size": [0.634, 1.15, 0.449],
+    "animations": {
+      "Idle": {
+        "duration": 3.6,
+        "envelope": [0.642, 1.175, 0.472],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 0.8,
+        "envelope": [0.643, 1.193, 0.449],
+        "groundTolerance": 0.00113
+      }
+    }
+  },
+  {
+    "id": "snooze",
+    "triangles": 10336,
+    "meshes": 8,
+    "bytes": 795156,
+    "size": [0.56, 0.945, 0.784],
+    "animations": {
+      "Idle": {
+        "duration": 6,
+        "envelope": [0.56, 0.945, 0.784],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 2.4,
+        "envelope": [0.56, 0.947, 0.784],
+        "groundTolerance": 0.00157
+      }
+    }
+  },
+  {
+    "id": "captain",
+    "triangles": 7100,
+    "meshes": 6,
+    "bytes": 632576,
+    "size": [0.679, 1.041, 0.566],
+    "animations": {
+      "Idle": {
+        "duration": 4.8,
+        "envelope": [0.683, 1.041, 0.566],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 1.6,
+        "envelope": [0.686, 1.042, 0.566],
+        "groundTolerance": 0.00163
+      }
+    }
+  },
+  {
+    "id": "glitch",
+    "triangles": 5222,
+    "meshes": 7,
+    "bytes": 495156,
+    "size": [0.742, 1.187, 0.41],
+    "animations": {
+      "Idle": {
+        "duration": 3.2,
+        "envelope": [0.754, 1.199, 0.448],
+        "groundTolerance": 0
+      },
+      "Move": {
+        "duration": 0.8,
+        "envelope": [0.762, 1.205, 0.451],
+        "groundTolerance": 0.00063
+      }
+    }
+  }
+]

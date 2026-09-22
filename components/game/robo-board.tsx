@@ -2,12 +2,28 @@
 
 import { ContactShadows, OrbitControls } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
-import { useLayoutEffect } from "react";
+import { Suspense, useLayoutEffect, useState } from "react";
 import * as THREE from "three";
 import styles from "@/app/game/game.module.css";
+import { ROBOT_ROSTER, RobotModel } from "@/components/game/robot-model";
+import { type RobotAnimation } from "@/lib/robot-animation";
+import { useMotionPreferences } from "@/lib/use-motion-preferences";
+
+type PreviewSettings = {
+  selected: string;
+  animation: RobotAnimation;
+  paused: boolean;
+  playbackRate: number;
+};
 
 const BOARD_SIZE = 8;
 const HALF_BOARD = (BOARD_SIZE - 1) / 2;
+const FOCUSED_TILE_INDEX = Math.floor(BOARD_SIZE / 2);
+const FOCUSED_ROBOT_POSITION: [number, number, number] = [
+  FOCUSED_TILE_INDEX - HALF_BOARD,
+  0.1,
+  FOCUSED_TILE_INDEX - HALF_BOARD,
+];
 const BOARD_EDGE = BOARD_SIZE + 0.7;
 const SCENE_RADIUS = Math.hypot(BOARD_EDGE / 2, BOARD_EDGE / 2, 1.25);
 const CAMERA_DIRECTION = new THREE.Vector3(8, 9, 10).normalize();
@@ -49,105 +65,82 @@ function Board() {
   );
 }
 
-function Robot() {
+function Robots({
+  selected,
+  animation,
+  paused,
+  playbackRate,
+}: PreviewSettings) {
+  const robots =
+    selected === "all"
+      ? ROBOT_ROSTER
+      : ROBOT_ROSTER.filter((robot) => robot.id === selected);
   return (
-    <group position={[-0.5, 0.33, 1.5]}>
-      <mesh castShadow position={[0, 0.02, 0]}>
-        <boxGeometry args={[0.58, 0.5, 0.6]} />
-        <meshStandardMaterial
-          color="#ed5a54"
-          metalness={0.58}
-          roughness={0.34}
-        />
-      </mesh>
-
-      <mesh castShadow position={[0, 0.38, -0.02]}>
-        <boxGeometry args={[0.43, 0.28, 0.42]} />
-        <meshStandardMaterial
-          color="#43545e"
-          metalness={0.72}
-          roughness={0.3}
-        />
-      </mesh>
-
-      <mesh position={[0, 0.4, -0.225]}>
-        <boxGeometry args={[0.25, 0.09, 0.03]} />
-        <meshStandardMaterial
-          color="#ffc071"
-          emissive="#ff8a45"
-          emissiveIntensity={1.3}
-        />
-      </mesh>
-
-      <mesh castShadow position={[0, 0.67, 0.03]}>
-        <cylinderGeometry args={[0.045, 0.055, 0.32, 10]} />
-        <meshStandardMaterial color="#74858d" metalness={0.9} roughness={0.2} />
-      </mesh>
-
-      <mesh position={[0, 0.84, 0.03]}>
-        <sphereGeometry args={[0.075, 12, 12]} />
-        <meshStandardMaterial
-          color="#ffc071"
-          emissive="#ff8a45"
-          emissiveIntensity={1.8}
-        />
-      </mesh>
-
-      {[-0.34, 0.34].map((x) => (
-        <group key={x} position={[x, -0.06, 0]}>
-          <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.17, 0.17, 0.13, 12]} />
-            <meshStandardMaterial
-              color="#151b20"
-              metalness={0.4}
-              roughness={0.75}
+    <group>
+      {robots.map((robot, index) => (
+        <group
+          key={robot.id}
+          name={robot.name}
+          position={
+            selected === "all"
+              ? [(index % 5) - 2.5, 0.1, Math.floor(index / 5) * 3 - 1.5]
+              : FOCUSED_ROBOT_POSITION
+          }
+          rotation={[0, Math.PI, 0]}
+        >
+          <Suspense fallback={null}>
+            <RobotModel
+              id={robot.id}
+              animation={animation}
+              paused={paused}
+              playbackRate={playbackRate}
+              phase={selected === "all" ? index * 0.137 : 0}
             />
-          </mesh>
-          <mesh rotation={[0, 0, Math.PI / 2]}>
-            <torusGeometry args={[0.12, 0.025, 7, 14]} />
-            <meshStandardMaterial
-              color="#82929a"
-              metalness={0.85}
-              roughness={0.28}
-            />
-          </mesh>
+          </Suspense>
         </group>
       ))}
-
-      <mesh position={[0, 0.04, -0.38]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.1, 0.24, 3]} />
-        <meshStandardMaterial
-          color="#ffc071"
-          emissive="#ff8a45"
-          emissiveIntensity={0.7}
-        />
-      </mesh>
     </group>
   );
 }
 
-function ResponsiveCameraControls() {
+function ResponsiveCameraControls({ focused }: { focused: boolean }) {
   const { camera, size, invalidate } = useThree();
   const perspectiveCamera = camera as THREE.PerspectiveCamera;
   const aspect = Math.max(size.width, 1) / Math.max(size.height, 1);
   const verticalHalfFov = THREE.MathUtils.degToRad(perspectiveCamera.fov / 2);
   const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
   const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
-  const fitDistance = (SCENE_RADIUS / Math.sin(limitingHalfFov)) * 1.08;
+  const fitDistance =
+    ((focused ? 1.15 : SCENE_RADIUS) / Math.sin(limitingHalfFov)) * 1.08;
+  const targetX = focused ? FOCUSED_ROBOT_POSITION[0] : 0;
+  const targetY = focused ? 0.65 : 0;
+  const targetZ = focused ? FOCUSED_ROBOT_POSITION[2] : 0;
 
   useLayoutEffect(() => {
     perspectiveCamera.position
-      .copy(CAMERA_DIRECTION)
-      .multiplyScalar(fitDistance);
+      .copy(
+        focused ? new THREE.Vector3(2.8, 1.8, 4).normalize() : CAMERA_DIRECTION,
+      )
+      .multiplyScalar(fitDistance)
+      .add(new THREE.Vector3(targetX, targetY, targetZ));
     perspectiveCamera.near = 0.1;
     perspectiveCamera.far = Math.max(80, fitDistance * 4);
     perspectiveCamera.aspect = aspect;
-    perspectiveCamera.lookAt(0, 0, 0);
+    perspectiveCamera.lookAt(targetX, targetY, targetZ);
     perspectiveCamera.updateProjectionMatrix();
     const frame = requestAnimationFrame(invalidate);
 
     return () => cancelAnimationFrame(frame);
-  }, [aspect, fitDistance, invalidate, perspectiveCamera]);
+  }, [
+    aspect,
+    fitDistance,
+    focused,
+    invalidate,
+    perspectiveCamera,
+    targetX,
+    targetY,
+    targetZ,
+  ]);
 
   return (
     <OrbitControls
@@ -157,12 +150,12 @@ function ResponsiveCameraControls() {
       maxDistance={fitDistance * 1.5}
       minPolarAngle={0.5}
       maxPolarAngle={1.18}
-      target={[0, 0, 0]}
+      target={[targetX, targetY, targetZ]}
     />
   );
 }
 
-function Scene() {
+function Scene(settings: PreviewSettings) {
   return (
     <>
       <color attach="background" args={["#172833"]} />
@@ -176,6 +169,8 @@ function Scene() {
         color="#f1fbff"
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
+        shadow-normalBias={0.025}
+        shadow-bias={-0.0001}
         shadow-camera-far={22}
         shadow-camera-left={-7}
         shadow-camera-right={7}
@@ -183,7 +178,7 @@ function Scene() {
         shadow-camera-bottom={-7}
       />
       <Board />
-      <Robot />
+      <Robots {...settings} />
       <ContactShadows
         frames={1}
         position={[0, -0.47, 0]}
@@ -192,14 +187,81 @@ function Scene() {
         blur={2.5}
         far={7}
       />
-      <ResponsiveCameraControls />
+      <ResponsiveCameraControls focused={settings.selected !== "all"} />
     </>
   );
 }
 
 export function RoboBoard() {
+  const [selected, setSelected] = useState("all");
+  const [animation, setAnimation] = useState<RobotAnimation>("Idle");
+  const [paused, setPaused] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const { reducedMotion } = useMotionPreferences();
+
   return (
-    <main className={styles.page} aria-label="RoboRally board with one robot">
+    <main
+      className={styles.page}
+      aria-label="RoboRally board with ten distinct robot characters"
+    >
+      <section className={styles.controls} aria-label="Robot animation preview">
+        <div className={styles.heading}>
+          <strong>The Factory Misfits</strong>
+          <span>
+            {reducedMotion
+              ? "Reduced motion · playback paused"
+              : "Idle and movement preview"}
+          </span>
+        </div>
+        <label className={styles.field}>
+          <span>Robot</span>
+          <select
+            value={selected}
+            onChange={(event) => setSelected(event.target.value)}
+          >
+            <option value="all">All ten robots</option>
+            {ROBOT_ROSTER.map((robot) => (
+              <option key={robot.id} value={robot.id}>
+                {robot.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className={styles.buttons} role="group" aria-label="Animation">
+          {(["Idle", "Move"] as const).map((clip) => (
+            <button
+              key={clip}
+              type="button"
+              aria-pressed={animation === clip}
+              onClick={() => setAnimation(clip)}
+            >
+              {clip}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={styles.pause}
+          disabled={reducedMotion}
+          onClick={() => setPaused((value) => !value)}
+        >
+          {paused ? "Resume" : "Pause"}
+        </button>
+        <label className={styles.field}>
+          <span>Speed</span>
+          <select
+            value={playbackRate}
+            onChange={(event) => setPlaybackRate(Number(event.target.value))}
+          >
+            <option value={0.5}>0.5×</option>
+            <option value={1}>1×</option>
+            <option value={1.5}>1.5×</option>
+          </select>
+        </label>
+        <p className={styles.hint}>
+          Select a robot for a closer look. Movement plays in place.
+        </p>
+      </section>
       <Canvas
         shadows
         frameloop="demand"
@@ -207,7 +269,12 @@ export function RoboBoard() {
         camera={{ position: [8, 9, 10], fov: 42, near: 0.1, far: 50 }}
         gl={{ antialias: true, powerPreference: "high-performance" }}
       >
-        <Scene />
+        <Scene
+          selected={selected}
+          animation={animation}
+          paused={paused}
+          playbackRate={playbackRate}
+        />
       </Canvas>
     </main>
   );
