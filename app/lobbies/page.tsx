@@ -1,4 +1,4 @@
-import LobbyList from "@/components/list-lobbies";
+import LobbyList from "@/components/lobbies/list-lobbies";
 import { Suspense } from "react";
 
 export default async function LobbiesPage() {

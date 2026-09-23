@@ -8,7 +8,7 @@ import {
   createRobotAnimator,
   type RobotAnimation,
 } from "@/lib/robot-animation";
-import { useMotionPreferences } from "@/lib/use-motion-preferences";
+import { useMotionPreferences } from "@/lib/hooks/use-motion-preferences";
 
 export const ROBOT_ROSTER = roster;
 

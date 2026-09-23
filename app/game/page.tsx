@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RoboBoard } from "@/components/game/robo-board";
+import { RoboBoard } from "@/components/game/board/robo-board";
 
 export const metadata: Metadata = {
   title: "The Factory Misfits · RoboRally",

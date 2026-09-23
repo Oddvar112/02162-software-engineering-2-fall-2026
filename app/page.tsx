@@ -1,9 +1,9 @@
 import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
+import { AuthButton } from "@/components/auth/auth-button";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
-import { CreateLobbyButton } from "@/components/create-lobby-button";
+import { CreateLobbyButton } from "@/components/lobbies/create-lobby-button";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {

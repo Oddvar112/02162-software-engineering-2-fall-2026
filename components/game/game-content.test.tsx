@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import GameContent from "@/components/game-content";
+import GameContent from "@/components/game/game-content";
 
 const { getClaims, from, select, eq, maybeSingle } = vi.hoisted(() => ({
   getClaims: vi.fn(),

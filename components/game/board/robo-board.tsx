@@ -5,9 +5,9 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { Suspense, useLayoutEffect, useState } from "react";
 import * as THREE from "three";
 import styles from "@/app/game/game.module.css";
-import { ROBOT_ROSTER, RobotModel } from "@/components/game/robot-model";
+import { ROBOT_ROSTER, RobotModel } from "@/components/game/board/robot-model";
 import { type RobotAnimation } from "@/lib/robot-animation";
-import { useMotionPreferences } from "@/lib/use-motion-preferences";
+import { useMotionPreferences } from "@/lib/hooks/use-motion-preferences";
 
 type PreviewSettings = {
   selected: string;
