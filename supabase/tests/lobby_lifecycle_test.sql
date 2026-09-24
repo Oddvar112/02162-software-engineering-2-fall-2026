@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(32);
 
 -- All fixtures and RPC writes are rolled back at the end of this file.
 insert into auth.users (id, email) values
@@ -52,6 +52,12 @@ select ok(
   exists(select 1 from public.lobbies l join public.games g on g.id = l.game where l.id = current_setting('test.created_lobby')::uuid),
   'creation links the lobby to a game'
 );
+set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000003';
+select is(
+  (select count(*) from public.games where id = (select game from public.lobbies where id = current_setting('test.created_lobby')::uuid)),
+  0::bigint, 'a player outside the lobby cannot read its game'
+);
+set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 select throws_ok(
   $$select public.join_lobby('30000000-0000-4000-8000-000000000099')$$,
   'P0001', 'lobby_not_found', 'joining a missing lobby returns its reason'
