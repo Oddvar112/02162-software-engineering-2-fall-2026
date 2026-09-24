@@ -17,7 +17,9 @@ export default async function LobbyContent({
 
   const { data: lobby } = await supabase
     .from("lobbies")
-    .select("id, max_players, status, created_by, lobby_players(user_id, joined_at)")
+    .select(
+      "id, max_players, status, created_by, lobby_players(user_id, joined_at)",
+    )
     .eq("id", lobbyId)
     .maybeSingle();
 
@@ -67,7 +69,9 @@ export default async function LobbyContent({
                 <li key={player.user_id} className="py-1">
                   {names.get(player.user_id) ?? "Unknown player"}
                   {player.user_id === lobby.created_by && (
-                    <span className="ml-2 text-xs text-foreground/50">host</span>
+                    <span className="ml-2 text-xs text-foreground/50">
+                      host
+                    </span>
                   )}
                 </li>
               ))}

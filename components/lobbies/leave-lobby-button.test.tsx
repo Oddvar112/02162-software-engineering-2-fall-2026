@@ -56,8 +56,11 @@ describe("LeaveLobbyButton", () => {
       expect((await screen.findByRole("alert")).textContent).toBe(expected);
       expect(push).not.toHaveBeenCalled();
       expect(
-        (screen.getByRole("button", { name: "Leave lobby" }) as HTMLButtonElement)
-          .disabled,
+        (
+          screen.getByRole("button", {
+            name: "Leave lobby",
+          }) as HTMLButtonElement
+        ).disabled,
       ).toBe(false);
     },
   );
