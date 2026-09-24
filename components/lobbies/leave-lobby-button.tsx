@@ -12,6 +12,20 @@ const MESSAGES: Record<string, string> = {
   not_authenticated: "Sign in to leave a lobby.",
 };
 
+function buttonLabel({
+  isLeaving,
+  confirming,
+  isHost,
+}: {
+  isLeaving: boolean;
+  confirming: boolean;
+  isHost: boolean;
+}) {
+  if (isLeaving) return isHost ? "Closing..." : "Leaving...";
+  if (confirming) return "Yes, close it";
+  return isHost ? "Close lobby" : "Leave lobby";
+}
+
 export function LeaveLobbyButton({
   lobbyId,
   isHost,
@@ -50,14 +64,21 @@ export function LeaveLobbyButton({
     }
   };
 
-  if (isHost && confirming) {
-    return (
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-sm">Close this lobby for everyone?</p>
-        <div className="flex gap-2">
-          <Button variant="destructive" onClick={leave} disabled={isLeaving}>
-            {isLeaving ? "Closing..." : "Yes, close it"}
-          </Button>
+  const label = buttonLabel({ isLeaving, confirming, isHost });
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      {confirming && <p className="text-sm">Close this lobby for everyone?</p>}
+
+      <div className="flex gap-2">
+        <Button
+          variant={confirming ? "destructive" : "outline"}
+          onClick={isHost && !confirming ? () => setConfirming(true) : leave}
+          disabled={isLeaving}
+        >
+          {label}
+        </Button>
+        {confirming && (
           <Button
             variant="outline"
             onClick={() => setConfirming(false)}
@@ -65,26 +86,10 @@ export function LeaveLobbyButton({
           >
             Cancel
           </Button>
-        </div>
-        {error && (
-          <p role="alert" className="text-sm text-red-600">
-            {error}
-          </p>
         )}
       </div>
-    );
-  }
 
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <Button
-        variant="outline"
-        onClick={isHost ? () => setConfirming(true) : leave}
-        disabled={isLeaving}
-      >
-        {isLeaving ? "Leaving..." : isHost ? "Close lobby" : "Leave lobby"}
-      </Button>
-      {isHost && (
+      {isHost && !confirming && (
         <p className="text-xs text-foreground/50">
           Closing removes the lobby for everyone.
         </p>
