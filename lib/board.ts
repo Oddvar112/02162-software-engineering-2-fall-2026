@@ -1,12 +1,14 @@
-type TilePair = {
-    One: Tile,
-    Two: Tile
+type Position = {x: number, y: number}
+type PosPair = {
+    One: Position,
+    Two: Position
 }
 
 type Board = {
+    id: string
     width: number,
     height: number,
-    walls: Array<TilePair>,
-    tiles: Array<Tile>,
-    startpossions: Array<Tile>
+    walls: PosPair[],
+    tiles: Tile[][],
+    startpositions: Position[]
 }
