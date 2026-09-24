@@ -11,6 +11,8 @@ begin
     raise exception 'not_authenticated';
   end if;
 
+  perform 1 from users where id = auth.uid() for update;
+
   select * into v_lobby from lobbies where id = p_lobby_id for update;
 
   if not found then
@@ -89,9 +91,14 @@ $$;
 revoke all on function public.leave_lobby(uuid) from public;
 grant execute on function public.leave_lobby(uuid) to authenticated;
 
+drop policy if exists "lobbies_delete" on public.lobbies;
+drop policy if exists "lobby_players_delete" on public.lobby_players;
+
+revoke delete on public.lobbies from anon, authenticated;
 revoke delete on public.lobby_players from anon, authenticated;
 
 alter table public.lobbies replica identity full;
+alter table public.lobby_players replica identity full;
 
 create or replace function public.create_lobby_with_game()
 returns uuid
@@ -107,6 +114,8 @@ begin
   if v_user_id is null then
     raise exception 'create_lobby_with_game: not authenticated';
   end if;
+
+  perform 1 from users where id = auth.uid() for update;
 
   if exists (
     select 1

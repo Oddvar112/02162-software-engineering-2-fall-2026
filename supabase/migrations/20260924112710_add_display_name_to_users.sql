@@ -36,5 +36,3 @@ create policy "users_select_authenticated" on public.users
 
 revoke select on public.users from anon, authenticated;
 grant select (id, display_name) on public.users to authenticated;
-
-alter table public.lobby_players replica identity full;

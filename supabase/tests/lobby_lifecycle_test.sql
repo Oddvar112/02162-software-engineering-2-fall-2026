@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(43);
+select plan(49);
 
 -- All fixtures and RPC writes are rolled back at the end of this file.
 insert into auth.users (id, email) values
@@ -55,6 +55,11 @@ select ok(
   'creation links the lobby to a game'
 );
 
+set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000003';
+select is(
+  (select count(*) from public.games where id = (select game from public.lobbies where id = current_setting('test.created_lobby')::uuid)),
+  0::bigint, 'a player outside the lobby cannot read its game'
+);
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 select throws_ok(
   $$select public.join_lobby('30000000-0000-4000-8000-000000000099')$$,
@@ -208,11 +213,31 @@ select ok(
   not has_table_privilege('authenticated', 'public.lobby_players', 'DELETE'),
   'a client cannot leave by deleting the row directly'
 );
+select ok(
+  not has_table_privilege('authenticated', 'public.lobbies', 'DELETE'),
+  'a client cannot remove a lobby by deleting the row directly'
+);
+select throws_ok(
+  $$select public.leave_lobby('30000000-0000-4000-8000-000000000001')$$,
+  'P0001', 'lobby_not_open', 'a started lobby cannot be left'
+);
+select ok(
+  has_column_privilege('authenticated', 'public.users', 'display_name', 'SELECT'),
+  'a player can read other players display names'
+);
+select ok(
+  not has_column_privilege('authenticated', 'public.users', 'email', 'SELECT'),
+  'the email column stays private'
+);
 
 reset role;
 select ok(
   (select relreplident from pg_class where oid = 'public.lobbies'::regclass) = 'f',
   'lobbies use replica identity full so Realtime carries deletes'
+);
+select ok(
+  (select relreplident from pg_class where oid = 'public.lobby_players'::regclass) = 'f',
+  'lobby membership uses replica identity full so Realtime carries deletes'
 );
 select ok(
   exists(select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'lobbies'),
