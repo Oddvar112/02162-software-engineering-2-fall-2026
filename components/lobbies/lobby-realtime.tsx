@@ -9,7 +9,6 @@ export function LobbyRealtime({ lobbyId }: { lobbyId: string }) {
 
   useEffect(() => {
     const supabase = createClient();
-    const refresh = () => router.refresh();
 
     const channel = supabase
       .channel(`lobby:${lobbyId}`)
@@ -21,17 +20,27 @@ export function LobbyRealtime({ lobbyId }: { lobbyId: string }) {
           table: "lobby_players",
           filter: `lobby_id=eq.${lobbyId}`,
         },
-        refresh,
+        () => router.refresh(),
       )
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "DELETE",
           schema: "public",
           table: "lobbies",
           filter: `id=eq.${lobbyId}`,
         },
-        refresh,
+        () => router.replace("/lobbies?closed=1"),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "lobbies",
+          filter: `id=eq.${lobbyId}`,
+        },
+        () => router.refresh(),
       )
       .subscribe();
 

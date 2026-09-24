@@ -21,9 +21,10 @@ export function LeaveLobbyButton({
 }) {
   const router = useRouter();
   const [isLeaving, setIsLeaving] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLeave = async () => {
+  const leave = async () => {
     setIsLeaving(true);
     setError(null);
 
@@ -35,6 +36,7 @@ export function LeaveLobbyButton({
 
       if (rpcError) {
         setError(MESSAGES[rpcError.message] ?? "Could not leave the lobby.");
+        setConfirming(false);
         return;
       }
 
@@ -42,14 +44,44 @@ export function LeaveLobbyButton({
       router.refresh();
     } catch {
       setError("Could not leave the lobby. Try again.");
+      setConfirming(false);
     } finally {
       setIsLeaving(false);
     }
   };
 
+  if (isHost && confirming) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-sm">Close this lobby for everyone?</p>
+        <div className="flex gap-2">
+          <Button variant="destructive" onClick={leave} disabled={isLeaving}>
+            {isLeaving ? "Closing..." : "Yes, close it"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setConfirming(false)}
+            disabled={isLeaving}
+          >
+            Cancel
+          </Button>
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center gap-1">
-      <Button variant="outline" onClick={handleLeave} disabled={isLeaving}>
+      <Button
+        variant="outline"
+        onClick={isHost ? () => setConfirming(true) : leave}
+        disabled={isLeaving}
+      >
         {isLeaving ? "Leaving..." : isHost ? "Close lobby" : "Leave lobby"}
       </Button>
       {isHost && (
