@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { JoinLobbyButton } from "./join-lobby-button";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 
-export default async function LobbyList({ closed }: { closed?: boolean }) {
+export default async function LobbyList({
+  searchParams,
+}: {
+  searchParams: Promise<{ closed?: string }>;
+}) {
+  const { closed } = await searchParams;
   const supabase = await createClient();
 
   const { data: auth } = await supabase.auth.getClaims();
@@ -41,7 +46,7 @@ export default async function LobbyList({ closed }: { closed?: boolean }) {
     <main className="flex min-h-screen flex-col items-center gap-6 p-12">
       <h1 className="text-3xl font-bold tracking-tight">Available lobbies</h1>
 
-      {closed && !current && (
+      {closed === "1" && !current && (
         <p role="status" className="text-sm text-foreground/70">
           The host closed that lobby.
         </p>
