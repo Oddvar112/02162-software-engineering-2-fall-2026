@@ -1,6 +1,4 @@
 import { AuthButton } from "@/components/auth/auth-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { hasEnvVars } from "@/lib/utils";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -18,13 +16,9 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-2">
               <ThemeSwitcher />
-              {!hasEnvVars ? (
-                <EnvVarWarning />
-              ) : (
-                <Suspense>
-                  <AuthButton />
-                </Suspense>
-              )}
+              <Suspense>
+                <AuthButton />
+              </Suspense>
             </div>
           </div>
         </nav>
