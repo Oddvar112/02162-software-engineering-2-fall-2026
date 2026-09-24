@@ -11,6 +11,7 @@ const MESSAGES: Record<string, string> = {
   lobby_not_found: "This lobby no longer exists.",
   not_authenticated: "Sign in to join a lobby.",
   already_member: "You are already a member of this lobby.",
+  already_in_a_lobby: "You are already in another lobby. Leave it first.",
 };
 
 export function JoinLobbyButton({

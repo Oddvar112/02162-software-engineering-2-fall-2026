@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
+const MESSAGES: Record<string, string> = {
+  already_in_a_lobby: "You are already in a lobby. Leave it first.",
+};
+
 export function CreateLobbyButton() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +27,7 @@ export function CreateLobbyButton() {
 
       if (rpcError) {
         console.error("Create lobby error:", rpcError);
-        setError(`Failed to create lobby: ${rpcError.message}`);
+        setError(MESSAGES[rpcError.message] ?? "Could not create the lobby.");
         return;
       }
 

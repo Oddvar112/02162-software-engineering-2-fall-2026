@@ -1,12 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { JoinLobbyButton } from "./join-lobby-button";
+import { LeaveLobbyButton } from "./leave-lobby-button";
 
 export default async function LobbyList() {
   const supabase = await createClient();
 
+  const { data: auth } = await supabase.auth.getClaims();
+  const userId = auth?.claims?.sub as string | undefined;
+
   const { data: lobbies, error } = await supabase
     .from("lobbies")
-    .select("id, max_players, lobby_players(count)")
+    .select("id, max_players, created_by, lobby_players(count)")
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
@@ -19,9 +25,50 @@ export default async function LobbyList() {
     );
   }
 
+  const { data: hosts } = lobbies.length
+    ? await supabase
+        .from("users")
+        .select("id, display_name")
+        .in(
+          "id",
+          lobbies.map((l) => l.created_by),
+        )
+    : { data: [] };
+
+  const hostNames = new Map(hosts?.map((h) => [h.id, h.display_name]) ?? []);
+
+  const { data: joined } = await supabase
+    .from("lobbies")
+    .select("id, status, created_by, lobby_players!inner(user_id)")
+    .eq("lobby_players.user_id", userId ?? "")
+    .in("status", ["open", "started"])
+    .limit(1);
+
+  const current = joined?.[0];
+
   return (
     <main className="flex min-h-screen flex-col items-center gap-6 p-12">
       <h1 className="text-3xl font-bold tracking-tight">Available lobbies</h1>
+
+      {current && (
+        <div className="flex w-full max-w-xl flex-col items-center gap-3 rounded-lg border p-4 text-center">
+          <p className="font-medium">You are already in a lobby</p>
+          <p className="text-sm text-foreground/70">
+            Leave it before joining another one.
+          </p>
+          <div className="flex items-center gap-3">
+            <Button asChild size="sm">
+              <Link href={`/lobbies/${current.id}`}>Open</Link>
+            </Button>
+            {current.status === "open" && (
+              <LeaveLobbyButton
+                lobbyId={current.id}
+                isHost={current.created_by === userId}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       {lobbies.length === 0 ? (
         <p className="text-foreground/70">No lobbies are open right now.</p>
@@ -29,6 +76,7 @@ export default async function LobbyList() {
         <ul className="flex w-full max-w-xl flex-col gap-3">
           {lobbies.map((lobby) => {
             const players = lobby.lobby_players[0]?.count ?? 0;
+            const host = hostNames.get(lobby.created_by) ?? "Unknown player";
 
             return (
               <li
@@ -36,17 +84,21 @@ export default async function LobbyList() {
                 className="flex items-center justify-between gap-4 rounded-lg border p-4"
               >
                 <div>
-                  <p className="font-medium">
+                  <p className="font-medium">{host}&apos;s lobby</p>
+                  <p className="text-sm text-foreground/70">
                     {players} / {lobby.max_players} players
                   </p>
-                  <p className="font-mono text-xs text-foreground/50">
-                    {lobby.id}
-                  </p>
                 </div>
-                <JoinLobbyButton
-                  lobbyId={lobby.id}
-                  full={players >= lobby.max_players}
-                />
+                {current ? (
+                  <Button size="sm" disabled>
+                    {current.id === lobby.id ? "Joined" : "Join"}
+                  </Button>
+                ) : (
+                  <JoinLobbyButton
+                    lobbyId={lobby.id}
+                    full={players >= lobby.max_players}
+                  />
+                )}
               </li>
             );
           })}
