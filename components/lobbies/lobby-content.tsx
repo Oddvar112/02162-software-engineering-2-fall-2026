@@ -18,7 +18,7 @@ export default async function LobbyContent({
   const { data: lobby } = await supabase
     .from("lobbies")
     .select(
-      "id, max_players, status, created_by, lobby_players(user_id, joined_at, users(display_name))",
+      "id, max_players, status, created_by, lobby_players(user_id, joined_at)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
@@ -30,6 +30,15 @@ export default async function LobbyContent({
   const players = [...lobby.lobby_players].sort((a, b) =>
     a.joined_at.localeCompare(b.joined_at),
   );
+  const { data: profiles } = await supabase
+    .from("users")
+    .select("id, display_name")
+    .in(
+      "id",
+      players.map((p) => p.user_id),
+    );
+
+  const names = new Map(profiles?.map((p) => [p.id, p.display_name]) ?? []);
   const isMember = players.some((p) => p.user_id === userId);
 
   return (
@@ -57,7 +66,7 @@ export default async function LobbyContent({
             <ul className="text-left">
               {players.map((player) => (
                 <li key={player.user_id} className="py-1">
-                  {player.users?.display_name ?? "Unknown player"}
+                  {names.get(player.user_id) ?? "Unknown player"}
                   {player.user_id === lobby.created_by && (
                     <span className="ml-2 text-xs text-foreground/50">
                       host

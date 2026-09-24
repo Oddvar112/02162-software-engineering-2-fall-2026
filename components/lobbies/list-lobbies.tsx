@@ -17,9 +17,7 @@ export default async function LobbyList({
 
   const { data: lobbies, error } = await supabase
     .from("lobbies")
-    .select(
-      "id, max_players, created_by, host:users!created_by(display_name), lobby_players(count)",
-    )
+    .select("id, max_players, created_by, lobby_players(count)")
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
@@ -31,6 +29,18 @@ export default async function LobbyList({
       </main>
     );
   }
+
+  const { data: hosts } = lobbies.length
+    ? await supabase
+        .from("users")
+        .select("id, display_name")
+        .in(
+          "id",
+          lobbies.map((l) => l.created_by),
+        )
+    : { data: [] };
+
+  const hostNames = new Map(hosts?.map((h) => [h.id, h.display_name]) ?? []);
 
   const { data: joined } = await supabase
     .from("lobbies")
@@ -84,7 +94,7 @@ export default async function LobbyList({
         <ul className="flex w-full max-w-xl flex-col gap-3">
           {lobbies.map((lobby) => {
             const players = lobby.lobby_players[0]?.count ?? 0;
-            const host = lobby.host?.display_name ?? "Unknown player";
+            const host = hostNames.get(lobby.created_by) ?? "Unknown player";
 
             return (
               <li
