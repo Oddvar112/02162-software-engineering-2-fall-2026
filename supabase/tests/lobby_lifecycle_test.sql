@@ -226,8 +226,11 @@ select ok(
   'a player can read other players display names'
 );
 select ok(
-  not has_column_privilege('authenticated', 'public.users', 'email', 'SELECT'),
-  'the email column stays private'
+  not exists(
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'users' and column_name = 'email'
+  ),
+  'public.users holds no private email column'
 );
 
 reset role;

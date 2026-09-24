@@ -15,10 +15,9 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.users (id, email, display_name)
+  insert into public.users (id, display_name)
   values (
     new.id,
-    new.email,
     coalesce(
       nullif(new.raw_user_meta_data ->> 'display_name', ''),
       split_part(new.email, '@', 1)
@@ -28,11 +27,13 @@ begin
 end;
 $$;
 
+alter table public.users
+  drop column email;
+
 drop policy if exists "Users can read their own user data" on public.users;
 
 create policy "users_select_authenticated" on public.users
   for select to authenticated
   using (true);
 
-revoke select on public.users from anon, authenticated;
-grant select (id, display_name) on public.users to authenticated;
+grant select on public.users to authenticated;
