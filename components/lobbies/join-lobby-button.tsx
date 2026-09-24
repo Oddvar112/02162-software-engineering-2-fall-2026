@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
 const MESSAGES: Record<string, string> = {
   lobby_full: "This lobby is full.",

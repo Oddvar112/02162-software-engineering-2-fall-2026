@@ -49,7 +49,7 @@ an outer group that your gameplay code moves and rotates:
 
 ```tsx
 import { Suspense } from "react";
-import { RobotModel } from "@/components/game/robot-model";
+import { RobotModel } from "@/components/game/board/robot-model";
 
 <group position={[tileX, 0.1, tileZ]} rotation={[0, heading, 0]}>
   <Suspense fallback={null}>

@@ -1,4 +1,4 @@
-import GameContent from "@/components/game-content";
+import GameContent from "@/components/game/game-content";
 import { Suspense } from "react";
 
 export default function GamePage({

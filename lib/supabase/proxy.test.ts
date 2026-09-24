@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { updateSession } from "@/lib/supabase/proxy";
 
 const { getClaims } = vi.hoisted(() => ({ getClaims: vi.fn() }));
-vi.mock("@/lib/utils", () => ({ hasEnvVars: true }));
 vi.mock("@supabase/ssr", () => ({
   createServerClient: (
     _url: string,

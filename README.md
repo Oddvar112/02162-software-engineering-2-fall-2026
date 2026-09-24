@@ -107,8 +107,37 @@ If you added a dependency, commit `package-lock.json` with it. CI installs with 
 ## Project structure
 
 ```
-app/              routes and pages (App Router)
-components/       UI components
-lib/supabase/     Supabase clients for browser and server
-supabase/         config and migrations
+├── app/                              # Next.js App Router (pages, routes, and layouts)
+│   ├── auth/                         # Authentication flow pages & API endpoints (login, sign-up, confirm, password reset)
+│   ├── game/                         # 3D board standalone prototype route
+│   ├── games/[gameId]/               # Active in-game view for a specific match
+│   └── lobbies/                      # Lobby browsing & individual lobby room pages ([lobbyId])
+│
+├── assets/                           # Raw source assets & asset pipeline tools
+│   └── robots/crew/                  # Blender source files (.blend), rigging scripts, and generator tooling
+│
+├── components/                       # Reusable React components organized by domain
+│   ├── auth/                         # Authentication UI (login forms, signup forms, auth/logout buttons)
+│   ├── game/                         # In-game interactive components
+│   │   └── board/                    # 3D Three.js / Canvas board renderer & robot model components
+│   ├── lobbies/                      # Lobby management UI (create, list, and join lobby buttons/views)
+│   ├── ui/                           # Base UI primitive design system (shadcn/radix buttons, cards, dialogs, inputs)
+│   └── theme-switcher.tsx            # Light/Dark mode toggling component
+│
+├── lib/                              # Core business logic, utilities, and helper libraries
+│   ├── engine/                       # Empty folder for future game engine
+│   ├── hooks/                        # Custom client React hooks (e.g. motion/accessibility preferences)
+│   ├── supabase/                     # Supabase client configurations (browser, server, and middleware proxy)
+│   ├── robot-animation.ts            # Three.js animation controller for robot character models
+│   ├── robots.json                   # Robot character specifications and metadata
+│   ├── routes.ts                     # Route access helpers and route protection rules
+│   └── utils.ts                      # General utilities (tailwind class merging, env checks)
+│
+├── public/                           # Static assets served directly by the web server
+│   ├── models/robots/                # Compiled 3D robot models (.glb) and character manifests
+│   └── robots/previews/              # Rendered robot character 2D preview images
+│
+└── supabase/                         # Supabase local environment & database configuration
+    ├── migrations/                   # SQL migration scripts (tables, RLS policies, RPC functions)
+    └── tests/                        # Database logic & lifecycle pgTAP tests
 ```

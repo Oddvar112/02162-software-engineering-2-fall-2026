@@ -8,7 +8,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { JoinLobbyButton } from "@/components/join-lobby-button";
+import { JoinLobbyButton } from "@/components/lobbies/join-lobby-button";
 
 const { push, rpc } = vi.hoisted(() => ({ push: vi.fn(), rpc: vi.fn() }));
 

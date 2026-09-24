@@ -1,9 +1,8 @@
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { hasEnvVars } from "@/lib/utils";
+import { AuthButton } from "@/components/auth/auth-button";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
 import { Suspense } from "react";
-import { CreateLobbyButton } from "@/components/create-lobby-button";
+import { CreateLobbyButton } from "@/components/lobbies/create-lobby-button";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -15,13 +14,12 @@ export default function Home() {
             <div className="flex items-center gap-5 font-semibold">
               <Link href={"/"}>RoboRally</Link>
             </div>
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
               <Suspense>
                 <AuthButton />
               </Suspense>
-            )}
+            </div>
           </div>
         </nav>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
