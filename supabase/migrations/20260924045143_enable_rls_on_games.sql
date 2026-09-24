@@ -5,8 +5,8 @@ create policy "games_select_member" on public.games
   using (
     exists (
       select 1
-      from lobbies l
-      join lobby_players p on p.lobby_id = l.id
+      from public.lobbies l
+      join public.lobby_players p on p.lobby_id = l.id
       where l.game = games.id and p.user_id = auth.uid()
     )
   );
