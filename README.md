@@ -125,13 +125,12 @@ If you added a dependency, commit `package-lock.json` with it. CI installs with 
 │   └── theme-switcher.tsx            # Light/Dark mode toggling component
 │
 ├── lib/                              # Core business logic, utilities, and helper libraries
-│   ├── engine/                       # Empty folder for future game engine
 │   ├── hooks/                        # Custom client React hooks (e.g. motion/accessibility preferences)
 │   ├── supabase/                     # Supabase client configurations (browser, server, and middleware proxy)
 │   ├── robot-animation.ts            # Three.js animation controller for robot character models
 │   ├── robots.json                   # Robot character specifications and metadata
 │   ├── routes.ts                     # Route access helpers and route protection rules
-│   └── utils.ts                      # General utilities (tailwind class merging, env checks)
+│   └── utils.ts                      # General utilities (tailwind class merging)
 │
 ├── public/                           # Static assets served directly by the web server
 │   ├── models/robots/                # Compiled 3D robot models (.glb) and character manifests
