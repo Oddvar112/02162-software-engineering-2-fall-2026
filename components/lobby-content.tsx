@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { StartLobbyButton } from "./start-lobby-button";
 
 export default async function LobbyContent({
   params,
@@ -12,13 +13,18 @@ export default async function LobbyContent({
 
   const { data: lobby } = await supabase
     .from("lobbies")
-    .select("id, max_players, status, lobby_players(user_id, joined_at)")
+    .select("id, max_players, status, created_by, lobby_players(user_id, joined_at)")
     .eq("id", lobbyId)
     .maybeSingle();
 
   if (!lobby) {
     notFound();
   }
+
+  const { data: authData } = await supabase.auth.getUser();
+  const currentUserId = authData?.user?.id;
+
+  const isCreator = currentUserId === lobby.created_by;
 
   const players = [...lobby.lobby_players].sort((a, b) =>
     a.joined_at.localeCompare(b.joined_at),
@@ -54,6 +60,12 @@ export default async function LobbyContent({
               ))}
             </ul>
           </div>
+
+          {lobby.status === "open" && isCreator && (
+            <div className="mt-6">
+              <StartLobbyButton lobbyId={lobbyId} />
+            </div>
+          )}
         </div>
       </div>
     </main>
