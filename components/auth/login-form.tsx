@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { safeReturnPath } from "@/lib/routes";
 import { useState } from "react";
 
@@ -25,7 +25,6 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,8 +39,7 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      router.push(safeReturnPath(searchParams.get("next")));
-      router.refresh();
+      window.location.assign(safeReturnPath(searchParams.get("next")));
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

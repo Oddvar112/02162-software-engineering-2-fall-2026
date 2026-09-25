@@ -69,4 +69,16 @@ describe("safeReturnPath", () => {
     expect(safeReturnPath("javascript:alert(1)")).toBe("/");
     expect(safeReturnPath("lobbies")).toBe("/");
   });
+
+  it("refuses characters the URL parser strips, which would make it external", () => {
+    const withControlChar = (code: number) =>
+      `/${String.fromCharCode(code)}/evil.example.com`;
+    expect(safeReturnPath(withControlChar(9))).toBe("/");
+    expect(safeReturnPath(withControlChar(10))).toBe("/");
+    expect(safeReturnPath(withControlChar(13))).toBe("/");
+  });
+
+  it("keeps a path the parser leaves alone", () => {
+    expect(safeReturnPath("/lobbies/abc#players")).toBe("/lobbies/abc#players");
+  });
 });

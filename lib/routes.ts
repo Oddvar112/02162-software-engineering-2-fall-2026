@@ -12,9 +12,14 @@ export function isAuthEntryRoute(pathname: string): boolean {
 }
 
 export function safeReturnPath(value: string | null | undefined): string {
-  if (!value) return "/";
-  if (!value.startsWith("/")) return "/";
-  if (value.startsWith("//")) return "/";
-  if (value.includes("\\")) return "/";
-  return value;
+  if (!value || !value.startsWith("/")) return "/";
+
+  const base = "https://return.invalid";
+  try {
+    const url = new URL(value, base);
+    if (url.origin !== base) return "/";
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/";
+  }
 }

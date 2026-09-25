@@ -54,6 +54,10 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
 
+  if (pathname === "/protected") {
+    return redirectTo("/");
+  }
+
   if (!user && !isPublicRoute(pathname)) {
     return redirectTo("/auth/login", `${pathname}${search}`);
   }

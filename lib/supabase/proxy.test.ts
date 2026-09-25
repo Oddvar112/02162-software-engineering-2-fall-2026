@@ -45,6 +45,19 @@ describe("session proxy", () => {
     },
   );
 
+  it.each([true, false])(
+    "sends /protected to the landing page (signed in: %s)",
+    async (signedIn) => {
+      getClaims.mockResolvedValue(
+        signedIn ? { data: { claims: { sub: "user-1" } } } : { data: null },
+      );
+      const response = await updateSession(
+        new NextRequest("https://example.test/protected"),
+      );
+      expect(response.headers.get("location")).toBe("https://example.test/");
+    },
+  );
+
   it("sends a signed-in visitor away from the login page", async () => {
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
     const response = await updateSession(
