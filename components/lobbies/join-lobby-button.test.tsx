@@ -50,6 +50,7 @@ describe("JoinLobbyButton", () => {
     ["already_member", "You are already a member of this lobby."],
     ["lobby_full", "This lobby is full."],
     ["lobby_not_open", "This game has already started."],
+    ["already_in_a_lobby", "You are already in another lobby. Leave it first."],
   ])(
     "shows the server's %s reason without navigating",
     async (message, expected) => {
