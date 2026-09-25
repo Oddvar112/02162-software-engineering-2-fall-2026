@@ -17,8 +17,9 @@ export function safeReturnPath(value: string | null | undefined): string {
   const base = "https://return.invalid";
   try {
     const url = new URL(value, base);
-    if (url.origin !== base) return "/";
-    return `${url.pathname}${url.search}${url.hash}`;
+    const path = `${url.pathname}${url.search}${url.hash}`;
+    if (url.origin !== base || path.startsWith("//")) return "/";
+    return path;
   } catch {
     return "/";
   }

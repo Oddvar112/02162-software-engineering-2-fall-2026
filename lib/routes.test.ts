@@ -78,6 +78,13 @@ describe("safeReturnPath", () => {
     expect(safeReturnPath(withControlChar(13))).toBe("/");
   });
 
+  it("refuses dot segments that normalise into a protocol-relative path", () => {
+    expect(safeReturnPath("/.//evil.example.com")).toBe("/");
+    expect(safeReturnPath("/..//evil.example.com")).toBe("/");
+    expect(safeReturnPath("/%2e//evil.example.com")).toBe("/");
+    expect(safeReturnPath("//return.invalid//evil.example.com")).toBe("/");
+  });
+
   it("keeps a path the parser leaves alone", () => {
     expect(safeReturnPath("/lobbies/abc#players")).toBe("/lobbies/abc#players");
   });
