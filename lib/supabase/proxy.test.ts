@@ -39,11 +39,27 @@ describe("session proxy", () => {
         new NextRequest(`https://example.test${path}?old=1`),
       );
       expect(response.headers.get("location")).toBe(
-        "https://example.test/auth/login",
+        `https://example.test/auth/login?next=${encodeURIComponent(`${path}?old=1`)}`,
       );
       expect(response.cookies.get("session")?.value).toBe("refreshed");
     },
   );
+
+  it("sends a signed-in visitor away from the login page", async () => {
+    getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
+    const response = await updateSession(
+      new NextRequest("https://example.test/auth/login"),
+    );
+    expect(response.headers.get("location")).toBe("https://example.test/");
+  });
+
+  it("leaves the recovery routes alone for a signed-in visitor", async () => {
+    getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
+    const response = await updateSession(
+      new NextRequest("https://example.test/auth/update-password"),
+    );
+    expect(response.headers.get("location")).toBeNull();
+  });
 
   it.each(["/", "/game", "/auth/login", "/auth/confirm"])(
     "keeps %s public while refreshing cookies",

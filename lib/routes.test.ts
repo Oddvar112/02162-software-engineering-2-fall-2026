@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPublicRoute } from "@/lib/routes";
+import { isAuthEntryRoute, isPublicRoute, safeReturnPath } from "@/lib/routes";
 
 describe("isPublicRoute", () => {
   it("allows the landing page", () => {
@@ -30,5 +30,43 @@ describe("isPublicRoute", () => {
     expect(isPublicRoute("/games")).toBe(false);
     expect(isPublicRoute("/authorize")).toBe(false);
     expect(isPublicRoute("/game-admin")).toBe(false);
+  });
+});
+
+describe("isAuthEntryRoute", () => {
+  it("covers the pages a signed-in user should not see", () => {
+    expect(isAuthEntryRoute("/auth/login")).toBe(true);
+    expect(isAuthEntryRoute("/auth/sign-up")).toBe(true);
+  });
+
+  it("leaves the confirmation and recovery routes alone", () => {
+    expect(isAuthEntryRoute("/auth/confirm")).toBe(false);
+    expect(isAuthEntryRoute("/auth/update-password")).toBe(false);
+    expect(isAuthEntryRoute("/auth/forgot-password")).toBe(false);
+    expect(isAuthEntryRoute("/auth/sign-up-success")).toBe(false);
+    expect(isAuthEntryRoute("/auth/error")).toBe(false);
+  });
+});
+
+describe("safeReturnPath", () => {
+  it("keeps an internal path with its query", () => {
+    expect(safeReturnPath("/lobbies")).toBe("/lobbies");
+    expect(safeReturnPath("/lobbies/abc?tab=players")).toBe(
+      "/lobbies/abc?tab=players",
+    );
+  });
+
+  it("falls back to the landing page when there is nothing to return to", () => {
+    expect(safeReturnPath(null)).toBe("/");
+    expect(safeReturnPath(undefined)).toBe("/");
+    expect(safeReturnPath("")).toBe("/");
+  });
+
+  it("refuses anything that could leave the site", () => {
+    expect(safeReturnPath("https://evil.example.com")).toBe("/");
+    expect(safeReturnPath("//evil.example.com")).toBe("/");
+    expect(safeReturnPath(String.raw`/\evil.example.com`)).toBe("/");
+    expect(safeReturnPath("javascript:alert(1)")).toBe("/");
+    expect(safeReturnPath("lobbies")).toBe("/");
   });
 });
