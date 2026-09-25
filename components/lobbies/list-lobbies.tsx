@@ -122,6 +122,9 @@ export default async function LobbyList({
           })}
         </ul>
       )}
+      <Button asChild variant={"default"}>
+        <Link href={"/"}>Return to home</Link>
+      </Button>
     </main>
   );
 }
