@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isPublicRoute } from "@/lib/routes";
+import { isAuthEntryRoute, isPublicRoute } from "@/lib/routes";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -41,15 +41,29 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (!user && !isPublicRoute(request.nextUrl.pathname)) {
+  const redirectTo = (pathname: string, next?: string) => {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    url.search = "";
+    url.pathname = pathname;
+    url.search = next ? `?next=${encodeURIComponent(next)}` : "";
     const redirectResponse = NextResponse.redirect(url);
     supabaseResponse.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie);
     });
     return redirectResponse;
+  };
+
+  const { pathname, search } = request.nextUrl;
+
+  if (pathname === "/protected") {
+    return redirectTo("/");
+  }
+
+  if (!user && !isPublicRoute(pathname)) {
+    return redirectTo("/auth/login", `${pathname}${search}`);
+  }
+
+  if (user && isAuthEntryRoute(pathname)) {
+    return redirectTo("/");
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

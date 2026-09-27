@@ -39,9 +39,45 @@ describe("session proxy", () => {
         new NextRequest(`https://example.test${path}?old=1`),
       );
       expect(response.headers.get("location")).toBe(
-        "https://example.test/auth/login",
+        `https://example.test/auth/login?next=${encodeURIComponent(`${path}?old=1`)}`,
       );
       expect(response.cookies.get("session")?.value).toBe("refreshed");
+    },
+  );
+
+  it.each([true, false])(
+    "sends /protected to the landing page (signed in: %s)",
+    async (signedIn) => {
+      getClaims.mockResolvedValue(
+        signedIn ? { data: { claims: { sub: "user-1" } } } : { data: null },
+      );
+      const response = await updateSession(
+        new NextRequest("https://example.test/protected"),
+      );
+      expect(response.headers.get("location")).toBe("https://example.test/");
+    },
+  );
+
+  it.each(["/auth/login", "/auth/sign-up"])(
+    "sends a signed-in visitor away from %s",
+    async (path) => {
+      getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
+      const response = await updateSession(
+        new NextRequest(`https://example.test${path}`),
+      );
+      expect(response.headers.get("location")).toBe("https://example.test/");
+      expect(response.cookies.get("session")?.value).toBe("refreshed");
+    },
+  );
+
+  it.each(["/auth/update-password", "/auth/confirm", "/auth/forgot-password"])(
+    "leaves %s reachable for a signed-in visitor",
+    async (path) => {
+      getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
+      const response = await updateSession(
+        new NextRequest(`https://example.test${path}`),
+      );
+      expect(response.headers.get("location")).toBeNull();
     },
   );
 
