@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 import { LobbyRealtime } from "./lobby-realtime";
+import { StartLobbyButton } from "./start-lobby-button";
 
 export default async function LobbyContent({
   params,
@@ -77,6 +78,14 @@ export default async function LobbyContent({
             </ul>
           </div>
           <LobbyRealtime lobbyId={lobby.id} />
+          {isMember &&
+            lobby.status === "open" &&
+            lobby.created_by === userId && (
+              <StartLobbyButton
+                lobbyId={lobby.id}
+                playerCount={players.length}
+              />
+            )}
           {isMember && lobby.status === "open" ? (
             <LeaveLobbyButton
               lobbyId={lobby.id}

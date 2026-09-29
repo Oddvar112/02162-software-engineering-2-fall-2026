@@ -40,7 +40,14 @@ export function LobbyRealtime({ lobbyId }: { lobbyId: string }) {
           table: "lobbies",
           filter: `id=eq.${lobbyId}`,
         },
-        () => router.refresh(),
+        (payload) => {
+          const lobby = payload.new as { status?: string; game?: string };
+          if (lobby.status === "started" && lobby.game) {
+            router.replace(`/games/${lobby.game}`);
+          } else {
+            router.refresh();
+          }
+        },
       )
       .subscribe();
 

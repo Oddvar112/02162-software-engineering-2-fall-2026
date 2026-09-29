@@ -1,11 +1,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  createMockGame,
-  getPlayerSnapshot,
-  startNextRound,
-  submitProgram,
-} from "@/lib/game/programming";
+import { resolveRound } from "@/lib/game/engine";
+import { buildGameState } from "@/lib/game/fixtures";
 import { PLAYBACK_STEP_MS, useGamePlayback } from "./use-game-playback";
 
 beforeEach(() => vi.useFakeTimers());
@@ -15,15 +11,12 @@ afterEach(() => {
 });
 
 function turn() {
-  const game = createMockGame();
-  const before = getPlayerSnapshot(game, "player-1");
-  submitProgram(
-    game,
-    "player-1",
-    1,
-    before.currentPlayerCards.slice(0, 5).map((card) => card.id),
-  );
-  return { game, before, after: getPlayerSnapshot(game, "player-1") };
+  const before = buildGameState();
+  const after = structuredClone(before);
+  after.players.forEach((player) => (player.programLocked = true));
+  resolveRound(after, { "player-1": before.currentPlayerCards.slice(0, 5) });
+  after.updatedAt = new Date(Date.now() + 1000).toISOString();
+  return { before, after };
 }
 
 describe("visible program playback", () => {
@@ -80,12 +73,16 @@ describe("visible program playback", () => {
   });
 
   it("cancels old playback when another tab starts a new round", () => {
-    const { game, before, after } = turn();
+    const { before, after } = turn();
     const { result } = renderHook(useGamePlayback);
     act(() => result.current.receiveState(before));
     act(() => result.current.receiveState(after));
-    startNextRound(game, "player-1", 1);
-    act(() => result.current.receiveState(getPlayerSnapshot(game, "player-1")));
+    const next = {
+      ...before,
+      round: 2,
+      updatedAt: new Date(Date.now() + 2000).toISOString(),
+    };
+    act(() => result.current.receiveState(next));
     act(() => vi.advanceTimersByTime(PLAYBACK_STEP_MS * 2));
     expect(result.current.gameState?.round).toBe(2);
     expect(result.current.gameState?.phase).toBe("programming");
