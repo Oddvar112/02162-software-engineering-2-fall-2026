@@ -1,47 +1,35 @@
 import type { Board } from "@/lib/board";
-import { Direction } from "@/lib/direction";
+import type { Tile } from "@/lib/tile";
 
-// The demo reads its entire layout and robot spawn positions from this file.
-// Tiles are rows: tiles[y][x]. Keep width/height consistent with the grid.
+const floor: Tile = { kind: "floor" };
+const pit: Tile = { kind: "pit" };
+const checkpoint: Tile = { kind: "checkpoint", number: 1 };
+
+const row = (...tiles: Tile[]): Tile[] => tiles;
+const floors = (count: number): Tile[] =>
+  Array.from({ length: count }, () => floor);
+
 export const staticBoard: Board = {
-  id: "test-board",
-  width: 4,
-  height: 4,
+  id: "factory-floor",
+  width: 10,
+  height: 10,
   tiles: [
-    [
-      { kind: "floor" },
-      { kind: "floor" },
-      { kind: "floor" },
-      { kind: "checkpoint", number: 1 },
-    ],
-    [
-      { kind: "floor" },
-      { kind: "conveyor", direction: Direction.Right, express: false },
-      { kind: "conveyor", direction: Direction.Right, express: false },
-      { kind: "floor" },
-    ],
-    [
-      { kind: "floor" },
-      { kind: "floor" },
-      { kind: "floor" },
-      { kind: "floor" },
-    ],
-    [
-      { kind: "floor" },
-      { kind: "floor" },
-      { kind: "floor" },
-      { kind: "floor" },
-    ],
+    row(...floors(9), checkpoint),
+    row(...floors(10)),
+    row(...floors(3), pit, ...floors(6)),
+    row(...floors(10)),
+    row(...floors(6), pit, ...floors(3)),
+    row(...floors(10)),
+    row(...floors(2), pit, ...floors(7)),
+    row(...floors(10)),
+    row(...floors(10)),
+    row(...floors(10)),
   ],
-  walls: [{ One: { x: 1, y: 2 }, Two: { x: 2, y: 2 } }],
-  startpositions: [
-    { x: 0, y: 3 },
-    { x: 1, y: 3 },
-    { x: 2, y: 3 },
-    { x: 3, y: 3 },
-    { x: 0, y: 2 },
-    { x: 1, y: 2 },
-    { x: 2, y: 2 },
-    { x: 3, y: 2 },
+  walls: [
+    { One: { x: 4, y: 5 }, Two: { x: 4, y: 4 } },
+    { One: { x: 5, y: 5 }, Two: { x: 5, y: 4 } },
+    { One: { x: 8, y: 1 }, Two: { x: 9, y: 1 } },
+    { One: { x: 1, y: 7 }, Two: { x: 2, y: 7 } },
   ],
+  startpositions: Array.from({ length: 8 }, (_, x) => ({ x: x + 1, y: 9 })),
 };

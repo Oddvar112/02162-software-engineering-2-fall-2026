@@ -103,7 +103,7 @@ describe("resolveRound", () => {
             ? { One: destination, Two: origin }
             : { One: origin, Two: destination },
         ];
-        resolveRound(state, { p1: [move(1)] });
+        Object.assign(state, resolveRound(state, { p1: [move(1)] }));
         expect(state.robots[0]).toMatchObject({ x: 1, z: 8, direction });
       }
     },
@@ -112,7 +112,7 @@ describe("resolveRound", () => {
   it("executes the five registers in order and logs each card once", () => {
     const state = makeState();
     const program = [move(1), rotate(1), move(2), rotate(-1), move(1)];
-    resolveRound(state, { p1: program });
+    Object.assign(state, resolveRound(state, { p1: program }));
     expect(state.phase).toBe("end-of-round");
     expect(state.executionLog.map((entry) => entry.register)).toEqual([
       1, 2, 3, 4, 5,
@@ -130,7 +130,7 @@ describe("resolveRound", () => {
   it("backs up in the opposite direction without turning", () => {
     const state = makeState();
     state.registerCount = 2;
-    resolveRound(state, { p1: [backup(), move(1)] });
+    Object.assign(state, resolveRound(state, { p1: [backup(), move(1)] }));
     expect(state.robots[0]).toMatchObject({
       x: 1,
       z: 8,
@@ -143,7 +143,10 @@ describe("resolveRound", () => {
     state.registerCount = 1;
     Object.assign(state.robots[1], { x: 1, z: 7 });
     state.board.walls = [{ One: { x: 1, y: 5 }, Two: { x: 1, y: 4 } }];
-    resolveRound(state, { p1: [move(3)], p2: [rotate(1, 1)] });
+    Object.assign(
+      state,
+      resolveRound(state, { p1: [move(3)], p2: [rotate(1, 1)] }),
+    );
     expect(state.robots.map(({ x, z }) => ({ x, z }))).toEqual([
       { x: 1, z: 6 },
       { x: 1, z: 5 },
@@ -155,7 +158,10 @@ describe("resolveRound", () => {
     state.registerCount = 1;
     Object.assign(state.robots[0], { x: 4, z: 8, direction: Direction.Right });
     Object.assign(state.robots[1], { x: 6, z: 8, direction: Direction.Left });
-    resolveRound(state, { p1: [move(1, 100)], p2: [move(1, 900)] });
+    Object.assign(
+      state,
+      resolveRound(state, { p1: [move(1, 100)], p2: [move(1, 900)] }),
+    );
     expect(state.executionLog.map((entry) => entry.playerId)).toEqual([
       "p2",
       "p1",
@@ -177,7 +183,7 @@ describe("resolveRound", () => {
         kind: "checkpoint",
         number: reversed ? 1 : 2,
       };
-      resolveRound(state, { p1: [move(1)] });
+      Object.assign(state, resolveRound(state, { p1: [move(1)] }));
       expect(state.players[0].checkpointsReached).toBe(reversed ? 0 : 1);
     }
   });
@@ -185,7 +191,10 @@ describe("resolveRound", () => {
   it("costs one life in a pit, skips the rest of the program and reboots near the start", () => {
     const state = makeState();
     state.board.tiles[7][1] = { kind: "pit" };
-    resolveRound(state, { p1: fill([move(1), move(1), move(1)]) });
+    Object.assign(
+      state,
+      resolveRound(state, { p1: fill([move(1), move(1), move(1)]) }),
+    );
     expect(state.players[0].lives).toBe(2);
     expect(state.executionLog).toHaveLength(1);
     expect(state.robots[0]).toMatchObject({
@@ -199,7 +208,7 @@ describe("resolveRound", () => {
     const state = makeState();
     state.players[0].lives = 1;
     state.board.tiles[7][1] = { kind: "pit" };
-    resolveRound(state, { p1: fill([move(1)]) });
+    Object.assign(state, resolveRound(state, { p1: fill([move(1)]) }));
     expect(state.players[0].lives).toBe(0);
     expect(state.robots).toEqual([]);
   });
@@ -208,7 +217,7 @@ describe("resolveRound", () => {
     const state = makeState(2);
     state.registerCount = 1;
     const programs: Programs = { p1: [move(1)] };
-    resolveRound(state, programs);
+    Object.assign(state, resolveRound(state, programs));
     expect(state.executionLog.map((entry) => entry.playerId)).toEqual(["p1"]);
     expect(state.robots[1]).toMatchObject({ x: 3, z: 8 });
   });
@@ -216,7 +225,7 @@ describe("resolveRound", () => {
   it("records a frame for every step and rotation", () => {
     const state = makeState();
     state.registerCount = 2;
-    resolveRound(state, { p1: [move(2), rotate(1)] });
+    Object.assign(state, resolveRound(state, { p1: [move(2), rotate(1)] }));
     const messages = state.executionFrames.map((frame) => frame.message);
     expect(messages[0]).toBe("Executing programs…");
     expect(messages.filter((message) => message.includes("Step"))).toHaveLength(

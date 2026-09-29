@@ -12,9 +12,11 @@ afterEach(() => {
 
 function turn() {
   const before = buildGameState();
-  const after = structuredClone(before);
-  after.players.forEach((player) => (player.programLocked = true));
-  resolveRound(after, { "player-1": before.currentPlayerCards.slice(0, 5) });
+  const locked = structuredClone(before);
+  locked.players.forEach((player) => (player.programLocked = true));
+  const after = resolveRound(locked, {
+    "player-1": before.currentPlayerCards.slice(0, 5),
+  });
   after.updatedAt = new Date(Date.now() + 1000).toISOString();
   return { before, after };
 }
@@ -69,7 +71,6 @@ describe("visible program playback", () => {
     act(() => result.current.replay());
     expect(result.current.gameState?.robots[0].z).toBe(before.robots[0].z);
     expect(result.current.gameState?.players[0].programLocked).toBe(true);
-    expect(after.robots[0].z).toBe(before.robots[0].z);
   });
 
   it("cancels old playback when another tab starts a new round", () => {

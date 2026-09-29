@@ -55,7 +55,21 @@ function requireMember(loaded: LoadedGame, userId: string) {
   }
 }
 
+async function requireLobbyMember(gameId: string, userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("lobbies")
+    .select("id, lobby_players!inner(user_id)")
+    .eq("game", gameId)
+    .eq("lobby_players.user_id", userId)
+    .maybeSingle();
+  if (!data) {
+    throw new GameError("You are not a player in this game.", 403);
+  }
+}
+
 async function snapshot(gameId: string, userId: string) {
+  await requireLobbyMember(gameId, userId);
   await initialiseGame(gameId);
   let loaded = await loadGame(gameId);
   requireMember(loaded, userId);

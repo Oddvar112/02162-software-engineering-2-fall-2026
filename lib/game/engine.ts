@@ -100,7 +100,8 @@ function rebootFallen(
   }
 }
 
-export function resolveRound(state: GameState, programs: Programs) {
+export function resolveRound(input: GameState, programs: Programs): GameState {
+  const state = structuredClone(input);
   const fallen = new Set<string>();
   const starts = structuredClone(state.robots);
   state.executionLog = [];
@@ -187,4 +188,5 @@ export function resolveRound(state: GameState, programs: Programs) {
   );
   recordFrame(0, null, "Round complete");
   state.phase = "end-of-round";
+  return state;
 }

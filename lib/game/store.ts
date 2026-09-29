@@ -267,79 +267,54 @@ function countCheckpoints(board: Board): number {
 
 export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
   if (!isReadyToResolve(loaded)) return false;
-  const service = createServiceClient();
   const { game } = loaded;
 
   const programs = fillMissingPrograms(loaded);
-  const state = toGameState(loaded, "");
-  for (const player of state.players) {
+  const before = toGameState(loaded, "");
+  for (const player of before.players) {
     if (programs[player.id]) {
       player.programLocked = true;
       player.programmedCardCount = REGISTER_COUNT;
     }
   }
-  resolveRound(state, programs);
+  const state = resolveRound(before, programs);
 
   const total = countCheckpoints(game.board);
   const won = state.players.some(
     (player) => total > 0 && player.checkpointsReached >= total,
   );
   const anyoneLeft = state.players.some((player) => player.lives > 0);
-  const phase = won || !anyoneLeft ? "finished" : "end-of-round";
 
-  const { data: claimed, error: claimError } = await service
-    .from("games")
-    .update({
-      phase,
-      execution_log: state.executionLog,
-      execution_frames: state.executionFrames,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", game.id)
-    .eq("phase", "programming")
-    .eq("round", game.round)
-    .select("id");
-  if (claimError) throw claimError;
-  if (!claimed?.length) return false;
-
-  const writes = await Promise.all([
-    ...state.players.map((player) => {
-      const robot = state.robots.find(
-        (candidate) => candidate.id === player.id,
-      );
-      return service
-        .from("game_players")
-        .update({
+  const { data: applied, error } = await createServiceClient().rpc(
+    "apply_round_result",
+    {
+      p_game_id: game.id,
+      p_round: game.round,
+      p_expected_updated_at: game.updated_at,
+      p_phase: won || !anyoneLeft ? "finished" : "end-of-round",
+      p_execution_log: state.executionLog,
+      p_execution_frames: state.executionFrames,
+      p_players: state.players.map((player) => {
+        const robot = state.robots.find(
+          (candidate) => candidate.id === player.id,
+        );
+        return {
+          user_id: player.id,
           x: robot?.x ?? 0,
           z: robot?.z ?? 0,
           direction: robot?.direction ?? Direction.Up,
           lives: player.lives,
           checkpoints_reached: player.checkpointsReached,
-        })
-        .eq("game_id", game.id)
-        .eq("user_id", player.id);
-    }),
-    service.from("programs").upsert(
-      Object.entries(programs).map(([user_id, cards]) => ({
-        game_id: game.id,
+        };
+      }),
+      p_programs: Object.entries(programs).map(([user_id, cards]) => ({
         user_id,
-        round: game.round,
         cards,
       })),
-      { onConflict: "game_id,user_id" },
-    ),
-    ...(phase === "finished"
-      ? [
-          service
-            .from("lobbies")
-            .update({ status: "finished" })
-            .eq("game", game.id),
-        ]
-      : []),
-  ]);
-  const failed = writes.find((result) => result.error);
-  if (failed?.error) throw failed.error;
-  return true;
+    },
+  );
+  if (error) throw error;
+  return applied === true;
 }
 
 function isReadyToAdvance(loaded: LoadedGame): boolean {
@@ -353,52 +328,21 @@ function isReadyToAdvance(loaded: LoadedGame): boolean {
 
 export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
   if (!isReadyToAdvance(loaded)) return false;
-  return startNextRound(loaded.game.id, loaded.game.round);
-}
-
-export async function startNextRound(
-  gameId: string,
-  round: number,
-): Promise<boolean> {
-  const service = createServiceClient();
-
-  const { data: advanced, error } = await service
-    .from("games")
-    .update({
-      round: round + 1,
-      phase: "programming",
-      execution_log: [],
-      execution_frames: [],
-      timer_started_at: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", gameId)
-    .eq("phase", "end-of-round")
-    .eq("round", round)
-    .select("id");
-  if (error) throw error;
-  if (!advanced?.length) return false;
-
-  const { data: players } = await service
-    .from("game_players")
-    .select("user_id, lives")
-    .eq("game_id", gameId);
-  const alive = (players ?? []).filter((player) => player.lives > 0);
-
+  const { game, players } = loaded;
+  const alive = players.filter((player) => player.lives > 0);
   const hands = dealHands(alive.map((player) => player.user_id));
-  const writes = await Promise.all([
-    service.from("hands").upsert(
-      Object.entries(hands).map(([user_id, cards]) => ({
-        game_id: gameId,
+
+  const { data: advanced, error } = await createServiceClient().rpc(
+    "begin_next_round",
+    {
+      p_game_id: game.id,
+      p_round: game.round,
+      p_hands: Object.entries(hands).map(([user_id, cards]) => ({
         user_id,
-        round: round + 1,
         cards,
       })),
-      { onConflict: "game_id,user_id" },
-    ),
-    service.from("programs").delete().eq("game_id", gameId),
-  ]);
-  const failed = writes.find((result) => result.error);
-  if (failed?.error) throw failed.error;
-  return true;
+    },
+  );
+  if (error) throw error;
+  return advanced === true;
 }

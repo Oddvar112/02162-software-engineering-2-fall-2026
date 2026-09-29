@@ -5,13 +5,13 @@ export const HAND_SIZE = 9;
 type CardTemplate = Omit<ActionCard, "id" | "priority"> & { count: number };
 
 const TEMPLATES: CardTemplate[] = [
+  { name: "U-turn", type: "rotate", value: 2, count: 6 },
+  { name: "Rotate left", type: "rotate", value: -1, count: 18 },
+  { name: "Rotate right", type: "rotate", value: 1, count: 18 },
+  { name: "Back up", type: "backup", value: -1, count: 6 },
   { name: "Move 1", type: "move", value: 1, count: 18 },
   { name: "Move 2", type: "move", value: 2, count: 12 },
   { name: "Move 3", type: "move", value: 3, count: 6 },
-  { name: "Back up", type: "backup", value: -1, count: 6 },
-  { name: "Rotate left", type: "rotate", value: -1, count: 18 },
-  { name: "Rotate right", type: "rotate", value: 1, count: 18 },
-  { name: "U-turn", type: "rotate", value: 2, count: 6 },
 ];
 
 export function buildDeck(): ActionCard[] {
