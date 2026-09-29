@@ -19,7 +19,7 @@ export default async function LobbyContent({
   const { data: lobby } = await supabase
     .from("lobbies")
     .select(
-      "id, max_players, status, created_by, lobby_players(user_id, joined_at)",
+      "id, max_players, status, created_by, game, lobby_players(user_id, joined_at)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
@@ -61,6 +61,11 @@ export default async function LobbyContent({
             <p className="text-sm text-foreground/50">
               This game has already started.
             </p>
+          )}
+          {lobby.status === "started" && isMember && (
+            <Link href={`/games/${lobby.game}`} className="underline">
+              Go to the game
+            </Link>
           )}
           <div className="mt-4 rounded border p-4">
             <h2 className="mb-2 text-xl font-semibold">Players</h2>

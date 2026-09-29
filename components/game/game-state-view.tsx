@@ -203,10 +203,7 @@ export function GameStateView({ gameId }: { gameId: string }) {
     };
   }, [gameId, loadGameState]);
 
-  async function submitAction(
-    action: "lock-in" | "next-round",
-    cardIds?: string[],
-  ) {
+  async function submitAction(action: "lock-in", cardIds?: string[]) {
     if (!gameState || submitting.current || isPlaying) return;
     submitting.current = true;
     setIsSubmitting(true);
@@ -243,9 +240,7 @@ export function GameStateView({ gameId }: { gameId: string }) {
     }
   }
 
-  const secondsLeft = useCountdown(
-    gameState?.phase === "programming" ? gameState.timerEndsAt : null,
-  );
+  const secondsLeft = useCountdown(gameState?.timerEndsAt ?? null);
 
   const robotById = useMemo(
     () => new Map(gameState?.robots.map((robot) => [robot.id, robot]) ?? []),
@@ -261,11 +256,6 @@ export function GameStateView({ gameId }: { gameId: string }) {
   const currentRobot = currentPlayer
     ? robotById.get(currentPlayer.robotId)
     : undefined;
-  const alivePlayers = gameState.players.filter((player) => player.lives > 0);
-  const aliveCount = alivePlayers.length;
-  const readyCount = alivePlayers.filter(
-    (player) => player.readyForNext,
-  ).length;
   const syncedAt = new Date(gameState.updatedAt).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
@@ -514,18 +504,6 @@ export function GameStateView({ gameId }: { gameId: string }) {
                     disabled={isSubmitting}
                   >
                     <RefreshCw aria-hidden="true" /> Replay movement
-                  </button>
-                )}
-                {gameState.phase === "end-of-round" && (
-                  <button
-                    type="button"
-                    className={styles.lockInButton}
-                    disabled={isSubmitting || currentPlayer?.readyForNext}
-                    onClick={() => void submitAction("next-round")}
-                  >
-                    {currentPlayer?.readyForNext
-                      ? `Waiting for others (${readyCount}/${aliveCount})`
-                      : "Ready for next round"}
                   </button>
                 )}
               </div>
