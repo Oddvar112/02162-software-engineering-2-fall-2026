@@ -163,7 +163,7 @@ Each round works like this:
 1. Every player holds nine cards. Pick five in the order they should run and press **Lock In**. The first lock in starts a 30 second timer.
 2. The round resolves when everyone has locked in, or when the timer runs out. A player who did not finish gets five random cards from their hand.
 3. The server runs every program register by register in card priority order, then records the movement frames. Each client animates them. **Replay movement** plays the sequence again.
-4. Press **Ready for next round**. The next round starts when every living player is ready.
+4. The next round starts by itself 45 seconds after the round resolves, which leaves time to watch the animation. The countdown is shown next to the phase.
 
 The first robot to reach the last checkpoint wins. A robot that falls off the board or into a pit loses a life and reboots near where it started the round; at zero lives it is out.
 
