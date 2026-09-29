@@ -73,7 +73,7 @@ describe("visible program playback", () => {
     expect(result.current.gameState?.players[0].programLocked).toBe(true);
   });
 
-  it("cancels old playback when another tab starts a new round", () => {
+  it("finishes the animation even when the next round has already started", () => {
     const { before, after } = turn();
     const { result } = renderHook(useGamePlayback);
     act(() => result.current.receiveState(before));
@@ -84,9 +84,22 @@ describe("visible program playback", () => {
       updatedAt: new Date(Date.now() + 2000).toISOString(),
     };
     act(() => result.current.receiveState(next));
-    act(() => vi.advanceTimersByTime(PLAYBACK_STEP_MS * 2));
+    expect(result.current.isPlaying).toBe(true);
+    expect(result.current.gameState?.round).toBe(1);
+    for (let index = 0; index <= after.executionFrames.length; index++) {
+      act(() => vi.advanceTimersByTime(PLAYBACK_STEP_MS));
+    }
+    expect(result.current.isPlaying).toBe(false);
     expect(result.current.gameState?.round).toBe(2);
     expect(result.current.gameState?.phase).toBe("programming");
+  });
+
+  it("drops the animation when a different game arrives", () => {
+    const { before, after } = turn();
+    const { result } = renderHook(useGamePlayback);
+    act(() => result.current.receiveState(before));
+    act(() => result.current.receiveState(after));
+    act(() => result.current.receiveState({ ...before, gameId: "other" }));
     expect(result.current.isPlaying).toBe(false);
   });
 });

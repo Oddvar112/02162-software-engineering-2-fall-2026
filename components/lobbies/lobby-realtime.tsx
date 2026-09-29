@@ -4,7 +4,13 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export function LobbyRealtime({ lobbyId }: { lobbyId: string }) {
+export function LobbyRealtime({
+  lobbyId,
+  isMember,
+}: {
+  lobbyId: string;
+  isMember: boolean;
+}) {
   const router = useRouter();
 
   useEffect(() => {
@@ -42,7 +48,7 @@ export function LobbyRealtime({ lobbyId }: { lobbyId: string }) {
         },
         (payload) => {
           const lobby = payload.new as { status?: string; game?: string };
-          if (lobby.status === "started" && lobby.game) {
+          if (lobby.status === "started" && lobby.game && isMember) {
             router.replace(`/games/${lobby.game}`);
           } else {
             router.refresh();
@@ -54,7 +60,7 @@ export function LobbyRealtime({ lobbyId }: { lobbyId: string }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [lobbyId, router]);
+  }, [lobbyId, isMember, router]);
 
   return null;
 }

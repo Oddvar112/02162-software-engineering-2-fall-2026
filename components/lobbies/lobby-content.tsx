@@ -42,6 +42,16 @@ export default async function LobbyContent({
   const names = new Map(profiles?.map((p) => [p.id, p.display_name]) ?? []);
   const isMember = players.some((p) => p.user_id === userId);
 
+  const { data: game } =
+    lobby.status === "finished"
+      ? await supabase
+          .from("games")
+          .select("winner_id")
+          .eq("id", lobby.game)
+          .maybeSingle()
+      : { data: null };
+  const winnerName = game?.winner_id ? names.get(game.winner_id) : null;
+
   return (
     <main className="flex min-h-screen flex-col items-center">
       <div className="flex w-full flex-1 flex-col items-center">
@@ -57,9 +67,14 @@ export default async function LobbyContent({
           <p className="text-lg text-foreground/70">
             {players.length} / {lobby.max_players} players
           </p>
-          {lobby.status !== "open" && (
+          {lobby.status === "started" && (
             <p className="text-sm text-foreground/50">
               This game has already started.
+            </p>
+          )}
+          {lobby.status === "finished" && (
+            <p className="text-lg font-semibold">
+              {winnerName ? `${winnerName} won the race.` : "The game is over."}
             </p>
           )}
           {lobby.status === "started" && isMember && (
@@ -82,7 +97,7 @@ export default async function LobbyContent({
               ))}
             </ul>
           </div>
-          <LobbyRealtime lobbyId={lobby.id} />
+          <LobbyRealtime lobbyId={lobby.id} isMember={isMember} />
           {isMember &&
             lobby.status === "open" &&
             lobby.created_by === userId && (

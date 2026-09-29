@@ -11,6 +11,7 @@ import {
 } from "react";
 import styles from "@/components/game/game-state.module.css";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { GameState } from "@/lib/game/types";
 import { GameBoard } from "./board/game-board";
@@ -18,7 +19,7 @@ import { GameHeader } from "./game-header";
 import { PlayerList } from "./player-list";
 import { ProgramEditor } from "./program-editor";
 import { RoundResult } from "./round-result";
-import { useGamePlayback } from "./use-game-playback";
+import { PLAYBACK_STEP_MS, useGamePlayback } from "./use-game-playback";
 
 const SYNC_INTERVAL_MS = 5_000;
 
@@ -210,6 +211,17 @@ export function GameStateView({ gameId }: { gameId: string }) {
   }
 
   const secondsLeft = useCountdown(gameState?.timerEndsAt ?? null);
+  const router = useRouter();
+  const finishedLobby =
+    gameState?.phase === "finished" && !isPlaying ? gameState.lobbyId : null;
+  useEffect(() => {
+    if (!finishedLobby) return;
+    const timer = window.setTimeout(
+      () => router.replace(`/lobbies/${finishedLobby}`),
+      PLAYBACK_STEP_MS * 3,
+    );
+    return () => window.clearTimeout(timer);
+  }, [finishedLobby, router]);
 
   const robotById = useMemo(
     () => new Map(gameState?.robots.map((robot) => [robot.id, robot]) ?? []),
