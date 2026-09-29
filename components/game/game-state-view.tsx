@@ -5,7 +5,6 @@ import {
   Bot,
   ChevronDown,
   Flag,
-  Heart,
   LoaderCircle,
   LockKeyhole,
   Radio,
@@ -462,9 +461,7 @@ export function GameStateView({
                 <button
                   type="button"
                   className={styles.lockInButton}
-                  disabled={
-                    isSubmitting
-                  }
+                  disabled={isSubmitting}
                   onClick={() => void submitAction("next-round")}
                 >
                   Start next round
