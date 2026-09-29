@@ -32,14 +32,13 @@ vi.mock("@/lib/supabase/server", () => ({
     }),
   }),
 }));
+vi.mock("@/lib/game/round", () => ({ resolveIfReady, advanceIfReady }));
+vi.mock("@/lib/game/setup", () => ({ initialiseGame }));
 vi.mock("@/lib/game/store", async (importActual) => {
   const actual = await importActual<typeof import("@/lib/game/store")>();
   return {
     ...actual,
     loadGame,
-    resolveIfReady,
-    advanceIfReady,
-    initialiseGame,
     toGameState: (_loaded: unknown, viewerId: string) => ({
       ...buildGameState(),
       currentPlayerId: viewerId,
