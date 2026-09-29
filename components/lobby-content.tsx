@@ -66,12 +66,8 @@ export default async function LobbyContent({
             </ul>
           </div>
 
-
-          
-        
-
           <div className="mt-6">
-            <LeaveLobbyButton lobbyId={lobbyId} isCreator={isCreator} />
+            <LeaveLobbyButton lobbyId={lobbyId} isHost={isCreator} />
           </div>
         </div>
       </div>

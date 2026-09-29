@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 import { LobbyRealtime } from "./lobby-realtime";
 
-
 export default async function LobbyContent({
   params,
 }: {
@@ -19,7 +18,6 @@ export default async function LobbyContent({
   const { data: lobby } = await supabase
     .from("lobbies")
     .select(
-      
       "id, max_players, status, created_by, created_by, lobby_players(user_id, joined_at)",
     )
     .eq("id", lobbyId)
@@ -90,7 +88,7 @@ export default async function LobbyContent({
           {isMember && lobby.status === "open" ? (
             <LeaveLobbyButton
               lobbyId={lobby.id}
-              isCreator={lobby.created_by === userId}
+              isHost={lobby.created_by === userId}
             />
           ) : (
             <Link href="/lobbies" className="underline">
@@ -98,10 +96,8 @@ export default async function LobbyContent({
             </Link>
           )}
 
-    
-
           <div className="mt-6">
-            <LeaveLobbyButton lobbyId={lobbyId} isCreator={isCreator} />
+            <LeaveLobbyButton lobbyId={lobbyId} isHost={isCreator} />
           </div>
         </div>
       </div>
