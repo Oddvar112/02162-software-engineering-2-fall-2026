@@ -43,7 +43,6 @@ function makeState(playerCount = 1, board = flatBoard()): GameState {
       checkpointsReached: 0,
       programmedCardCount: 5,
       programLocked: true,
-      readyForNext: false,
       connected: true,
     })),
     currentPlayerCards: [],
