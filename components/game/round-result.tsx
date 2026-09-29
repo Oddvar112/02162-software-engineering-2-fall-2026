@@ -5,15 +5,10 @@ import styles from "@/components/game/game-state.module.css";
 import type { GameState } from "@/lib/game/types";
 
 function winnerName(gameState: GameState): string | null {
-  const total = gameState.board.tiles
-    .flat()
-    .filter((tile) => tile.kind === "checkpoint").length;
-  const winner = gameState.players.find(
-    (player) => total > 0 && player.checkpointsReached >= total,
+  return (
+    gameState.players.find((player) => player.id === gameState.winnerId)
+      ?.name ?? null
   );
-  if (winner) return winner.name;
-  const survivors = gameState.players.filter((player) => player.lives > 0);
-  return survivors.length === 1 ? survivors[0].name : null;
 }
 
 export function RoundResult({

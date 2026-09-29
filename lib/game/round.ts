@@ -2,6 +2,7 @@ import type { Board } from "@/lib/board";
 import { Direction } from "@/lib/direction";
 import { dealHands, shuffle } from "@/lib/game/deck";
 import { resolveRound, type Programs } from "@/lib/game/engine";
+import type { GameState } from "@/lib/game/types";
 import {
   NEXT_ROUND_SECONDS,
   REGISTER_COUNT,
@@ -44,6 +45,24 @@ function countCheckpoints(board: Board): number {
   return board.tiles.flat().filter((tile) => tile.kind === "checkpoint").length;
 }
 
+export function decideOutcome(state: GameState): {
+  finished: boolean;
+  winnerId: string | null;
+} {
+  const total = countCheckpoints(state.board);
+  const alive = state.players.filter((player) => player.lives > 0);
+  const champion = state.players.find(
+    (player) => total > 0 && player.checkpointsReached >= total,
+  );
+  const survivor =
+    alive.length === 1 && state.players.length > 1 ? alive[0] : undefined;
+  const winner = champion ?? survivor ?? null;
+  return {
+    finished: winner !== null || alive.length === 0,
+    winnerId: winner?.id ?? null,
+  };
+}
+
 export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
   if (!isReadyToResolve(loaded)) return false;
   const { game } = loaded;
@@ -58,20 +77,7 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
   }
   const state = resolveRound(before, programs);
 
-  const total = countCheckpoints(game.board);
-  const won = state.players.some(
-    (player) => total > 0 && player.checkpointsReached >= total,
-  );
-  const anyoneLeft = state.players.some((player) => player.lives > 0);
-  const winner =
-    state.players.find(
-      (player) => total > 0 && player.checkpointsReached >= total,
-    ) ??
-    (!anyoneLeft
-      ? null
-      : state.players.filter((player) => player.lives > 0).length === 1
-        ? state.players.find((player) => player.lives > 0)
-        : null);
+  const outcome = decideOutcome(state);
 
   const { data: applied, error } = await createServiceClient().rpc(
     "apply_round_result",
@@ -79,7 +85,7 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
       p_game_id: game.id,
       p_round: game.round,
       p_expected_updated_at: game.updated_at,
-      p_phase: won || !anyoneLeft ? "finished" : "end-of-round",
+      p_phase: outcome.finished ? "finished" : "end-of-round",
       p_execution_log: state.executionLog,
       p_execution_frames: state.executionFrames,
       p_players: state.players.map((player) => {
@@ -99,7 +105,7 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
         user_id,
         cards,
       })),
-      p_winner_id: won || !anyoneLeft ? (winner?.id ?? null) : null,
+      p_winner_id: outcome.winnerId,
     },
   );
   if (error) throw error;
