@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from "vitest";
 import { GET, POST } from "./route";
+import {
+  createMockGame,
+  submitProgram,
+  type MockGame,
+} from "@/lib/game/programming";
 
 beforeEach(() => {
   delete (globalThis as typeof globalThis & { roboRallySoloDemo?: unknown })
@@ -17,6 +22,69 @@ function post(body: unknown) {
 }
 
 describe("shared mock game API", () => {
+  it("repairs legacy model identities in a retained game and its replay frames", async () => {
+    const game = createMockGame();
+    submitProgram(
+      game,
+      "player-1",
+      1,
+      game.hands["player-1"].slice(0, 5).map((card) => card.id),
+    );
+    const poses = game.state.robots.map(({ x, z, direction }) => ({
+      x,
+      z,
+      direction,
+    }));
+    const programs = structuredClone(game.programs);
+    const oldNames = ["Bolt", "Vector", "Rivet", "Pixel"];
+    for (const robots of [
+      game.state.robots,
+      ...game.state.executionFrames.map((frame) => frame.robots),
+    ]) {
+      robots.forEach((robot, index) => {
+        Reflect.deleteProperty(robot, "modelId");
+        robot.name = oldNames[index];
+      });
+    }
+    (
+      globalThis as typeof globalThis & { roboRallySoloDemo?: MockGame }
+    ).roboRallySoloDemo = game;
+
+    const result = await GET(
+      new Request("http://localhost/api/game-state"),
+    ).json();
+    expect(result.phase).toBe("end-of-round");
+    expect(result.round).toBe(1);
+    expect(result.currentPlayerProgram).toEqual(programs["player-1"]);
+    result.robots.forEach(
+      (robot: { x: number; z: number; direction: string }, index: number) => {
+        expect(robot).toMatchObject(poses[index]);
+      },
+    );
+    for (const robots of [
+      result.robots,
+      ...result.executionFrames.map(
+        (frame: { robots: unknown[] }) => frame.robots,
+      ),
+    ]) {
+      expect(robots.map((robot: { modelId: string }) => robot.modelId)).toEqual(
+        ["bolt", "glitch", "gizmo", "pixel"],
+      );
+    }
+    expect(game.programs).toEqual(programs);
+
+    const next = await post({
+      action: "next-round",
+      playerId: "player-1",
+      round: 1,
+    });
+    expect(next.status).toBe(200);
+    expect((await next.json()).robots[1]).toMatchObject({
+      modelId: "glitch",
+      name: "Glitch",
+    });
+  });
+
   it("resolves one player's submission immediately and shares the result", async () => {
     const snapshot = await GET(
       new Request("http://localhost/api/game-state"),

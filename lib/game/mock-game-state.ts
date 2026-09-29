@@ -1,4 +1,11 @@
 import type { GameState } from "@/lib/game/types";
+import roster from "@/lib/robots.json";
+
+function robotAppearance(modelId: string) {
+  const model = roster.find((robot) => robot.id === modelId);
+  if (!model) throw new Error(`Unknown robot model: ${modelId}`);
+  return { modelId: model.id, name: model.name, color: model.color };
+}
 
 const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
   gameId: "RR-02162",
@@ -47,8 +54,7 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
     {
       id: "robot-1",
       playerId: "player-1",
-      name: "Bolt",
-      color: "#ff625a",
+      ...robotAppearance("bolt"),
       x: 1,
       z: 8,
       direction: "north",
@@ -56,8 +62,7 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
     {
       id: "robot-2",
       playerId: "player-2",
-      name: "Vector",
-      color: "#4dd8ff",
+      ...robotAppearance("glitch"),
       x: 3,
       z: 8,
       direction: "north",
@@ -65,8 +70,7 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
     {
       id: "robot-3",
       playerId: "player-3",
-      name: "Rivet",
-      color: "#ffc857",
+      ...robotAppearance("gizmo"),
       x: 6,
       z: 8,
       direction: "north",
@@ -74,8 +78,7 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
     {
       id: "robot-4",
       playerId: "player-4",
-      name: "Pixel",
-      color: "#a78bfa",
+      ...robotAppearance("pixel"),
       x: 8,
       z: 8,
       direction: "north",

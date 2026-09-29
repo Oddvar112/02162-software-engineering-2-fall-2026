@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { LockKeyhole } from "lucide-react";
-import styles from "@/app/game/game.module.css";
+import styles from "@/components/game/game-state.module.css";
 import type { GameState } from "@/lib/game/types";
 
 export function ProgramEditor({

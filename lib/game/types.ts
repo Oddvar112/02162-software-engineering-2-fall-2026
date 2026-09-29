@@ -41,6 +41,7 @@ export type BoardElement =
 
 export type RobotState = {
   id: string;
+  modelId: string;
   playerId: string;
   name: string;
   color: string;

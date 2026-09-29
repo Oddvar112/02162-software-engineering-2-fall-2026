@@ -22,7 +22,7 @@ import {
   useRef,
   useState,
 } from "react";
-import styles from "@/app/game/game.module.css";
+import styles from "@/components/game/game-state.module.css";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { GameState } from "@/lib/game/types";
 import { DIRECTION_LABELS, PHASE_LABELS } from "@/lib/game/types";
-import { RoboBoard } from "./robo-board";
+import { GameBoard } from "./board/game-board";
 import { ProgramEditor } from "./program-editor";
 import { useGamePlayback } from "./use-game-playback";
 
@@ -317,7 +317,7 @@ export function GameStateView({
       <div className={styles.workspace}>
         <section className={styles.boardPanel} aria-label="Game board">
           <div className={styles.boardScene}>
-            <RoboBoard gameState={gameState} />
+            <GameBoard gameState={gameState} />
             <section
               className={`${styles.boardPlayers} ${playersCollapsed ? styles.playersCollapsed : ""}`}
               aria-label="Players"

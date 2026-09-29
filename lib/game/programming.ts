@@ -1,4 +1,5 @@
 import { getMockGameState } from "@/lib/game/mock-game-state";
+import { getRobotAppearance } from "@/lib/game/robot-appearance";
 import type {
   ActionCard,
   Direction,
@@ -49,9 +50,17 @@ function requirePlayer(game: MockGame, playerId: string) {
 
 export function getPlayerSnapshot(game: MockGame, playerId: string): GameState {
   requirePlayer(game, playerId);
+  const withAppearance = (robot: RobotState) => ({
+    ...robot,
+    ...getRobotAppearance(robot),
+  });
   return structuredClone({
     ...game.state,
-    executionFrames: game.state.executionFrames ?? [],
+    robots: game.state.robots.map(withAppearance),
+    executionFrames: (game.state.executionFrames ?? []).map((frame) => ({
+      ...frame,
+      robots: frame.robots.map(withAppearance),
+    })),
     currentPlayerId: playerId,
     currentPlayerCards: game.hands[playerId],
     currentPlayerProgram: game.programs[playerId] ?? [],

@@ -11,7 +11,9 @@ import { afterEach, expect, it, vi } from "vitest";
 import { getMockGameState } from "@/lib/game/mock-game-state";
 import { GameStateView } from "./game-state-view";
 
-vi.mock("./robo-board", () => ({ RoboBoard: () => <div>Board preview</div> }));
+vi.mock("./board/game-board", () => ({
+  GameBoard: () => <div>Board preview</div>,
+}));
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();

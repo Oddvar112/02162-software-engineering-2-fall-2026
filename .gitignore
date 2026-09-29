@@ -48,3 +48,7 @@ next-env.d.ts
 /public/models/rivet.glb
 /assets/robots/**/__pycache__/
 /assets/robots/**/*.blend[1-9]
+
+# Local presentation build and validation artifacts
+/.codex-presentation-build/
+/.codex-finalizer/
