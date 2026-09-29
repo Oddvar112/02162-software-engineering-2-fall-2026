@@ -1,15 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildGameState } from "@/lib/game/fixtures";
 
-const { getClaims, rpc, loadGame, resolveIfReady, startNextRound, markReady } =
-  vi.hoisted(() => ({
-    getClaims: vi.fn(),
-    rpc: vi.fn(),
-    loadGame: vi.fn(),
-    resolveIfReady: vi.fn(),
-    startNextRound: vi.fn(),
-    markReady: vi.fn(),
-  }));
+const {
+  getClaims,
+  rpc,
+  loadGame,
+  resolveIfReady,
+  advanceIfReady,
+  initialiseGame,
+} = vi.hoisted(() => ({
+  getClaims: vi.fn(),
+  rpc: vi.fn(),
+  loadGame: vi.fn(),
+  resolveIfReady: vi.fn(),
+  advanceIfReady: vi.fn(),
+  initialiseGame: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getClaims }, rpc }),
@@ -20,8 +26,8 @@ vi.mock("@/lib/game/store", async (importActual) => {
     ...actual,
     loadGame,
     resolveIfReady,
-    startNextRound,
-    markReadyForNextRound: markReady,
+    advanceIfReady,
+    initialiseGame,
     toGameState: (_loaded: unknown, viewerId: string) => ({
       ...buildGameState(),
       currentPlayerId: viewerId,
@@ -32,10 +38,7 @@ vi.mock("@/lib/game/store", async (importActual) => {
 import { GET, POST } from "./route";
 
 const params = Promise.resolve({ gameId: "game-1" });
-const loaded = {
-  game: { phase: "end-of-round", round: 3 },
-  players: [{ user_id: "user-1" }],
-};
+const loaded = { game: { round: 1 }, players: [{ user_id: "user-1" }] };
 
 function post(body: unknown) {
   return POST(
@@ -52,6 +55,8 @@ beforeEach(() => {
   getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
   loadGame.mockResolvedValue(loaded);
   resolveIfReady.mockResolvedValue(false);
+  advanceIfReady.mockResolvedValue(false);
+  initialiseGame.mockResolvedValue(undefined);
   rpc.mockResolvedValue({ error: null });
 });
 
@@ -102,25 +107,15 @@ describe("POST /api/games/[gameId]", () => {
     expect((await response.json()).error).toContain(text);
   });
 
-  it("marks the member ready and waits for the others", async () => {
-    markReady.mockResolvedValue(false);
-    const response = await post({ action: "next-round", round: 3 });
-    expect(response.status).toBe(200);
-    expect(markReady).toHaveBeenCalledWith("game-1", "user-1");
-    expect(startNextRound).not.toHaveBeenCalled();
+  it("sets the game up before the first read", async () => {
+    await GET(new Request("https://example.test"), { params });
+    expect(initialiseGame).toHaveBeenCalledWith("game-1");
   });
 
-  it("advances the round once every player is ready", async () => {
-    markReady.mockResolvedValue(true);
-    const response = await post({ action: "next-round", round: 3 });
-    expect(response.status).toBe(200);
-    expect(startNextRound).toHaveBeenCalledWith("game-1", 3);
-  });
-
-  it("rejects readiness for a stale round", async () => {
-    const response = await post({ action: "next-round", round: 2 });
-    expect(response.status).toBe(409);
-    expect(markReady).not.toHaveBeenCalled();
+  it("advances the round when its timer has run out", async () => {
+    advanceIfReady.mockResolvedValue(true);
+    await GET(new Request("https://example.test"), { params });
+    expect(loadGame).toHaveBeenCalledTimes(2);
   });
 
   it("rejects unknown actions and invalid JSON", async () => {

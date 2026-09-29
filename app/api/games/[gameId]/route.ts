@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import {
+  advanceIfReady,
   GameError,
+  initialiseGame,
   loadGame,
-  markReadyForNextRound,
   resolveIfReady,
-  startNextRound,
   toGameState,
   type LoadedGame,
 } from "@/lib/game/store";
@@ -56,9 +56,10 @@ function requireMember(loaded: LoadedGame, userId: string) {
 }
 
 async function snapshot(gameId: string, userId: string) {
+  await initialiseGame(gameId);
   let loaded = await loadGame(gameId);
   requireMember(loaded, userId);
-  if (await resolveIfReady(loaded)) {
+  if ((await resolveIfReady(loaded)) || (await advanceIfReady(loaded))) {
     loaded = await loadGame(gameId);
   }
   return NextResponse.json(toGameState(loaded, userId), { headers });
@@ -104,27 +105,6 @@ export async function POST(
             "Your program could not be submitted. Please try again.",
           409,
         );
-      }
-      return await snapshot(gameId, userId);
-    }
-
-    if (body.action === "next-round") {
-      if (typeof body.round !== "number") {
-        throw new GameError("The round is missing.");
-      }
-      const loaded = await loadGame(gameId);
-      requireMember(loaded, userId);
-      if (
-        loaded.game.phase !== "end-of-round" ||
-        loaded.game.round !== body.round
-      ) {
-        throw new GameError(
-          "This round is not ready to advance. Refresh the game.",
-          409,
-        );
-      }
-      if (await markReadyForNextRound(gameId, userId)) {
-        await startNextRound(gameId, body.round);
       }
       return await snapshot(gameId, userId);
     }
