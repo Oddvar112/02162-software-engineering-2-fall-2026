@@ -1,12 +1,16 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { leaveLobby } from "@/app/actions/lobby";
 import { useState } from "react";
 import { Button } from "./ui/button";
 
-export function LeaveLobbyButton({ lobbyId }: { lobbyId: string }) {
-  const router = useRouter();
+export function LeaveLobbyButton({ 
+  lobbyId, 
+  isCreator = false 
+}: { 
+  lobbyId: string;
+  isCreator?: boolean;
+}) {
   const [isLeaving, setIsLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,30 +19,10 @@ export function LeaveLobbyButton({ lobbyId }: { lobbyId: string }) {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const { data: authData } = await supabase.auth.getUser();
-      const userId = authData?.user?.id;
-
-      if (!userId) {
-        setError("Not authenticated.");
-        return;
-      }
-
-      const { error: deleteError } = await supabase
-        .from("lobby_players")
-        .delete()
-        .eq("lobby_id", lobbyId)
-        .eq("user_id", userId);
-
-      if (deleteError) {
-        setError("Could not leave the lobby. Try again.");
-        return;
-      }
-
-      router.push("/lobbies");
-    } catch {
-      setError("Could not leave the lobby. Try again.");
-    } finally {
+      await leaveLobby(lobbyId);
+    } catch (err) {
+      console.error("Error leaving lobby:", err);
+      setError(err instanceof Error ? err.message : "Could not leave the lobby. Try again.");
       setIsLeaving(false);
     }
   };
@@ -51,7 +35,7 @@ export function LeaveLobbyButton({ lobbyId }: { lobbyId: string }) {
         variant="outline"
         size="lg"
       >
-        {isLeaving ? "Leaving..." : "Leave Lobby"}
+        {isLeaving ? "Leaving..." : isCreator ? "Disband Lobby" : "Leave Lobby"}
       </Button>
       {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
     </div>
