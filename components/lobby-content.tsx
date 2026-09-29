@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StartLobbyButton } from "./start-lobby-button";
+import { LeaveLobbyButton } from "./leave-lobby-button";
 
 export default async function LobbyContent({
   params,
@@ -66,6 +67,10 @@ export default async function LobbyContent({
               <StartLobbyButton lobbyId={lobbyId} />
             </div>
           )}
+
+          <div className="mt-6">
+            <LeaveLobbyButton lobbyId={lobbyId} />
+          </div>
         </div>
       </div>
     </main>
