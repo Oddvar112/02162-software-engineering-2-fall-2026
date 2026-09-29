@@ -32,6 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createClient } from "@/lib/supabase/client";
 import type { GameState } from "@/lib/game/types";
 import { DIRECTION_LABELS, PHASE_LABELS } from "@/lib/game/types";
 import { GameBoard } from "./board/game-board";
@@ -39,6 +40,29 @@ import { ProgramEditor } from "./program-editor";
 import { useGamePlayback } from "./use-game-playback";
 
 const SYNC_INTERVAL_MS = 5_000;
+
+function winnerName(gameState: GameState): string | null {
+  const total = gameState.board.tiles
+    .flat()
+    .filter((tile) => tile.kind === "checkpoint").length;
+  const winner = gameState.players.find(
+    (player) => total > 0 && player.checkpointsReached >= total,
+  );
+  if (winner) return winner.name;
+  const survivors = gameState.players.filter((player) => player.lives > 0);
+  return survivors.length === 1 ? survivors[0].name : null;
+}
+
+function useCountdown(endsAt: string | null): number | null {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!endsAt) return;
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, [endsAt]);
+  if (!endsAt) return null;
+  return Math.max(0, Math.ceil((new Date(endsAt).getTime() - now) / 1000));
+}
 
 export function GameLoading() {
   return (
@@ -70,11 +94,8 @@ function GameError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-export function GameStateView({
-  playerId = "player-1",
-}: {
-  playerId?: string;
-}) {
+export function GameStateView({ gameId }: { gameId: string }) {
+  const endpoint = `/api/games/${gameId}`;
   const {
     gameState,
     receiveState: setGameState,
@@ -89,10 +110,14 @@ export function GameStateView({
   const submitting = useRef(false);
   const [playersCollapsed, setPlayersCollapsed] = useState(false);
   const requestController = useRef<AbortController | null>(null);
+  const reloadWanted = useRef(false);
   const playerListId = useId();
 
   const loadGameState = useCallback(async () => {
-    if (requestController.current || submitting.current) return;
+    if (requestController.current || submitting.current) {
+      reloadWanted.current = true;
+      return;
+    }
 
     const controller = new AbortController();
     requestController.current = controller;
@@ -101,13 +126,10 @@ export function GameStateView({
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/game-state?player=${encodeURIComponent(playerId)}`,
-        {
-          cache: "no-store",
-          signal: controller.signal,
-        },
-      );
+      const response = await fetch(endpoint, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
       if (!response.ok)
         throw new Error(`Request failed with ${response.status}`);
 
@@ -127,13 +149,42 @@ export function GameStateView({
       if (requestController.current === controller) {
         requestController.current = null;
         setIsSyncing(false);
+        if (reloadWanted.current) {
+          reloadWanted.current = false;
+          void loadGameState();
+        }
       }
     }
-  }, [playerId, setGameState]);
+  }, [endpoint, setGameState]);
 
   useEffect(() => {
     void loadGameState();
     const interval = window.setInterval(loadGameState, SYNC_INTERVAL_MS);
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`game:${gameId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "games",
+          filter: `id=eq.${gameId}`,
+        },
+        () => void loadGameState(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "game_players",
+          filter: `game_id=eq.${gameId}`,
+        },
+        () => void loadGameState(),
+      )
+      .subscribe();
 
     const syncWhenVisible = () => {
       if (document.visibilityState === "visible") void loadGameState();
@@ -143,13 +194,14 @@ export function GameStateView({
     document.addEventListener("visibilitychange", syncWhenVisible);
 
     return () => {
+      supabase.removeChannel(channel);
       window.clearInterval(interval);
       window.removeEventListener("online", loadGameState);
       document.removeEventListener("visibilitychange", syncWhenVisible);
       requestController.current?.abort();
       requestController.current = null;
     };
-  }, [loadGameState]);
+  }, [gameId, loadGameState]);
 
   async function submitAction(
     action: "lock-in" | "next-round",
@@ -164,15 +216,10 @@ export function GameStateView({
     requestController.current = null;
     setIsSyncing(false);
     try {
-      const response = await fetch("/api/game-state", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          playerId,
-          round: gameState.round,
-          cardIds,
-        }),
+        body: JSON.stringify({ action, round: gameState.round, cardIds }),
       });
       const result = await response.json();
       if (!response.ok)
@@ -196,6 +243,10 @@ export function GameStateView({
     }
   }
 
+  const secondsLeft = useCountdown(
+    gameState?.phase === "programming" ? gameState.timerEndsAt : null,
+  );
+
   const robotById = useMemo(
     () => new Map(gameState?.robots.map((robot) => [robot.id, robot]) ?? []),
     [gameState],
@@ -210,6 +261,11 @@ export function GameStateView({
   const currentRobot = currentPlayer
     ? robotById.get(currentPlayer.robotId)
     : undefined;
+  const alivePlayers = gameState.players.filter((player) => player.lives > 0);
+  const aliveCount = alivePlayers.length;
+  const readyCount = alivePlayers.filter(
+    (player) => player.readyForNext,
+  ).length;
   const syncedAt = new Date(gameState.updatedAt).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
@@ -237,6 +293,7 @@ export function GameStateView({
           <span className={styles.phaseBadge}>
             <Radio aria-hidden="true" />
             MODE / {PHASE_LABELS[gameState.phase]}
+            {secondsLeft !== null && ` · ${secondsLeft}s`}
           </span>
         </div>
 
@@ -290,16 +347,6 @@ export function GameStateView({
                   {currentPlayer?.checkpointsReached ?? 0} checkpoints
                 </span>
               </div>
-              <DropdownMenuSeparator className={styles.menuSeparator} />
-              <DropdownMenuLabel>Demo player</DropdownMenuLabel>
-              {gameState.players.map((player) => (
-                <DropdownMenuItem key={player.id} asChild>
-                  <a href={`/game?player=${player.id}`}>
-                    {player.name}
-                    {player.id === playerId ? " (you)" : ""}
-                  </a>
-                </DropdownMenuItem>
-              ))}
               <DropdownMenuSeparator className={styles.menuSeparator} />
               <DropdownMenuItem
                 className={styles.menuItem}
@@ -421,7 +468,7 @@ export function GameStateView({
           </div>
           <section className={styles.boardCards} aria-label="Your action cards">
             <ProgramEditor
-              key={`${gameState.gameId}-${gameState.round}-${playerId}`}
+              key={`${gameState.gameId}-${gameState.round}`}
               gameState={gameState}
               isSubmitting={isSubmitting}
               activeCardId={activeFrame?.cardId}
@@ -433,11 +480,13 @@ export function GameStateView({
                 {submitError}
               </p>
             )}
-            {gameState.phase === "end-of-round" && (
+            {(gameState.phase === "end-of-round" ||
+              gameState.phase === "finished") && (
               <div className={styles.turnResult}>
                 <p role="status">
-                  Round {gameState.round} resolved. The board shows the
-                  resulting positions.
+                  {gameState.phase === "finished"
+                    ? `${winnerName(gameState) ?? "Nobody"} wins the race.`
+                    : `Round ${gameState.round} resolved. The board shows the resulting positions.`}
                 </p>
                 <details>
                   <summary>
@@ -467,17 +516,18 @@ export function GameStateView({
                     <RefreshCw aria-hidden="true" /> Replay movement
                   </button>
                 )}
-                <button
-                  type="button"
-                  className={styles.lockInButton}
-                  disabled={
-                    isSubmitting ||
-                    !gameState.players.some((player) => player.lives > 0)
-                  }
-                  onClick={() => void submitAction("next-round")}
-                >
-                  Start next round
-                </button>
+                {gameState.phase === "end-of-round" && (
+                  <button
+                    type="button"
+                    className={styles.lockInButton}
+                    disabled={isSubmitting || currentPlayer?.readyForNext}
+                    onClick={() => void submitAction("next-round")}
+                  >
+                    {currentPlayer?.readyForNext
+                      ? `Waiting for others (${readyCount}/${aliveCount})`
+                      : "Ready for next round"}
+                  </button>
+                )}
               </div>
             )}
           </section>
