@@ -27,7 +27,6 @@ export function ProgramEditor({
   const editable =
     !locked &&
     !isSubmitting &&
-    player.lives > 0 &&
     (gameState.phase === "programming" || gameState.phase === "waiting");
   const cards = locked
     ? gameState.currentPlayerProgram
@@ -44,15 +43,13 @@ export function ProgramEditor({
         <span role="status">
           {executionMessage
             ? executionMessage
-            : player.lives === 0
-              ? "Robot eliminated"
-              : gameState.phase === "end-of-round"
-                ? locked
-                  ? "Program executed · locked"
-                  : "Round complete. Start the next round."
-                : locked
-                  ? "Program locked"
-                  : "Click cards in execution order. Click again to remove."}
+            : gameState.phase === "end-of-round"
+              ? locked
+                ? "Program executed · locked"
+                : "Round complete. Start the next round."
+              : locked
+                ? "Program locked"
+                : "Click cards in execution order. Click again to remove."}
         </span>
       </div>
       <div className={styles.programRow}>
