@@ -1,0 +1,137 @@
+import type { Board } from "@/lib/board";
+import { Direction } from "@/lib/direction";
+import { dealHands, shuffle } from "@/lib/game/deck";
+import { resolveRound, type Programs } from "@/lib/game/engine";
+import {
+  NEXT_ROUND_SECONDS,
+  REGISTER_COUNT,
+  TIMER_SECONDS,
+  toGameState,
+  type LoadedGame,
+} from "@/lib/game/store";
+import { createServiceClient } from "@/lib/supabase/service";
+
+function isReadyToResolve(loaded: LoadedGame): boolean {
+  const { game, players } = loaded;
+  if (game.phase !== "programming") return false;
+  const alive = players.filter((player) => player.lives > 0);
+  if (alive.length === 0) return false;
+  if (alive.every((player) => loaded.programs.has(player.user_id))) return true;
+  if (!game.timer_started_at) return false;
+  return (
+    Date.now() >=
+    new Date(game.timer_started_at).getTime() + TIMER_SECONDS * 1000
+  );
+}
+
+function fillMissingPrograms(loaded: LoadedGame): Programs {
+  const { players, hands, programs } = loaded;
+  const result: Programs = {};
+  for (const player of players) {
+    if (player.lives === 0) continue;
+    const chosen = programs.get(player.user_id);
+    if (chosen) {
+      result[player.user_id] = chosen;
+      continue;
+    }
+    const hand = hands.get(player.user_id) ?? [];
+    result[player.user_id] = shuffle(hand).slice(0, REGISTER_COUNT);
+  }
+  return result;
+}
+
+function countCheckpoints(board: Board): number {
+  return board.tiles.flat().filter((tile) => tile.kind === "checkpoint").length;
+}
+
+export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
+  if (!isReadyToResolve(loaded)) return false;
+  const { game } = loaded;
+
+  const programs = fillMissingPrograms(loaded);
+  const before = toGameState(loaded, "");
+  for (const player of before.players) {
+    if (programs[player.id]) {
+      player.programLocked = true;
+      player.programmedCardCount = REGISTER_COUNT;
+    }
+  }
+  const state = resolveRound(before, programs);
+
+  const total = countCheckpoints(game.board);
+  const won = state.players.some(
+    (player) => total > 0 && player.checkpointsReached >= total,
+  );
+  const anyoneLeft = state.players.some((player) => player.lives > 0);
+  const winner =
+    state.players.find(
+      (player) => total > 0 && player.checkpointsReached >= total,
+    ) ??
+    (!anyoneLeft
+      ? null
+      : state.players.filter((player) => player.lives > 0).length === 1
+        ? state.players.find((player) => player.lives > 0)
+        : null);
+
+  const { data: applied, error } = await createServiceClient().rpc(
+    "apply_round_result",
+    {
+      p_game_id: game.id,
+      p_round: game.round,
+      p_expected_updated_at: game.updated_at,
+      p_phase: won || !anyoneLeft ? "finished" : "end-of-round",
+      p_execution_log: state.executionLog,
+      p_execution_frames: state.executionFrames,
+      p_players: state.players.map((player) => {
+        const robot = state.robots.find(
+          (candidate) => candidate.id === player.id,
+        );
+        return {
+          user_id: player.id,
+          x: robot?.x ?? 0,
+          z: robot?.z ?? 0,
+          direction: robot?.direction ?? Direction.Up,
+          lives: player.lives,
+          checkpoints_reached: player.checkpointsReached,
+        };
+      }),
+      p_programs: Object.entries(programs).map(([user_id, cards]) => ({
+        user_id,
+        cards,
+      })),
+      p_winner_id: won || !anyoneLeft ? (winner?.id ?? null) : null,
+    },
+  );
+  if (error) throw error;
+  return applied === true;
+}
+
+function isReadyToAdvance(loaded: LoadedGame): boolean {
+  const { game } = loaded;
+  if (game.phase !== "end-of-round") return false;
+  return (
+    Date.now() >=
+    new Date(game.updated_at).getTime() + NEXT_ROUND_SECONDS * 1000
+  );
+}
+
+export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
+  if (!isReadyToAdvance(loaded)) return false;
+  const { game, players } = loaded;
+  const alive = players.filter((player) => player.lives > 0);
+  const hands = dealHands(alive.map((player) => player.user_id));
+
+  const { data: advanced, error } = await createServiceClient().rpc(
+    "begin_next_round",
+    {
+      p_game_id: game.id,
+      p_round: game.round,
+      p_hands: Object.entries(hands).map(([user_id, cards]) => ({
+        user_id,
+        cards,
+      })),
+    },
+  );
+  if (error) throw error;
+  return advanced === true;
+}

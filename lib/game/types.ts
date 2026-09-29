@@ -45,6 +45,8 @@ export type ExecutionFrame = {
 
 export type GameState = {
   gameId: string;
+  lobbyId: string;
+  winnerId: string | null;
   round: number;
   phase: GamePhase;
   currentPlayerId: string;

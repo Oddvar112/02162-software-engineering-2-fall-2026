@@ -22,6 +22,8 @@ const BASE_GAME_STATE: Omit<
   "updatedAt" | "board" | "robots" | "players"
 > = {
   gameId: "RR-02162",
+  lobbyId: "lobby-1",
+  winnerId: null,
   round: 1,
   phase: "programming",
   currentPlayerId: "player-1",

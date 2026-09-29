@@ -19,6 +19,8 @@ function makeState(playerCount = 1, board = flatBoard()): GameState {
   const seats = board.startpositions.slice(0, playerCount);
   return {
     gameId: "test",
+    lobbyId: "lobby",
+    winnerId: null,
     round: 1,
     phase: "programming",
     currentPlayerId: "p1",
