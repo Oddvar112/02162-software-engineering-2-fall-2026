@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LeaveLobbyButton } from "./leave-lobby-button";
-import { LobbyRealtime } from "./lobby-realtime";
-
+import { LeaveLobbyButton } from "./lobbies/leave-lobby-button";
 
 export default async function LobbyContent({
   params,
@@ -13,14 +11,10 @@ export default async function LobbyContent({
   const { lobbyId } = await params;
   const supabase = await createClient();
 
-  const { data: auth } = await supabase.auth.getClaims();
-  const userId = auth?.claims?.sub as string | undefined;
-
   const { data: lobby } = await supabase
     .from("lobbies")
     .select(
-      
-      "id, max_players, status, created_by, created_by, lobby_players(user_id, joined_at)",
+      "id, max_players, status, created_by, lobby_players(user_id, joined_at)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
@@ -37,16 +31,6 @@ export default async function LobbyContent({
   const players = [...lobby.lobby_players].sort((a, b) =>
     a.joined_at.localeCompare(b.joined_at),
   );
-  const { data: profiles } = await supabase
-    .from("users")
-    .select("id, display_name")
-    .in(
-      "id",
-      players.map((p) => p.user_id),
-    );
-
-  const names = new Map(profiles?.map((p) => [p.id, p.display_name]) ?? []);
-  const isMember = players.some((p) => p.user_id === userId);
 
   return (
     <main className="flex min-h-screen flex-col items-center">
@@ -76,29 +60,15 @@ export default async function LobbyContent({
             <ul className="text-left">
               {players.map((player) => (
                 <li key={player.user_id} className="py-1">
-                  {names.get(player.user_id) ?? "Unknown player"}
-                  {player.user_id === lobby.created_by && (
-                    <span className="ml-2 text-xs text-foreground/50">
-                      host
-                    </span>
-                  )}
+                  {player.user_id}
                 </li>
               ))}
             </ul>
           </div>
-          <LobbyRealtime lobbyId={lobby.id} />
-          {isMember && lobby.status === "open" ? (
-            <LeaveLobbyButton
-              lobbyId={lobby.id}
-              isCreator={lobby.created_by === userId}
-            />
-          ) : (
-            <Link href="/lobbies" className="underline">
-              Back to lobbies
-            </Link>
-          )}
 
-    
+
+          
+        
 
           <div className="mt-6">
             <LeaveLobbyButton lobbyId={lobbyId} isCreator={isCreator} />
