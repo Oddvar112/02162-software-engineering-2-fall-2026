@@ -1,0 +1,82 @@
+[
+  {
+    "id": "bolt",
+    "name": "Bolt",
+    "color": "#f45b55",
+    "role": "The reckless racer",
+    "personality": "Brakes are a manufacturing defect.",
+    "shape": "Low racing wedge, swept fins, three wheels"
+  },
+  {
+    "id": "gizmo",
+    "name": "Gizmo",
+    "color": "#ffd34f",
+    "role": "The nervous optimist",
+    "personality": "Has a backup plan for the backup plan.",
+    "shape": "Pear-shaped cyclops on three little feet"
+  },
+  {
+    "id": "brutus",
+    "name": "Brutus",
+    "color": "#427cf5",
+    "role": "The gentle bulldozer",
+    "personality": "Would help you up. Has already run you over.",
+    "shape": "Broad tracked brick with an enormous boxing claw"
+  },
+  {
+    "id": "noodle",
+    "name": "Noodle",
+    "color": "#64deb4",
+    "role": "The distracted genius",
+    "personality": "Head in the clouds. Feet in the conveyor belt.",
+    "shape": "Tall spring spine, sideways capsule head, giant boots"
+  },
+  {
+    "id": "disco",
+    "name": "Disco",
+    "color": "#a16aef",
+    "role": "The attention magnet",
+    "personality": "Every laser hit is a lighting cue.",
+    "shape": "Faceted disco ball, headphones, equalizer crown"
+  },
+  {
+    "id": "chomp",
+    "name": "Chomp",
+    "color": "#b4df35",
+    "role": "The tiny menace",
+    "personality": "If it fits in the claw, it is a snack.",
+    "shape": "Low crab shell, eye stalks, four legs, oversized pincer"
+  },
+  {
+    "id": "pixel",
+    "name": "Pixel",
+    "color": "#f46db2",
+    "role": "The chaotic sweetheart",
+    "personality": "Error 404: self-preservation not found.",
+    "shape": "Huge CRT head, pixel face, rabbit aerials, tiny wheels"
+  },
+  {
+    "id": "snooze",
+    "name": "Snooze",
+    "color": "#f99a3b",
+    "role": "The unbothered veteran",
+    "personality": "Will get there. Eventually. Probably.",
+    "shape": "Wind-up snail, round shell, sleepy low-slung face"
+  },
+  {
+    "id": "captain",
+    "name": "Captain",
+    "color": "#e8dec4",
+    "role": "The self-appointed boss",
+    "personality": "No idea where north is. Extremely confident.",
+    "shape": "Conical brass-trimmed body, peaked cap, monocle, moustache"
+  },
+  {
+    "id": "glitch",
+    "name": "Glitch",
+    "color": "#39cde5",
+    "role": "The beautiful malfunction",
+    "personality": "That was absolutely, probably intentional.",
+    "shape": "Crooked offset cubes, unequal eyes, one huge wheel"
+  }
+]

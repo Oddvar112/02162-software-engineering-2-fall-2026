@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { RoboBoard } from "@/components/game/robo-board";
+import { RoboBoard } from "@/components/game/board/robo-board";
 
 export const metadata: Metadata = {
-  title: "Board and Robot · RoboRally",
-  description: "A frontend-only RoboRally board with one robot.",
+  title: "The Factory Misfits · RoboRally",
+  description: "Ten distinct robot characters on the RoboRally board.",
 };
 
 export default function GamePage() {

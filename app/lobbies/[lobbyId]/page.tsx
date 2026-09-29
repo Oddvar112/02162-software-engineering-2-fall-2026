@@ -1,4 +1,4 @@
-import LobbyContent from "@/components/lobby-content";
+import LobbyContent from "@/components/lobbies/lobby-content";
 import { Suspense } from "react";
 
 export default function LobbyPage({
