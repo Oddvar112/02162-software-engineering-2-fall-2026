@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(32);
 
 insert into auth.users (id, email) values
   ('40000000-0000-4000-8000-000000000001', 'game-alice@example.test'),
@@ -51,6 +51,10 @@ select ok(
 select throws_ok(
   $$select public.submit_program('50000000-0000-4000-8000-000000000001', array['a1','a2','a3'])$$,
   'P0001', 'wrong_card_count', 'a program needs exactly five cards'
+);
+select throws_ok(
+  $$select public.submit_program('50000000-0000-4000-8000-000000000001', array[]::text[])$$,
+  'P0001', 'wrong_card_count', 'an empty program is a count error, not a duplicate error'
 );
 select throws_ok(
   $$select public.submit_program('50000000-0000-4000-8000-000000000001', array['a1','a1','a2','a3','a4'])$$,
@@ -114,12 +118,33 @@ select throws_ok(
 );
 
 reset role;
-update public.games set phase = 'end-of-round' where id = '50000000-0000-4000-8000-000000000001';
+select is(
+  public.apply_round_result(
+    '50000000-0000-4000-8000-000000000001', 1,
+    (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
+    'end-of-round', '[]', '[]',
+    '[{"user_id":"40000000-0000-4000-8000-000000000001","x":0,"z":0,"direction":1,"lives":2,"checkpoints_reached":0}]',
+    '[]'
+  ),
+  true, 'the server applies a round result once'
+);
+select is(
+  public.apply_round_result('50000000-0000-4000-8000-000000000001', 1, now(), 'end-of-round', '[]', '[]', '[]', '[]'),
+  false, 'the same round cannot be applied twice'
+);
+select is(
+  (select lives from public.game_players where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000001'),
+  2, 'the applied result updated the player'
+);
 set local role authenticated;
 set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000002';
 select is(
   (select count(*) from public.programs where game_id = '50000000-0000-4000-8000-000000000001'),
   2::bigint, 'programs are revealed to every player once the round resolves'
+);
+select is(
+  (select count(*) from public.hands where game_id = '50000000-0000-4000-8000-000000000001'),
+  1::bigint, 'hands stay private after the programs are revealed'
 );
 select throws_ok(
   $$select public.submit_program('50000000-0000-4000-8000-000000000001', array['b1','b2','b3','b4','b5'])$$,
@@ -127,13 +152,43 @@ select throws_ok(
 );
 
 reset role;
+insert into public.game_players (game_id, user_id, seat, robot_model, x, z, direction, lives) values
+  ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000003', 2, 'pixel', 0, 0, 1, 0);
+insert into public.lobby_players (lobby_id, user_id) values
+  ('60000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000003');
+update public.games set phase = 'programming' where id = '50000000-0000-4000-8000-000000000001';
+set local role authenticated;
+set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000003';
+select throws_ok(
+  $$select public.submit_program('50000000-0000-4000-8000-000000000001', array['a1','a2','a3','a4','a5'])$$,
+  'P0001', 'no_lives_left', 'a player with no lives cannot program'
+);
+reset role;
+update public.game_players set lives = 3 where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000003';
+set local role authenticated;
+set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000003';
+select throws_ok(
+  $$select public.submit_program('50000000-0000-4000-8000-000000000001', array['a1','a2','a3','a4','a5'])$$,
+  'P0001', 'no_hand', 'a player without a hand this round cannot program'
+);
+reset role;
+update public.games set phase = 'end-of-round' where id = '50000000-0000-4000-8000-000000000001';
+set local role authenticated;
+set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000002';
+
+reset role;
 select ok(
   exists(select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'games'),
   'games are published to Realtime'
 );
 select ok(
-  (select relreplident from pg_class where oid = 'public.game_players'::regclass) = 'f',
-  'game players use replica identity full so filtered events carry the game id'
+  not has_function_privilege('authenticated', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb)', 'EXECUTE')
+  and not has_function_privilege('authenticated', 'public.begin_next_round(uuid, integer, jsonb)', 'EXECUTE'),
+  'only the server can write a round result or start the next round'
+);
+select is(
+  public.apply_round_result('50000000-0000-4000-8000-000000000001', 1, now(), 'end-of-round', '[]', '[]', '[]', '[]'),
+  false, 'a round result with a stale timestamp is refused'
 );
 
 select * from finish();
