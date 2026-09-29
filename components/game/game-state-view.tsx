@@ -282,10 +282,6 @@ export function GameStateView({
                   {currentPlayer?.damage ?? 0} damage
                 </span>
                 <span>
-                  <Heart aria-hidden="true" />
-                  {currentPlayer?.lives ?? 0} lives
-                </span>
-                <span>
                   <Flag aria-hidden="true" />
                   {currentPlayer?.checkpointsReached ?? 0} checkpoints
                 </span>
@@ -399,10 +395,6 @@ export function GameStateView({
                           {player.damage}
                         </span>
                         <span>
-                          <Heart aria-label="Lives" />
-                          {player.lives}
-                        </span>
-                        <span>
                           <Flag aria-label="Checkpoints" />
                           {player.checkpointsReached}
                         </span>
@@ -471,8 +463,7 @@ export function GameStateView({
                   type="button"
                   className={styles.lockInButton}
                   disabled={
-                    isSubmitting ||
-                    !gameState.players.some((player) => player.lives > 0)
+                    isSubmitting
                   }
                   onClick={() => void submitAction("next-round")}
                 >
