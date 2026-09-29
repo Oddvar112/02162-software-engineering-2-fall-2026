@@ -1,19 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  Bot,
-  ChevronDown,
-  Flag,
-  Heart,
-  LoaderCircle,
-  LockKeyhole,
-  Radio,
-  RefreshCw,
-  Shield,
-  Wifi,
-  WifiOff,
-} from "lucide-react";
+import { AlertTriangle, LoaderCircle, RefreshCw } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -24,34 +11,16 @@ import {
 } from "react";
 import styles from "@/components/game/game-state.module.css";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
 import type { GameState } from "@/lib/game/types";
-import { DIRECTION_LABELS, PHASE_LABELS } from "@/lib/game/types";
 import { GameBoard } from "./board/game-board";
+import { GameHeader } from "./game-header";
+import { PlayerList } from "./player-list";
 import { ProgramEditor } from "./program-editor";
+import { RoundResult } from "./round-result";
 import { useGamePlayback } from "./use-game-playback";
 
 const SYNC_INTERVAL_MS = 5_000;
-
-function winnerName(gameState: GameState): string | null {
-  const total = gameState.board.tiles
-    .flat()
-    .filter((tile) => tile.kind === "checkpoint").length;
-  const winner = gameState.players.find(
-    (player) => total > 0 && player.checkpointsReached >= total,
-  );
-  if (winner) return winner.name;
-  const survivors = gameState.players.filter((player) => player.lives > 0);
-  return survivors.length === 1 ? survivors[0].name : null;
-}
 
 function useCountdown(endsAt: string | null): number | null {
   const [now, setNow] = useState(() => Date.now());
@@ -263,198 +232,28 @@ export function GameStateView({ gameId }: { gameId: string }) {
 
   return (
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <div className={styles.gameIdentity}>
-          <span className={styles.brandMark} aria-hidden="true">
-            <Bot />
-          </span>
-          <div>
-            <p className={styles.eyebrow}>SYS::{gameState.gameId}</p>
-            <h1>
-              FACTORY FLOOR / {gameState.board.width}×{gameState.board.height}
-            </h1>
-          </div>
-        </div>
-
-        <div className={styles.roundStatus}>
-          <span className={styles.roundNumber}>
-            ROUND {String(gameState.round).padStart(2, "0")}
-          </span>
-          <span className={styles.phaseBadge}>
-            <Radio aria-hidden="true" />
-            MODE / {PHASE_LABELS[gameState.phase]}
-            {secondsLeft !== null && ` · ${secondsLeft}s`}
-          </span>
-        </div>
-
-        <div className={styles.accountArea}>
-          <span className={error ? styles.syncError : styles.syncStatus}>
-            {error ? (
-              <WifiOff aria-hidden="true" />
-            ) : (
-              <Wifi aria-hidden="true" />
-            )}
-            <span>{error ? "LINK DOWN" : isSyncing ? "SYNC" : "LINK OK"}</span>
-          </span>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={styles.playerMenuTrigger} type="button">
-                <span
-                  className={styles.accountSwatch}
-                  style={{ backgroundColor: currentRobot?.color }}
-                  aria-hidden="true"
-                />
-                <span>{currentPlayer?.name ?? "Player"}</span>
-                <ChevronDown
-                  className={styles.profileChevron}
-                  aria-hidden="true"
-                />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className={styles.playerMenu}>
-              <DropdownMenuLabel className={styles.playerMenuLabel}>
-                <strong>{currentPlayer?.name ?? "Player"}</strong>
-                <span>
-                  {currentRobot?.name} ·{" "}
-                  {currentRobot
-                    ? DIRECTION_LABELS[currentRobot.direction]
-                    : "Robot"}
-                </span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className={styles.menuSeparator} />
-              <div className={styles.menuStats}>
-                <span>
-                  <Shield aria-hidden="true" />
-                  {currentPlayer?.damage ?? 0} damage
-                </span>
-                <span>
-                  <Heart aria-hidden="true" />
-                  {currentPlayer?.lives ?? 0} lives
-                </span>
-                <span>
-                  <Flag aria-hidden="true" />
-                  {currentPlayer?.checkpointsReached ?? 0} checkpoints
-                </span>
-              </div>
-              <DropdownMenuSeparator className={styles.menuSeparator} />
-              <DropdownMenuItem
-                className={styles.menuItem}
-                onSelect={loadGameState}
-              >
-                <RefreshCw className={isSyncing ? styles.spinner : undefined} />
-                Refresh game state
-                <span>{syncedAt}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+      <GameHeader
+        gameState={gameState}
+        currentPlayer={currentPlayer}
+        currentRobot={currentRobot}
+        secondsLeft={secondsLeft}
+        error={error}
+        isSyncing={isSyncing}
+        syncedAt={syncedAt}
+        onRefresh={loadGameState}
+      />
 
       <div className={styles.workspace}>
         <section className={styles.boardPanel} aria-label="Game board">
           <div className={styles.boardScene}>
             <GameBoard gameState={gameState} />
-            <section
-              className={`${styles.boardPlayers} ${playersCollapsed ? styles.playersCollapsed : ""}`}
-              aria-label="Players"
-            >
-              <button
-                type="button"
-                className={styles.playersToggle}
-                aria-expanded={!playersCollapsed}
-                aria-controls={playerListId}
-                onClick={() => setPlayersCollapsed((collapsed) => !collapsed)}
-              >
-                <div>
-                  <p className={styles.eyebrow}>Network</p>
-                  <h2>CONNECTED UNITS</h2>
-                </div>
-                <span className={styles.playersToggleEnd}>
-                  <span className={styles.playerCount}>
-                    {gameState.players.length}
-                  </span>
-                  <ChevronDown
-                    className={styles.playersChevron}
-                    aria-hidden="true"
-                  />
-                </span>
-              </button>
-
-              <div
-                className={styles.playerList}
-                id={playerListId}
-                hidden={playersCollapsed}
-              >
-                {gameState.players.map((player) => {
-                  const robot = robotById.get(player.robotId);
-                  const isCurrent = player.id === gameState.currentPlayerId;
-
-                  return (
-                    <article
-                      key={player.id}
-                      className={`${styles.playerCard} ${isCurrent ? styles.currentPlayer : ""}`}
-                    >
-                      <div className={styles.playerHeader}>
-                        <span
-                          className={styles.robotSwatch}
-                          style={{ backgroundColor: robot?.color }}
-                          aria-hidden="true"
-                        />
-                        <div className={styles.playerName}>
-                          <strong>{player.name}</strong>
-                          <span>
-                            {robot?.name} ·{" "}
-                            {robot
-                              ? DIRECTION_LABELS[robot.direction]
-                              : "Unknown"}
-                            {robot ? ` · X${robot.x + 1} Y${robot.z + 1}` : ""}
-                          </span>
-                        </div>
-                        {isCurrent ? (
-                          <span className={styles.youBadge}>You</span>
-                        ) : (
-                          <span
-                            className={
-                              player.connected
-                                ? styles.onlineDot
-                                : styles.offlineDot
-                            }
-                            title={
-                              player.connected ? "Connected" : "Disconnected"
-                            }
-                            aria-label={
-                              player.connected ? "Connected" : "Disconnected"
-                            }
-                          />
-                        )}
-                      </div>
-
-                      <div className={styles.playerStats}>
-                        <span>
-                          <Shield aria-label="Damage" />
-                          {player.damage}
-                        </span>
-                        <span>
-                          <Heart aria-label="Lives" />
-                          {player.lives}
-                        </span>
-                        <span>
-                          <Flag aria-label="Checkpoints" />
-                          {player.checkpointsReached}
-                        </span>
-                        <span className={styles.hiddenCards}>
-                          <LockKeyhole aria-hidden="true" />
-                          {player.programLocked
-                            ? "Ready"
-                            : `${player.programmedCardCount}/${gameState.registerCount}`}
-                        </span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
+            <PlayerList
+              gameState={gameState}
+              robotById={robotById}
+              collapsed={playersCollapsed}
+              listId={playerListId}
+              onToggle={() => setPlayersCollapsed((collapsed) => !collapsed)}
+            />
           </div>
           <section className={styles.boardCards} aria-label="Your action cards">
             <ProgramEditor
@@ -470,44 +269,11 @@ export function GameStateView({ gameId }: { gameId: string }) {
                 {submitError}
               </p>
             )}
-            {(gameState.phase === "end-of-round" ||
-              gameState.phase === "finished") && (
-              <div className={styles.turnResult}>
-                <p role="status">
-                  {gameState.phase === "finished"
-                    ? `${winnerName(gameState) ?? "Nobody"} wins the race.`
-                    : `Round ${gameState.round} resolved. The board shows the resulting positions.`}
-                </p>
-                <details>
-                  <summary>
-                    Executed actions ({gameState.executionLog.length})
-                  </summary>
-                  <ol>
-                    {gameState.executionLog.map((entry, index) => (
-                      <li key={index}>
-                        Register {entry.register} ·{" "}
-                        {
-                          gameState.players.find(
-                            (player) => player.id === entry.playerId,
-                          )?.name
-                        }
-                        : {entry.card.name} (P.{entry.card.priority})
-                      </li>
-                    ))}
-                  </ol>
-                </details>
-                {gameState.executionFrames.length > 0 && (
-                  <button
-                    type="button"
-                    className={styles.replayButton}
-                    onClick={replay}
-                    disabled={isSubmitting}
-                  >
-                    <RefreshCw aria-hidden="true" /> Replay movement
-                  </button>
-                )}
-              </div>
-            )}
+            <RoundResult
+              gameState={gameState}
+              disabled={isSubmitting}
+              onReplay={replay}
+            />
           </section>
         </section>
       </div>
