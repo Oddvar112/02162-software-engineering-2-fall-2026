@@ -119,7 +119,6 @@ function moveRobot(
     const player = state.players.find(
       (candidate) => candidate.id === robot.playerId,
     )!;
-    player.lives = Math.max(0, player.lives - 1);
   }
   return true;
 }
@@ -146,7 +145,7 @@ function resolveProgram(game: MockGame, playerId: string) {
   recordFrame(0, null, "Starting your program…");
   for (let register = 0; register < state.registerCount; register++) {
     const actions = state.players
-      .filter((player) => player.id === playerId && player.lives > 0)
+      .filter((player) => player.id === playerId)
       .map((player) => ({ player, card: programs[player.id][register] }));
     for (const { player, card } of actions) {
       const robot = state.robots.find(
@@ -191,7 +190,7 @@ function resolveProgram(game: MockGame, playerId: string) {
       const robot = state.robots.find(
         (candidate) => candidate.id === player.robotId,
       )!;
-      if (player.lives === 0 || fallen.has(robot.id)) continue;
+      if (fallen.has(robot.id)) continue;
       const tile = state.board.tiles[robot.z][robot.x];
       if (
         tile.kind === "checkpoint" &&
@@ -208,7 +207,6 @@ function resolveProgram(game: MockGame, playerId: string) {
     const player = state.players.find(
       (candidate) => candidate.id === robot.playerId,
     )!;
-    if (player.lives === 0) continue;
     const start = starts.find((candidate) => candidate.id === robot.id)!;
     const tiles = Array.from(
       { length: state.board.width * state.board.height },
@@ -234,7 +232,7 @@ function resolveProgram(game: MockGame, playerId: string) {
   }
   state.robots = state.robots.filter((robot) =>
     state.players.some(
-      (player) => player.robotId === robot.id && player.lives > 0,
+      (player) => player.robotId === robot.id
     ),
   );
   recordFrame(0, null, "Program complete");
@@ -257,8 +255,6 @@ export function submitProgram(
     throw new ProgramError("Your program is already locked in.", 409);
   if (game.state.phase !== "programming" && game.state.phase !== "waiting")
     throw new ProgramError("Programs cannot be submitted in this phase.", 409);
-  if (player.lives === 0)
-    throw new ProgramError("This robot has no lives remaining.", 409);
   if (
     !Array.isArray(cardIds) ||
     cardIds.length !== game.state.registerCount ||
@@ -294,11 +290,6 @@ export function startNextRound(
   if (round !== game.state.round || game.state.phase !== "end-of-round")
     throw new ProgramError(
       "This round is not ready to advance. Refresh the game.",
-      409,
-    );
-  if (!game.state.players.some((player) => player.lives > 0))
-    throw new ProgramError(
-      "The game is over: no robots have lives remaining.",
       409,
     );
   game.state.round++;
