@@ -14,8 +14,9 @@ describe("isPublicRoute", () => {
     expect(isPublicRoute("/auth/update-password")).toBe(true);
   });
 
-  it("allows the board prototype", () => {
+  it("allows the demo board and its state API", () => {
     expect(isPublicRoute("/game")).toBe(true);
+    expect(isPublicRoute("/api/game-state")).toBe(true);
   });
 
   it("protects the lobby and game pages", () => {
@@ -30,6 +31,8 @@ describe("isPublicRoute", () => {
     expect(isPublicRoute("/games")).toBe(false);
     expect(isPublicRoute("/authorize")).toBe(false);
     expect(isPublicRoute("/game-admin")).toBe(false);
+    expect(isPublicRoute("/api/game-state-admin")).toBe(false);
+    expect(isPublicRoute("/api/game-state/private")).toBe(false);
   });
 });
 

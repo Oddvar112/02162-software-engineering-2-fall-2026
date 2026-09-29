@@ -125,6 +125,8 @@ If you added a dependency, commit `package-lock.json` with it. CI installs with 
 │   └── theme-switcher.tsx            # Light/Dark mode toggling component
 │
 ├── lib/                              # Core business logic, utilities, and helper libraries
+│   ├── game/                         # Game state and programming logic
+│   │   └── game-model.ts             # Static demo board layout and robot start positions
 │   ├── hooks/                        # Custom client React hooks (e.g. motion/accessibility preferences)
 │   ├── supabase/                     # Supabase client configurations (browser, server, and middleware proxy)
 │   ├── robot-animation.ts            # Three.js animation controller for robot character models
@@ -140,3 +142,38 @@ If you added a dependency, commit `package-lock.json` with it. CI installs with 
     ├── migrations/                   # SQL migration scripts (tables, RLS policies, RPC functions)
     └── tests/                        # Database logic & lifecycle pgTAP tests
 ```
+
+## Programming phase demo
+
+Static board generation is configured in `lib/game/game-model.ts`. Its
+`staticBoard` export is the single source for the demo layout. To change the
+board, edit its dimensions, row-major tile grid (`tiles[y][x]`), wall pairs,
+and `startpositions` in that file. Keep `width` and `height` consistent with
+the tile grid.
+
+`lib/game/mock-game-state.ts` builds the initial game state from this model,
+creating one demo player and robot per start position. The current 4×4 board
+therefore has two players. The renderer and movement logic consume that same
+board data. Changing the model resets the shared demo on its next request,
+including during hot reload.
+
+Open `/game` and click five cards in execution order, then **Lock In**. Each
+selected card shows its position in the program. Click it again to remove it
+and renumber the remaining cards; select it again to place it at the end.
+You can remove or replace cards until you submit. The player
+menu includes a **Demo player** switcher. For now, **Lock In** immediately
+executes only the selected player's five cards in order, without waiting for
+other players. Other robots do not run programs, but can still be pushed by
+movement. Every tab receives the updated board through polling. The execution
+list shows what ran. The board animates each movement step and rotation, and
+highlights the card being executed. **Replay movement** plays the stored sequence
+again without resubmitting. **Start next round** clears the program for another turn.
+
+This builds on the mock game, not authenticated multiplayer: the server holds
+one shared game in memory, and the `player` query parameter selects a demo seat.
+Locked programs survive page reloads but reset when the server process restarts;
+separate server instances do not share state. The same six-card hands are reused
+between rounds. Movement, rotation, backing up, walls, robot pushing, falling,
+rebooting and ordered checkpoints are supported. Conveyors, gears, lasers,
+damage-based register locking and victory rules await the full game engine.
+Do not use the demo player selector as an authorization mechanism.
