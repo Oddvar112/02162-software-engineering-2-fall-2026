@@ -2,7 +2,7 @@ import type { Board } from "@/lib/board";
 import { Direction } from "@/lib/direction";
 
 export type GamePhase =
-  "programming" | "waiting" | "execution" | "board-activation" | "end-of-round";
+  "programming" | "execution" | "end-of-round" | "finished";
 
 export type RobotState = {
   id: string;
@@ -24,6 +24,7 @@ export type PlayerState = {
   checkpointsReached: number;
   programmedCardCount: number;
   programLocked: boolean;
+  readyForNext: boolean;
   connected: boolean;
 };
 
@@ -56,15 +57,15 @@ export type GameState = {
   registerCount: number;
   executionLog: { register: number; playerId: string; card: ActionCard }[];
   executionFrames: ExecutionFrame[];
+  timerEndsAt: string | null;
   updatedAt: string;
 };
 
 export const PHASE_LABELS: Record<GamePhase, string> = {
   programming: "Programming phase",
-  waiting: "Waiting for players",
   execution: "Program execution",
-  "board-activation": "Board element activation",
   "end-of-round": "End of round",
+  finished: "Game over",
 };
 
 export const DIRECTION_LABELS: Record<Direction, string> = {

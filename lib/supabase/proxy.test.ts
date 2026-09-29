@@ -32,7 +32,7 @@ beforeEach(() => {
 });
 
 describe("session proxy", () => {
-  it.each(["/lobbies", "/lobbies/abc", "/games/abc", "/game/private"])(
+  it.each(["/lobbies", "/lobbies/abc", "/games/abc", "/api/games/abc"])(
     "requires a session on a direct request to %s",
     async (path) => {
       const response = await updateSession(
@@ -81,7 +81,7 @@ describe("session proxy", () => {
     },
   );
 
-  it.each(["/", "/game", "/api/game-state", "/auth/login", "/auth/confirm"])(
+  it.each(["/", "/auth/login", "/auth/confirm"])(
     "keeps %s public while refreshing cookies",
     async (path) => {
       const response = await updateSession(
@@ -91,16 +91,6 @@ describe("session proxy", () => {
       expect(response.cookies.get("session")?.value).toBe("refreshed");
     },
   );
-
-  it("allows anonymous demo program submissions while refreshing cookies", async () => {
-    const response = await updateSession(
-      new NextRequest("https://example.test/api/game-state", {
-        method: "POST",
-      }),
-    );
-    expect(response.headers.get("location")).toBeNull();
-    expect(response.cookies.get("session")?.value).toBe("refreshed");
-  });
 
   it("allows an authenticated request to a game", async () => {
     getClaims.mockResolvedValue({ data: { claims: { sub: "player-1" } } });
