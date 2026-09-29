@@ -5,6 +5,7 @@ alter table public.games
   add column execution_log jsonb not null default '[]'::jsonb,
   add column execution_frames jsonb not null default '[]'::jsonb,
   add column timer_started_at timestamptz,
+  add column winner_id uuid references public.users(id),
   add column updated_at timestamptz not null default now();
 
 alter table public.games
@@ -180,7 +181,8 @@ create function public.apply_round_result(
   p_execution_log jsonb,
   p_execution_frames jsonb,
   p_players jsonb,
-  p_programs jsonb
+  p_programs jsonb,
+  p_winner_id uuid
 )
 returns boolean
 language plpgsql
@@ -226,6 +228,7 @@ begin
   set phase = p_phase,
       execution_log = p_execution_log,
       execution_frames = p_execution_frames,
+      winner_id = p_winner_id,
       updated_at = now()
   where id = p_game_id;
 
@@ -275,7 +278,7 @@ begin
 end;
 $$;
 
-revoke all on function public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb) from public, anon, authenticated;
+revoke all on function public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, uuid) from public, anon, authenticated;
 revoke all on function public.begin_next_round(uuid, integer, jsonb) from public, anon, authenticated;
 
 alter table public.games replica identity default;

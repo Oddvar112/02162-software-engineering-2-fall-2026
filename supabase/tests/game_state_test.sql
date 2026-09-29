@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(43);
 
 insert into auth.users (id, email) values
   ('40000000-0000-4000-8000-000000000001', 'game-alice@example.test'),
@@ -124,12 +124,17 @@ select is(
     (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
     'end-of-round', '[]', '[]',
     '[{"user_id":"40000000-0000-4000-8000-000000000001","x":0,"z":0,"direction":1,"lives":2,"checkpoints_reached":0}]',
-    '[]'
+    '[]',
+    null
   ),
   true, 'the server applies a round result once'
 );
 select is(
-  public.apply_round_result('50000000-0000-4000-8000-000000000001', 1, now(), 'end-of-round', '[]', '[]', '[]', '[]'),
+  public.apply_round_result(
+    '50000000-0000-4000-8000-000000000001', 1,
+    (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
+    'end-of-round', '[]', '[]', '[]', '[]', null
+  ),
   false, 'the same round cannot be applied twice'
 );
 select is(
@@ -172,23 +177,74 @@ select throws_ok(
   'P0001', 'no_hand', 'a player without a hand this round cannot program'
 );
 reset role;
-update public.games set phase = 'end-of-round' where id = '50000000-0000-4000-8000-000000000001';
-set local role authenticated;
-set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000002';
-
-reset role;
 select ok(
   exists(select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'games'),
   'games are published to Realtime'
 );
 select ok(
-  not has_function_privilege('authenticated', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb)', 'EXECUTE')
+  not has_function_privilege('authenticated', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, uuid)', 'EXECUTE')
   and not has_function_privilege('authenticated', 'public.begin_next_round(uuid, integer, jsonb)', 'EXECUTE'),
   'only the server can write a round result or start the next round'
 );
+
+update public.games set phase = 'programming' where id = '50000000-0000-4000-8000-000000000001';
 select is(
-  public.apply_round_result('50000000-0000-4000-8000-000000000001', 1, now(), 'end-of-round', '[]', '[]', '[]', '[]'),
-  false, 'a round result with a stale timestamp is refused'
+  public.apply_round_result('50000000-0000-4000-8000-000000000001', 1, now() - interval '1 minute', 'end-of-round', '[]', '[]', '[]', '[]', null),
+  false, 'a round result read before a later lock in is refused'
+);
+select is(
+  (select phase from public.games where id = '50000000-0000-4000-8000-000000000001'),
+  'programming', 'a refused result changes nothing'
+);
+select is(
+  public.apply_round_result(
+    '50000000-0000-4000-8000-000000000001', 1,
+    (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
+    'finished', '[]', '[]', '[]', '[]', '40000000-0000-4000-8000-000000000001'
+  ),
+  true, 'the same call with the current timestamp is accepted'
+);
+select is(
+  (select winner_id from public.games where id = '50000000-0000-4000-8000-000000000001'),
+  '40000000-0000-4000-8000-000000000001'::uuid, 'the winner is recorded'
+);
+select is(
+  (select status from public.lobbies where game = '50000000-0000-4000-8000-000000000001'),
+  'finished', 'finishing the game finishes the lobby'
+);
+
+-- begin_next_round: refused in the wrong phase, then applied once.
+select is(
+  public.begin_next_round('50000000-0000-4000-8000-000000000001', 1, '[]'),
+  false, 'a finished game cannot start another round'
+);
+update public.games set phase = 'end-of-round' where id = '50000000-0000-4000-8000-000000000001';
+select is(
+  public.begin_next_round('50000000-0000-4000-8000-000000000001', 2, '[]'),
+  false, 'the wrong round number is refused'
+);
+select is(
+  public.begin_next_round(
+    '50000000-0000-4000-8000-000000000001', 1,
+    '[{"user_id":"40000000-0000-4000-8000-000000000001","cards":[{"id":"n1","name":"Move 1","type":"move","value":1,"priority":500}]}]'
+  ),
+  true, 'the next round starts once'
+);
+select is(
+  (select row(round, phase, timer_started_at)::text from public.games where id = '50000000-0000-4000-8000-000000000001'),
+  '(2,programming,)', 'the round advances, the phase resets and the timer clears'
+);
+select is(
+  (select count(*) from public.programs where game_id = '50000000-0000-4000-8000-000000000001'),
+  0::bigint, 'old programs are cleared'
+);
+select is(
+  (select round from public.hands where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000001'),
+  2, 'the new hand belongs to round 2'
+);
+select is(
+  public.begin_next_round('50000000-0000-4000-8000-000000000001', 1, '[]'),
+  false, 'the same round cannot be started twice'
 );
 
 select * from finish();
