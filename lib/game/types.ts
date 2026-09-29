@@ -24,7 +24,6 @@ export type PlayerState = {
   checkpointsReached: number;
   programmedCardCount: number;
   programLocked: boolean;
-  readyForNext: boolean;
   connected: boolean;
 };
 

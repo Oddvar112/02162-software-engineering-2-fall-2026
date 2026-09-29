@@ -88,7 +88,6 @@ export function buildGameState(board: Board = staticBoard): GameState {
       checkpointsReached: 0,
       programmedCardCount: 0,
       programLocked: false,
-      readyForNext: false,
       connected: true,
     })),
     currentPlayerCards: BASE_GAME_STATE.currentPlayerCards.map((card) => ({

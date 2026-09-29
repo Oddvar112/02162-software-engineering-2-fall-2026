@@ -10,6 +10,7 @@ import type { Board } from "@/lib/board";
 
 export const TIMER_SECONDS = 30;
 export const REGISTER_COUNT = 5;
+export const NEXT_ROUND_SECONDS = 45;
 
 export class GameError extends Error {
   constructor(
@@ -41,8 +42,6 @@ type PlayerRow = {
   damage: number;
   lives: number;
   checkpoints_reached: number;
-  locked_in: boolean;
-  ready_for_next: boolean;
 };
 
 export type LoadedGame = {
@@ -53,29 +52,26 @@ export type LoadedGame = {
   programs: Map<string, ActionCard[]>;
 };
 
-function seededRandom(seed: string) {
-  let h = 1779033703 ^ seed.length;
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-  return () => {
-    h = Math.imul(h ^ (h >>> 16), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    h ^= h >>> 16;
-    return (h >>> 0) / 4294967296;
-  };
-}
-
-async function initialiseGame(gameId: string): Promise<void> {
+export async function initialiseGame(gameId: string): Promise<void> {
   const service = createServiceClient();
+
+  const { data: existing } = await service
+    .from("games")
+    .select("board")
+    .eq("id", gameId)
+    .maybeSingle();
+  if (!existing) throw new GameError("This game does not exist.", 404);
+  if (existing.board) return;
 
   const { data: lobby } = await service
     .from("lobbies")
-    .select("id, lobby_players(user_id, joined_at)")
+    .select("id, status, lobby_players(user_id, joined_at)")
     .eq("game", gameId)
     .maybeSingle();
   if (!lobby) throw new GameError("This game has no lobby.", 404);
+  if (lobby.status !== "started") {
+    throw new GameError("This game has not been started.", 409);
+  }
 
   const members = [...lobby.lobby_players].sort((a, b) =>
     a.joined_at.localeCompare(b.joined_at),
@@ -98,10 +94,7 @@ async function initialiseGame(gameId: string): Promise<void> {
     .upsert(players, { onConflict: "game_id,user_id", ignoreDuplicates: true });
   if (playersError) throw playersError;
 
-  const hands = dealHands(
-    players.map((player) => player.user_id),
-    seededRandom(`${gameId}:1`),
-  );
+  const hands = dealHands(players.map((player) => player.user_id));
   const { error: handsError } = await service.from("hands").upsert(
     Object.entries(hands).map(([user_id, cards]) => ({
       game_id: gameId,
@@ -135,15 +128,14 @@ export async function loadGame(gameId: string): Promise<LoadedGame> {
   if (!game) throw new GameError("This game does not exist.", 404);
 
   if (!game.board) {
-    await initialiseGame(gameId);
-    return loadGame(gameId);
+    throw new GameError("This game has not been set up yet.", 409);
   }
 
   const [playersResult, handsResult, programsResult] = await Promise.all([
     service
       .from("game_players")
       .select(
-        "user_id, seat, robot_model, x, z, direction, damage, lives, checkpoints_reached, locked_in, ready_for_next",
+        "user_id, seat, robot_model, x, z, direction, damage, lives, checkpoints_reached",
       )
       .eq("game_id", gameId)
       .order("seat"),
@@ -218,20 +210,24 @@ export function toGameState(loaded: LoadedGame, viewerId: string): GameState {
       damage: player.damage,
       lives: player.lives,
       checkpointsReached: player.checkpoints_reached,
-      programmedCardCount: player.locked_in ? REGISTER_COUNT : 0,
-      programLocked: player.locked_in,
-      readyForNext: player.ready_for_next,
+      programmedCardCount: programs.has(player.user_id) ? REGISTER_COUNT : 0,
+      programLocked: programs.has(player.user_id),
       connected: true,
     })),
     currentPlayerCards: hands.get(viewerId) ?? [],
     currentPlayerProgram: programs.get(viewerId) ?? [],
     executionLog: game.execution_log,
     executionFrames: game.execution_frames,
-    timerEndsAt: game.timer_started_at
-      ? new Date(
-          new Date(game.timer_started_at).getTime() + TIMER_SECONDS * 1000,
-        ).toISOString()
-      : null,
+    timerEndsAt:
+      game.phase === "end-of-round"
+        ? new Date(
+            new Date(game.updated_at).getTime() + NEXT_ROUND_SECONDS * 1000,
+          ).toISOString()
+        : game.timer_started_at
+          ? new Date(
+              new Date(game.timer_started_at).getTime() + TIMER_SECONDS * 1000,
+            ).toISOString()
+          : null,
     updatedAt: game.updated_at,
   };
 }
@@ -241,7 +237,7 @@ function isReadyToResolve(loaded: LoadedGame): boolean {
   if (game.phase !== "programming") return false;
   const alive = players.filter((player) => player.lives > 0);
   if (alive.length === 0) return false;
-  if (alive.every((player) => player.locked_in)) return true;
+  if (alive.every((player) => loaded.programs.has(player.user_id))) return true;
   if (!game.timer_started_at) return false;
   return (
     Date.now() >=
@@ -250,8 +246,7 @@ function isReadyToResolve(loaded: LoadedGame): boolean {
 }
 
 function fillMissingPrograms(loaded: LoadedGame): Programs {
-  const { game, players, hands, programs } = loaded;
-  const random = seededRandom(`${game.id}:${game.round}:fill`);
+  const { players, hands, programs } = loaded;
   const result: Programs = {};
   for (const player of players) {
     if (player.lives === 0) continue;
@@ -261,7 +256,7 @@ function fillMissingPrograms(loaded: LoadedGame): Programs {
       continue;
     }
     const hand = hands.get(player.user_id) ?? [];
-    result[player.user_id] = shuffle(hand, random).slice(0, REGISTER_COUNT);
+    result[player.user_id] = shuffle(hand).slice(0, REGISTER_COUNT);
   }
   return result;
 }
@@ -307,7 +302,7 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
   if (claimError) throw claimError;
   if (!claimed?.length) return false;
 
-  await Promise.all([
+  const writes = await Promise.all([
     ...state.players.map((player) => {
       const robot = state.robots.find(
         (candidate) => candidate.id === player.id,
@@ -320,7 +315,6 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
           direction: robot?.direction ?? Direction.Up,
           lives: player.lives,
           checkpoints_reached: player.checkpointsReached,
-          locked_in: true,
         })
         .eq("game_id", game.id)
         .eq("user_id", player.id);
@@ -334,35 +328,38 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
       })),
       { onConflict: "game_id,user_id" },
     ),
+    ...(phase === "finished"
+      ? [
+          service
+            .from("lobbies")
+            .update({ status: "finished" })
+            .eq("game", game.id),
+        ]
+      : []),
   ]);
+  const failed = writes.find((result) => result.error);
+  if (failed?.error) throw failed.error;
   return true;
 }
 
-export async function markReadyForNextRound(
-  gameId: string,
-  userId: string,
-): Promise<boolean> {
-  const service = createServiceClient();
-  const { error } = await service
-    .from("game_players")
-    .update({ ready_for_next: true })
-    .eq("game_id", gameId)
-    .eq("user_id", userId);
-  if (error) throw error;
+function isReadyToAdvance(loaded: LoadedGame): boolean {
+  const { game } = loaded;
+  if (game.phase !== "end-of-round") return false;
+  return (
+    Date.now() >=
+    new Date(game.updated_at).getTime() + NEXT_ROUND_SECONDS * 1000
+  );
+}
 
-  const { data: players } = await service
-    .from("game_players")
-    .select("lives, ready_for_next")
-    .eq("game_id", gameId);
-  return (players ?? [])
-    .filter((player) => player.lives > 0)
-    .every((player) => player.ready_for_next);
+export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
+  if (!isReadyToAdvance(loaded)) return false;
+  return startNextRound(loaded.game.id, loaded.game.round);
 }
 
 export async function startNextRound(
   gameId: string,
   round: number,
-): Promise<void> {
+): Promise<boolean> {
   const service = createServiceClient();
 
   const { data: advanced, error } = await service
@@ -380,12 +377,7 @@ export async function startNextRound(
     .eq("round", round)
     .select("id");
   if (error) throw error;
-  if (!advanced?.length) {
-    throw new GameError(
-      "This round is not ready to advance. Refresh the game.",
-      409,
-    );
-  }
+  if (!advanced?.length) return false;
 
   const { data: players } = await service
     .from("game_players")
@@ -393,11 +385,8 @@ export async function startNextRound(
     .eq("game_id", gameId);
   const alive = (players ?? []).filter((player) => player.lives > 0);
 
-  const hands = dealHands(
-    alive.map((player) => player.user_id),
-    seededRandom(`${gameId}:${round + 1}`),
-  );
-  await Promise.all([
+  const hands = dealHands(alive.map((player) => player.user_id));
+  const writes = await Promise.all([
     service.from("hands").upsert(
       Object.entries(hands).map(([user_id, cards]) => ({
         game_id: gameId,
@@ -407,10 +396,9 @@ export async function startNextRound(
       })),
       { onConflict: "game_id,user_id" },
     ),
-    service
-      .from("game_players")
-      .update({ locked_in: false, ready_for_next: false })
-      .eq("game_id", gameId),
     service.from("programs").delete().eq("game_id", gameId),
   ]);
+  const failed = writes.find((result) => result.error);
+  if (failed?.error) throw failed.error;
+  return true;
 }
