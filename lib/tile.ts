@@ -1,40 +1,50 @@
-interface FloorTile {
+import type { Direction } from "@/lib/direction";
+
+export interface FloorTile {
   kind: "floor";
 }
 
-interface ConveyorTile {
+export interface ConveyorTile {
   kind: "conveyor";
   direction: Direction;
   express: boolean;
 }
 
-interface LaserTile {
+export interface LaserTile {
   kind: "laser";
   direction: Direction;
   strength: number;
 }
 
-interface PitTile {
-    kind: "pit"
+export interface PitTile {
+  kind: "pit";
 }
 
-interface GearTile {
-    kind: "gear",
-    clockwise: boolean //Ture = Clockwise, False = Counter clockwise 
+export interface GearTile {
+  kind: "gear";
+  clockwise: boolean; // True = clockwise, false = counterclockwise
 }
 
-interface PusherTile {
-    kind: "pusher",
-    direction: Direction
+export interface PusherTile {
+  kind: "pusher";
+  direction: Direction;
 }
 
-interface CheckpointTile {
-    kind: "checkpoint",
-    number: number
+export interface CheckpointTile {
+  kind: "checkpoint";
+  number: number;
 }
 
-interface RepairTile {
-    kind: "repair"
+export interface RepairTile {
+  kind: "repair";
 }
 
-type Tile = FloorTile | ConveyorTile | LaserTile | PitTile | GearTile | PusherTile | CheckpointTile | RepairTile ;
+export type Tile =
+  | FloorTile
+  | ConveyorTile
+  | LaserTile
+  | PitTile
+  | GearTile
+  | PusherTile
+  | CheckpointTile
+  | RepairTile;

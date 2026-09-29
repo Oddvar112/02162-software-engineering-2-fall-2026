@@ -125,6 +125,8 @@ If you added a dependency, commit `package-lock.json` with it. CI installs with 
 │   └── theme-switcher.tsx            # Light/Dark mode toggling component
 │
 ├── lib/                              # Core business logic, utilities, and helper libraries
+│   ├── game/                         # Game state and programming logic
+│   │   └── game-model.ts             # Static demo board layout and robot start positions
 │   ├── hooks/                        # Custom client React hooks (e.g. motion/accessibility preferences)
 │   ├── supabase/                     # Supabase client configurations (browser, server, and middleware proxy)
 │   ├── robot-animation.ts            # Three.js animation controller for robot character models
@@ -142,6 +144,18 @@ If you added a dependency, commit `package-lock.json` with it. CI installs with 
 ```
 
 ## Programming phase demo
+
+Static board generation is configured in `lib/game/game-model.ts`. Its
+`staticBoard` export is the single source for the demo layout. To change the
+board, edit its dimensions, row-major tile grid (`tiles[y][x]`), wall pairs,
+and `startpositions` in that file. Keep `width` and `height` consistent with
+the tile grid.
+
+`lib/game/mock-game-state.ts` builds the initial game state from this model,
+creating one demo player and robot per start position. The current 4×4 board
+therefore has two players. The renderer and movement logic consume that same
+board data. Changing the model resets the shared demo on its next request,
+including during hot reload.
 
 Open `/game` and click five cards in execution order, then **Lock In**. Each
 selected card shows its position in the program. Click it again to remove it

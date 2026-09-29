@@ -4,239 +4,44 @@ import { ContactShadows, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useLayoutEffect, useRef, useState } from "react";
 import { RobotModel } from "./robot-model";
+import { TileMesh } from "./tile-mesh";
+import { DIRECTION_ROTATION, tilePosition } from "./board-coordinates";
 import { getRobotAppearance } from "@/lib/game/robot-appearance";
 import { useMotionPreferences } from "@/lib/hooks/use-motion-preferences";
 import * as THREE from "three";
-import type {
-  BoardElement,
-  Direction,
-  GameState,
-  RobotState,
-} from "@/lib/game/types";
+import type { GameState, RobotState } from "@/lib/game/types";
+import type { PosPair } from "@/lib/board";
 import styles from "@/components/game/game-state.module.css";
 
 const CAMERA_DIRECTION = new THREE.Vector3(8, 10, 11).normalize();
-const DIRECTION_ROTATION: Record<Direction, number> = {
-  north: 0,
-  east: -Math.PI / 2,
-  south: Math.PI,
-  west: Math.PI / 2,
-};
+function Wall({
+  wall,
+  width,
+  height,
+}: {
+  wall: PosPair;
+  width: number;
+  height: number;
+}) {
+  const vertical = wall.One.x !== wall.Two.x;
 
-function tilePosition(value: number, size: number) {
-  return value - (size - 1) / 2;
-}
-
-function Conveyor({ direction }: { direction: Direction }) {
   return (
-    <group
-      position={[0, 0.135, 0]}
-      rotation={[0, DIRECTION_ROTATION[direction], 0]}
+    <mesh
+      castShadow
+      position={[
+        tilePosition((wall.One.x + wall.Two.x) / 2, width),
+        0.38,
+        tilePosition((wall.One.y + wall.Two.y) / 2, height),
+      ]}
     >
-      <mesh receiveShadow>
-        <boxGeometry args={[0.82, 0.05, 0.82]} />
-        <meshStandardMaterial
-          color="#18252b"
-          metalness={0.62}
-          roughness={0.38}
-        />
-      </mesh>
-      {[-0.36, 0.36].map((x) => (
-        <mesh key={x} position={[x, 0.045, 0]}>
-          <boxGeometry args={[0.06, 0.08, 0.78]} />
-          <meshStandardMaterial
-            color="#32c5d6"
-            emissive="#18899a"
-            emissiveIntensity={0.35}
-            metalness={0.72}
-            roughness={0.28}
-          />
-        </mesh>
-      ))}
-      {[-0.25, 0, 0.25].map((z) => (
-        <mesh key={z} position={[0, 0.065, z]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.065, 0.065, 0.64, 12]} />
-          <meshStandardMaterial
-            color="#81949c"
-            metalness={0.85}
-            roughness={0.24}
-          />
-        </mesh>
-      ))}
-      {[-0.105, 0.105].map((x) => (
-        <mesh
-          key={x}
-          position={[x, 0.145, -0.08]}
-          rotation={[0, x < 0 ? -Math.PI / 4 : Math.PI / 4, 0]}
-        >
-          <boxGeometry args={[0.29, 0.025, 0.065]} />
-          <meshBasicMaterial color="#d6fbff" />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-function Checkpoint({ order }: { order: number }) {
-  const checks = [
-    [-0.19, -0.19, "#f5c452"],
-    [0.19, -0.19, "#20292e"],
-    [-0.19, 0.19, "#20292e"],
-    [0.19, 0.19, "#f5c452"],
-  ] as const;
-
-  return (
-    <group position={[0, 0.135, 0]}>
-      <mesh receiveShadow>
-        <boxGeometry args={[0.84, 0.05, 0.84]} />
-        <meshStandardMaterial
-          color="#111a1f"
-          metalness={0.6}
-          roughness={0.34}
-        />
-      </mesh>
-      {checks.map(([x, z, color]) => (
-        <mesh key={`${x}-${z}`} position={[x, 0.035, z]}>
-          <boxGeometry args={[0.34, 0.025, 0.34]} />
-          <meshStandardMaterial
-            color={color}
-            metalness={0.5}
-            roughness={0.42}
-          />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.075, 0]}>
-        <cylinderGeometry args={[0.19, 0.19, 0.075, 24]} />
-        <meshStandardMaterial
-          color="#17242a"
-          metalness={0.78}
-          roughness={0.25}
-        />
-      </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0.12, 0]}>
-        <torusGeometry args={[0.13, 0.035, 8, 24]} />
-        <meshStandardMaterial
-          color="#fff0a8"
-          emissive="#f4b942"
-          emissiveIntensity={0.9}
-        />
-      </mesh>
-      {Array.from({ length: order }, (_, index) => (
-        <mesh
-          key={index}
-          position={[(index - (order - 1) / 2) * 0.075, 0.155, 0]}
-        >
-          <sphereGeometry args={[0.025, 10, 10]} />
-          <meshBasicMaterial color="#fff7d6" />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-function Gear({ rotation }: { rotation: "clockwise" | "counter-clockwise" }) {
-  const direction = rotation === "clockwise" ? 1 : -1;
-
-  return (
-    <group position={[0, 0.14, 0]} rotation={[0, direction * 0.12, 0]}>
-      <mesh receiveShadow>
-        <cylinderGeometry args={[0.39, 0.39, 0.045, 24]} />
-        <meshStandardMaterial
-          color="#162229"
-          metalness={0.72}
-          roughness={0.3}
-        />
-      </mesh>
-      {Array.from({ length: 12 }, (_, index) => {
-        const angle = (index / 12) * Math.PI * 2;
-        return (
-          <mesh
-            key={angle}
-            position={[Math.cos(angle) * 0.38, 0.045, Math.sin(angle) * 0.38]}
-            rotation={[0, -angle, 0]}
-          >
-            <boxGeometry args={[0.115, 0.055, 0.105]} />
-            <meshStandardMaterial
-              color="#a7b8be"
-              metalness={0.86}
-              roughness={0.22}
-            />
-          </mesh>
-        );
-      })}
-      <mesh position={[0, 0.065, 0]}>
-        <cylinderGeometry args={[0.285, 0.285, 0.075, 24]} />
-        <meshStandardMaterial
-          color="#d78136"
-          emissive="#8f3f10"
-          emissiveIntensity={0.18}
-          metalness={0.72}
-          roughness={0.3}
-        />
-      </mesh>
-      <mesh position={[0, 0.12, 0]}>
-        <cylinderGeometry args={[0.09, 0.09, 0.055, 16]} />
-        <meshStandardMaterial
-          color="#263840"
-          metalness={0.86}
-          roughness={0.22}
-        />
-      </mesh>
-      <mesh
-        position={[direction * 0.16, 0.12, -0.15]}
-        rotation={[-Math.PI / 2, 0, direction * 0.7]}
-      >
-        <circleGeometry args={[0.075, 3]} />
-        <meshBasicMaterial color="#fff1b7" />
-      </mesh>
-    </group>
-  );
-}
-
-function Wall({ side }: { side: Direction }) {
-  const vertical = side === "east" || side === "west";
-  const edge = side === "north" || side === "west" ? -0.47 : 0.47;
-
-  return (
-    <mesh castShadow position={vertical ? [edge, 0.38, 0] : [0, 0.38, edge]}>
       <boxGeometry args={vertical ? [0.08, 0.56, 0.94] : [0.94, 0.56, 0.08]} />
       <meshStandardMaterial color="#d7dde0" metalness={0.72} roughness={0.3} />
     </mesh>
   );
 }
 
-function BoardElementMesh({ element }: { element: BoardElement }) {
-  switch (element.type) {
-    case "checkpoint":
-      return <Checkpoint order={element.order} />;
-    case "conveyor":
-      return <Conveyor direction={element.direction} />;
-    case "gear":
-      return <Gear rotation={element.rotation} />;
-    case "wall":
-      return <Wall side={element.side} />;
-    case "pit":
-      return (
-        <mesh position={[0, 0.105, 0]}>
-          <boxGeometry args={[0.76, 0.025, 0.76]} />
-          <meshStandardMaterial
-            color="#071018"
-            metalness={0.1}
-            roughness={0.9}
-          />
-        </mesh>
-      );
-  }
-}
-
 function Board({ gameState }: { gameState: GameState }) {
-  const { width, height, elements } = gameState.board;
-  const elementByTile = new Map<string, BoardElement[]>();
-
-  elements.forEach((element) => {
-    const key = `${element.x}-${element.z}`;
-    elementByTile.set(key, [...(elementByTile.get(key) ?? []), element]);
-  });
+  const { width, height, tiles, walls } = gameState.board;
 
   return (
     <group>
@@ -252,8 +57,8 @@ function Board({ gameState }: { gameState: GameState }) {
       {Array.from({ length: width * height }, (_, index) => {
         const x = index % width;
         const z = Math.floor(index / width);
-        const tileElements = elementByTile.get(`${x}-${z}`) ?? [];
-        const isPit = tileElements.some((element) => element.type === "pit");
+        const tile = tiles[z][x];
+        const isPit = tile.kind === "pit";
 
         return (
           <group
@@ -270,12 +75,13 @@ function Board({ gameState }: { gameState: GameState }) {
                 roughness={isPit ? 0.82 : 0.56}
               />
             </mesh>
-            {tileElements.map((element) => (
-              <BoardElementMesh key={element.id} element={element} />
-            ))}
+            <TileMesh tile={tile} />
           </group>
         );
       })}
+      {walls.map((wall, index) => (
+        <Wall key={index} wall={wall} width={width} height={height} />
+      ))}
     </group>
   );
 }

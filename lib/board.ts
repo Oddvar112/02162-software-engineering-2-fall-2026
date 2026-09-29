@@ -1,17 +1,21 @@
-type Position = {x: number, y: number}
-type PosPair = {
-    One: Position,
-    Two: Position
-}
+import type { Tile } from "@/lib/tile";
 
-type Board = {
-    id: string
-    width: number,
-    height: number,
-    walls: PosPair[],
-    tiles: Tile[][],
-    startpositions: Position[]
-}
+export type Position = { x: number; y: number };
+export type PosPair = {
+  One: Position;
+  Two: Position;
+};
+
+export type Board = {
+  id: string;
+  width: number;
+  height: number;
+  // Each pair identifies the neighboring cells separated by a wall.
+  walls: PosPair[];
+  // Row-major grid: tiles[y][x]. Board y maps to z in the 3D scene.
+  tiles: Tile[][];
+  startpositions: Position[];
+};
 
 export function validateBoard(board: Board): void {
   // --- Checkpoints numbered 1..n, no gaps, no duplicates ---

@@ -1,43 +1,8 @@
-export type Direction = "north" | "east" | "south" | "west";
+import type { Board } from "@/lib/board";
+import { Direction } from "@/lib/direction";
 
 export type GamePhase =
   "programming" | "waiting" | "execution" | "board-activation" | "end-of-round";
-
-export type BoardElement =
-  | {
-      id: string;
-      type: "wall";
-      x: number;
-      z: number;
-      side: Direction;
-    }
-  | {
-      id: string;
-      type: "checkpoint";
-      x: number;
-      z: number;
-      order: number;
-    }
-  | {
-      id: string;
-      type: "pit";
-      x: number;
-      z: number;
-    }
-  | {
-      id: string;
-      type: "conveyor";
-      x: number;
-      z: number;
-      direction: Direction;
-    }
-  | {
-      id: string;
-      type: "gear";
-      x: number;
-      z: number;
-      rotation: "clockwise" | "counter-clockwise";
-    };
 
 export type RobotState = {
   id: string;
@@ -83,11 +48,7 @@ export type GameState = {
   round: number;
   phase: GamePhase;
   currentPlayerId: string;
-  board: {
-    width: number;
-    height: number;
-    elements: BoardElement[];
-  };
+  board: Board;
   robots: RobotState[];
   players: PlayerState[];
   currentPlayerCards: ActionCard[];
@@ -107,8 +68,8 @@ export const PHASE_LABELS: Record<GamePhase, string> = {
 };
 
 export const DIRECTION_LABELS: Record<Direction, string> = {
-  north: "North",
-  east: "East",
-  south: "South",
-  west: "West",
+  [Direction.Up]: "North",
+  [Direction.Right]: "East",
+  [Direction.Down]: "South",
+  [Direction.Left]: "West",
 };

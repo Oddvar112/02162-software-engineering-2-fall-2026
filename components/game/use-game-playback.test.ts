@@ -34,7 +34,7 @@ describe("visible program playback", () => {
     act(() => result.current.receiveState(after));
     expect(result.current.isPlaying).toBe(true);
     expect(result.current.gameState?.phase).toBe("execution");
-    expect(result.current.gameState?.robots[0].z).toBe(8);
+    expect(result.current.gameState?.robots[0].z).toBe(before.robots[0].z);
     for (let index = 1; index < after.executionFrames.length; index++) {
       act(() => vi.advanceTimersByTime(PLAYBACK_STEP_MS));
       expect(result.current.gameState?.robots).toEqual(
@@ -55,9 +55,13 @@ describe("visible program playback", () => {
     act(() => result.current.receiveState(before));
     act(() => result.current.receiveState(after));
     act(() => vi.advanceTimersByTime(PLAYBACK_STEP_MS));
-    expect(result.current.gameState?.robots[0].z).toBe(7);
+    expect(result.current.gameState?.robots[0].z).toBe(
+      after.executionFrames[1].robots[0].z,
+    );
     act(() => result.current.receiveState(structuredClone(after)));
-    expect(result.current.gameState?.robots[0].z).toBe(7);
+    expect(result.current.gameState?.robots[0].z).toBe(
+      after.executionFrames[1].robots[0].z,
+    );
     for (let i = 0; i < after.executionFrames.length; i++)
       act(() => vi.advanceTimersByTime(PLAYBACK_STEP_MS));
     act(() => result.current.receiveState(structuredClone(after)));
@@ -65,14 +69,14 @@ describe("visible program playback", () => {
   });
 
   it("opens a completed turn at its final position and can replay without a new submission", () => {
-    const { after } = turn();
+    const { before, after } = turn();
     const { result } = renderHook(useGamePlayback);
     act(() => result.current.receiveState(after));
     expect(result.current.isPlaying).toBe(false);
     act(() => result.current.replay());
-    expect(result.current.gameState?.robots[0].z).toBe(8);
+    expect(result.current.gameState?.robots[0].z).toBe(before.robots[0].z);
     expect(result.current.gameState?.players[0].programLocked).toBe(true);
-    expect(after.robots[0].z).toBe(2);
+    expect(after.robots[0].z).toBe(before.robots[0].z);
   });
 
   it("cancels old playback when another tab starts a new round", () => {

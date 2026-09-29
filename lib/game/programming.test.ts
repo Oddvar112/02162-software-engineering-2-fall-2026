@@ -1,3 +1,5 @@
+import type { Board } from "@/lib/board";
+import { Direction } from "@/lib/direction";
 import { describe, expect, it } from "vitest";
 import {
   createMockGame,
@@ -6,13 +8,83 @@ import {
   submitProgram,
 } from "./programming";
 
+// Keep movement scenarios independent of the currently selected demo layout.
+const movementBoard: Board = {
+  id: "movement-test",
+  width: 10,
+  height: 10,
+  tiles: Array.from({ length: 10 }, () =>
+    Array.from({ length: 10 }, () => ({ kind: "floor" })),
+  ),
+  walls: [],
+  startpositions: [1, 3, 6, 8].map((x) => ({ x, y: 8 })),
+};
+
 function ids(game: ReturnType<typeof createMockGame>, playerId: string) {
   return game.hands[playerId].slice(0, 5).map((card) => card.id);
 }
 
 describe("programming a turn", () => {
+  it.each([
+    [Direction.Up, { x: 1, y: 7 }],
+    [Direction.Right, { x: 2, y: 8 }],
+    [Direction.Down, { x: 1, y: 9 }],
+    [Direction.Left, { x: 0, y: 8 }],
+  ])(
+    "blocks direction %s with either wall endpoint order",
+    (direction, destination) => {
+      for (const reversed of [false, true]) {
+        const game = createMockGame(movementBoard);
+        game.state.registerCount = 1;
+        game.state.robots[0].direction = direction;
+        const origin = { x: 1, y: 8 };
+        game.state.board.walls = [
+          reversed
+            ? { One: destination, Two: origin }
+            : { One: origin, Two: destination },
+        ];
+        submitProgram(game, "player-1", 1, ["player-1-card-3"]);
+        expect(game.state.robots[0]).toMatchObject({ x: 1, z: 8, direction });
+      }
+    },
+  );
+
+  it.each([false, true])(
+    "reads checkpoints in order from a rectangular tile grid (reversed: %s)",
+    (reversed) => {
+      const game = createMockGame(movementBoard);
+      game.state.players = game.state.players.slice(0, 1);
+      game.state.robots = game.state.robots.slice(0, 1);
+      game.state.registerCount = 1;
+      Object.assign(game.state.robots[0], { x: 1, z: 3 });
+      game.state.board = {
+        id: "rectangular",
+        width: 3,
+        height: 4,
+        walls: [],
+        startpositions: [{ x: 1, y: 3 }],
+        tiles: Array.from({ length: 4 }, () =>
+          Array.from({ length: 3 }, () => ({ kind: "floor" })),
+        ),
+      };
+      game.state.board.tiles[2][1] = {
+        kind: "checkpoint",
+        number: reversed ? 2 : 1,
+      };
+      game.state.board.tiles[1][1] = {
+        kind: "checkpoint",
+        number: reversed ? 1 : 2,
+      };
+      submitProgram(game, "player-1", 1, ["player-1-card-3"]);
+      expect(game.state.players[0].checkpointsReached).toBe(reversed ? 0 : 1);
+      startNextRound(game, "player-1", 1);
+      submitProgram(game, "player-1", 2, ["player-1-card-3"]);
+      expect(game.state.players[0].checkpointsReached).toBe(reversed ? 1 : 2);
+    },
+  );
+
   it("executes immediately while other players are unlocked or disconnected", () => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     game.state.players[3].connected = false;
     const otherRobots = structuredClone(game.state.robots.slice(1));
     const otherPlayers = structuredClone(game.state.players.slice(1));
@@ -34,7 +106,7 @@ describe("programming a turn", () => {
     expect(snapshot.robots[0]).toMatchObject({
       x: 1,
       z: 2,
-      direction: "north",
+      direction: Direction.Up,
     });
     expect(snapshot.robots.slice(1)).toEqual(otherRobots);
     expect(snapshot.players.slice(1)).toEqual(otherPlayers);
@@ -53,14 +125,14 @@ describe("programming a turn", () => {
     ["invalid type", [1, 2, 3, 4, 5]],
     ["missing", undefined],
   ])("rejects %s cards without changing state", (_, cards) => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     const before = structuredClone(game);
     expect(() => submitProgram(game, "player-1", 1, cards)).toThrow();
     expect(game).toEqual(before);
   });
 
   it("rejects stale rounds, non-members, and changes after lock-in", () => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     expect(() =>
       submitProgram(game, "player-1", 0, ids(game, "player-1")),
     ).toThrow(/round has changed/);
@@ -74,8 +146,11 @@ describe("programming a turn", () => {
   });
 
   it("executes the selected cards in register order exactly once", () => {
-    const game = createMockGame();
-    game.state.board.elements = [];
+    const game = createMockGame(movementBoard);
+    game.state.board.walls = [];
+    game.state.board.tiles = game.state.board.tiles.map((row) =>
+      row.map(() => ({ kind: "floor" })),
+    );
     submitProgram(game, "player-1", game.state.round, ids(game, "player-1"));
     expect(game.state.phase).toBe("end-of-round");
     expect(game.state.executionLog).toHaveLength(5);
@@ -88,7 +163,7 @@ describe("programming a turn", () => {
     expect(game.state.robots[0]).toMatchObject({
       x: 1,
       z: 2,
-      direction: "north",
+      direction: Direction.Up,
     });
     const after = structuredClone(game);
     expect(() =>
@@ -101,10 +176,13 @@ describe("programming a turn", () => {
   });
 
   it("uses the selected order for movement, rotation, and backing up", () => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     game.state.players = game.state.players.slice(0, 1);
     game.state.robots = game.state.robots.slice(0, 1);
-    game.state.board.elements = [];
+    game.state.board.walls = [];
+    game.state.board.tiles = game.state.board.tiles.map((row) =>
+      row.map(() => ({ kind: "floor" })),
+    );
     submitProgram(
       game,
       "player-1",
@@ -114,15 +192,15 @@ describe("programming a turn", () => {
     expect(game.state.robots[0]).toMatchObject({
       x: 1,
       z: 6,
-      direction: "north",
+      direction: Direction.Up,
     });
   });
 
   it("respects walls from either side", () => {
-    const game = createMockGame();
-    game.state.board.elements = [
-      { id: "wall-a", type: "wall", x: 1, z: 8, side: "north" },
-      { id: "wall-b", type: "wall", x: 3, z: 7, side: "south" },
+    const game = createMockGame(movementBoard);
+    game.state.board.walls = [
+      { One: { x: 1, y: 8 }, Two: { x: 1, y: 7 } },
+      { One: { x: 3, y: 7 }, Two: { x: 3, y: 8 } },
     ];
     submitProgram(game, "player-1", game.state.round, ids(game, "player-1"));
     expect(game.state.robots[0].z).toBe(8);
@@ -135,14 +213,12 @@ describe("programming a turn", () => {
   });
 
   it("pushes occupied tiles and stops a pushing chain at a wall", () => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     game.state.registerCount = 1;
     game.state.players = game.state.players.slice(0, 2);
     game.state.robots = game.state.robots.slice(0, 2);
     Object.assign(game.state.robots[1], { x: 1, z: 7 });
-    game.state.board.elements = [
-      { id: "wall", type: "wall", x: 1, z: 5, side: "north" },
-    ];
+    game.state.board.walls = [{ One: { x: 1, y: 5 }, Two: { x: 1, y: 4 } }];
     submitProgram(game, "player-1", 1, ["player-1-card-1"]);
     expect(game.state.robots.map(({ x, z }) => ({ x, z }))).toEqual([
       { x: 1, z: 6 },
@@ -151,8 +227,8 @@ describe("programming a turn", () => {
   });
 
   it("loses only one life in a pit and skips later actions until reboot", () => {
-    const game = createMockGame();
-    game.state.board.elements = [{ id: "pit", type: "pit", x: 1, z: 7 }];
+    const game = createMockGame(movementBoard);
+    game.state.board.tiles[7][1] = { kind: "pit" };
     submitProgram(game, "player-1", game.state.round, ids(game, "player-1"));
     expect(game.state.players[0].lives).toBe(2);
     expect(
@@ -161,12 +237,12 @@ describe("programming a turn", () => {
     expect(game.state.robots[0]).toMatchObject({
       x: 1,
       z: 8,
-      direction: "north",
+      direction: Direction.Up,
     });
   });
 
   it("starts a clean next round and rejects a duplicate advance", () => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     expect(() => startNextRound(game, "player-1", 1)).toThrow();
     submitProgram(game, "player-1", game.state.round, ids(game, "player-1"));
     const robots = structuredClone(game.state.robots);
@@ -187,7 +263,7 @@ describe("programming a turn", () => {
 
 describe("execution animation frames", () => {
   it("records every tile and rotation even when the robot returns to its starting pose", () => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     game.state.registerCount = 4;
     const original = structuredClone(game.state.robots[0]);
     submitProgram(
@@ -203,12 +279,12 @@ describe("execution animation frames", () => {
         frame.robots[0].direction,
       ]),
     ).toEqual([
-      [8, "north"],
-      [7, "north"],
-      [8, "north"],
-      [8, "west"],
-      [8, "north"],
-      [8, "north"],
+      [8, Direction.Up],
+      [7, Direction.Up],
+      [8, Direction.Up],
+      [8, Direction.Left],
+      [8, Direction.Up],
+      [8, Direction.Up],
     ]);
     expect(game.state.executionFrames[1].cardId).toBe("player-1-card-3");
     game.state.robots[0].z = 0;
@@ -216,11 +292,9 @@ describe("execution animation frames", () => {
   });
 
   it("records individual steps and gives a visible explanation when movement is blocked", () => {
-    const game = createMockGame();
+    const game = createMockGame(movementBoard);
     game.state.registerCount = 1;
-    game.state.board.elements = [
-      { id: "wall", type: "wall", x: 1, z: 6, side: "north" },
-    ];
+    game.state.board.walls = [{ One: { x: 1, y: 6 }, Two: { x: 1, y: 5 } }];
     submitProgram(game, "player-1", 1, ["player-1-card-1"]);
     expect(
       game.state.executionFrames.map((frame) => frame.robots[0].z),

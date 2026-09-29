@@ -1,11 +1,8 @@
+import type { Board } from "@/lib/board";
+import { Direction } from "@/lib/direction";
 import { getMockGameState } from "@/lib/game/mock-game-state";
 import { getRobotAppearance } from "@/lib/game/robot-appearance";
-import type {
-  ActionCard,
-  Direction,
-  GameState,
-  RobotState,
-} from "@/lib/game/types";
+import type { ActionCard, GameState, RobotState } from "@/lib/game/types";
 
 export class ProgramError extends Error {
   constructor(
@@ -22,8 +19,8 @@ export type MockGame = {
   programs: Record<string, ActionCard[]>;
 };
 
-export function createMockGame(): MockGame {
-  const state = getMockGameState();
+export function createMockGame(board?: Board): MockGame {
+  const state = getMockGameState(board);
   return {
     state,
     hands: Object.fromEntries(
@@ -67,12 +64,17 @@ export function getPlayerSnapshot(game: MockGame, playerId: string): GameState {
   });
 }
 
-const DIRECTIONS: Direction[] = ["north", "east", "south", "west"];
+const DIRECTIONS: Direction[] = [
+  Direction.Up,
+  Direction.Right,
+  Direction.Down,
+  Direction.Left,
+];
 const STEPS: Record<Direction, [number, number]> = {
-  north: [0, -1],
-  east: [1, 0],
-  south: [0, 1],
-  west: [-1, 0],
+  [Direction.Up]: [0, -1],
+  [Direction.Right]: [1, 0],
+  [Direction.Down]: [0, 1],
+  [Direction.Left]: [-1, 0],
 };
 
 function turn(direction: Direction, amount: number): Direction {
@@ -89,15 +91,10 @@ function moveRobot(
   const [dx, dz] = STEPS[direction];
   const x = robot.x + dx;
   const z = robot.z + dz;
-  const blocked = state.board.elements.some(
-    (element) =>
-      element.type === "wall" &&
-      ((element.x === robot.x &&
-        element.z === robot.z &&
-        element.side === direction) ||
-        (element.x === x &&
-          element.z === z &&
-          element.side === turn(direction, 2))),
+  const blocked = state.board.walls.some(
+    ({ One, Two }) =>
+      (One.x === robot.x && One.y === robot.z && Two.x === x && Two.y === z) ||
+      (Two.x === robot.x && Two.y === robot.z && One.x === x && One.y === z),
   );
   if (blocked) return false;
 
@@ -116,9 +113,7 @@ function moveRobot(
     z < 0 ||
     x >= state.board.width ||
     z >= state.board.height ||
-    state.board.elements.some(
-      (element) => element.type === "pit" && element.x === x && element.z === z,
-    )
+    state.board.tiles[z][x].kind === "pit"
   ) {
     fallen.add(robot.id);
     const player = state.players.find(
@@ -197,14 +192,10 @@ function resolveProgram(game: MockGame, playerId: string) {
         (candidate) => candidate.id === player.robotId,
       )!;
       if (player.lives === 0 || fallen.has(robot.id)) continue;
+      const tile = state.board.tiles[robot.z][robot.x];
       if (
-        state.board.elements.some(
-          (element) =>
-            element.type === "checkpoint" &&
-            element.x === robot.x &&
-            element.z === robot.z &&
-            element.order === player.checkpointsReached + 1,
-        )
+        tile.kind === "checkpoint" &&
+        tile.number === player.checkpointsReached + 1
       ) {
         player.checkpointsReached++;
       }
@@ -233,10 +224,7 @@ function resolveProgram(game: MockGame, playerId: string) {
     );
     const tile = tiles.find(
       ({ x, z }) =>
-        !state.board.elements.some(
-          (element) =>
-            element.type === "pit" && element.x === x && element.z === z,
-        ) &&
+        state.board.tiles[z][x].kind !== "pit" &&
         !state.robots.some(
           (other) => !fallen.has(other.id) && other.x === x && other.z === z,
         ),

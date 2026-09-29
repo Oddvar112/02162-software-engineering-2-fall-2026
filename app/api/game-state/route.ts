@@ -1,3 +1,4 @@
+import { staticBoard } from "@/lib/game/game-model";
 import { NextResponse } from "next/server";
 import {
   createMockGame,
@@ -12,6 +13,14 @@ import {
 // Replace this store and demo identity with the lobby backend when it is available.
 const demo = globalThis as typeof globalThis & { roboRallySoloDemo?: MockGame };
 function game() {
+  // Board edits start a fresh demo, including changes retained across hot reloads.
+  if (
+    demo.roboRallySoloDemo &&
+    JSON.stringify(demo.roboRallySoloDemo.state.board) !==
+      JSON.stringify(staticBoard)
+  ) {
+    demo.roboRallySoloDemo = createMockGame();
+  }
   return (demo.roboRallySoloDemo ??= createMockGame());
 }
 const headers = { "Cache-Control": "no-store, max-age=0" };

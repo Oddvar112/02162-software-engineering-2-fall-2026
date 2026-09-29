@@ -1,3 +1,6 @@
+import { staticBoard } from "@/lib/game/game-model";
+import { validateBoard, type Board } from "@/lib/board";
+import { Direction } from "@/lib/direction";
 import type { GameState } from "@/lib/game/types";
 import roster from "@/lib/robots.json";
 
@@ -7,7 +10,17 @@ function robotAppearance(modelId: string) {
   return { modelId: model.id, name: model.name, color: model.color };
 }
 
-const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
+const DEMO_PLAYERS = [
+  { name: "Alex", modelId: "bolt" },
+  { name: "Maya", modelId: "glitch" },
+  { name: "Jonas", modelId: "gizmo" },
+  { name: "Freja", modelId: "pixel" },
+];
+
+const BASE_GAME_STATE: Omit<
+  GameState,
+  "updatedAt" | "board" | "robots" | "players"
+> = {
   gameId: "RR-02162",
   round: 1,
   phase: "programming",
@@ -16,120 +29,6 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
   currentPlayerProgram: [],
   executionLog: [],
   executionFrames: [],
-  board: {
-    width: 10,
-    height: 10,
-    elements: [
-      { id: "wall-1", type: "wall", x: 2, z: 2, side: "east" },
-      { id: "wall-2", type: "wall", x: 6, z: 5, side: "north" },
-      { id: "wall-3", type: "wall", x: 7, z: 7, side: "west" },
-      { id: "checkpoint-1", type: "checkpoint", x: 8, z: 1, order: 1 },
-      { id: "checkpoint-2", type: "checkpoint", x: 1, z: 8, order: 2 },
-      { id: "pit-1", type: "pit", x: 4, z: 4 },
-      { id: "pit-2", type: "pit", x: 5, z: 4 },
-      {
-        id: "conveyor-1",
-        type: "conveyor",
-        x: 3,
-        z: 6,
-        direction: "east",
-      },
-      {
-        id: "conveyor-2",
-        type: "conveyor",
-        x: 4,
-        z: 6,
-        direction: "east",
-      },
-      {
-        id: "gear-1",
-        type: "gear",
-        x: 7,
-        z: 3,
-        rotation: "clockwise",
-      },
-    ],
-  },
-  robots: [
-    {
-      id: "robot-1",
-      playerId: "player-1",
-      ...robotAppearance("bolt"),
-      x: 1,
-      z: 8,
-      direction: "north",
-    },
-    {
-      id: "robot-2",
-      playerId: "player-2",
-      ...robotAppearance("glitch"),
-      x: 3,
-      z: 8,
-      direction: "north",
-    },
-    {
-      id: "robot-3",
-      playerId: "player-3",
-      ...robotAppearance("gizmo"),
-      x: 6,
-      z: 8,
-      direction: "north",
-    },
-    {
-      id: "robot-4",
-      playerId: "player-4",
-      ...robotAppearance("pixel"),
-      x: 8,
-      z: 8,
-      direction: "north",
-    },
-  ],
-  players: [
-    {
-      id: "player-1",
-      name: "Alex",
-      robotId: "robot-1",
-      damage: 0,
-      lives: 3,
-      checkpointsReached: 0,
-      programmedCardCount: 0,
-      programLocked: false,
-      connected: true,
-    },
-    {
-      id: "player-2",
-      name: "Maya",
-      robotId: "robot-2",
-      damage: 0,
-      lives: 3,
-      checkpointsReached: 0,
-      programmedCardCount: 0,
-      programLocked: false,
-      connected: true,
-    },
-    {
-      id: "player-3",
-      name: "Jonas",
-      robotId: "robot-3",
-      damage: 0,
-      lives: 3,
-      checkpointsReached: 0,
-      programmedCardCount: 0,
-      programLocked: false,
-      connected: true,
-    },
-    {
-      id: "player-4",
-      name: "Freja",
-      robotId: "robot-4",
-      damage: 0,
-      lives: 3,
-      checkpointsReached: 0,
-      programmedCardCount: 0,
-      programLocked: false,
-      connected: true,
-    },
-  ],
   currentPlayerCards: [
     { id: "card-1", name: "Move 3", type: "move", value: 3, priority: 840 },
     { id: "card-2", name: "Move 2", type: "move", value: 2, priority: 670 },
@@ -152,20 +51,44 @@ const BASE_GAME_STATE: Omit<GameState, "updatedAt"> = {
   ],
 };
 
-export function getMockGameState(): GameState {
+export function getMockGameState(board: Board = staticBoard): GameState {
+  validateBoard(board);
+  if (board.startpositions.length === 0) {
+    throw new Error("A demo board needs at least one start position.");
+  }
+  const seats = board.startpositions.map((position, index) => ({
+    position,
+    playerId: `player-${index + 1}`,
+    robotId: `robot-${index + 1}`,
+    name: DEMO_PLAYERS[index]?.name ?? `Player ${index + 1}`,
+    modelId: DEMO_PLAYERS[index]?.modelId ?? roster[index % roster.length].id,
+  }));
+
   return {
     ...BASE_GAME_STATE,
     currentPlayerProgram: [],
     executionLog: [],
     executionFrames: [],
-    board: {
-      ...BASE_GAME_STATE.board,
-      elements: BASE_GAME_STATE.board.elements.map((element) => ({
-        ...element,
-      })),
-    },
-    robots: BASE_GAME_STATE.robots.map((robot) => ({ ...robot })),
-    players: BASE_GAME_STATE.players.map((player) => ({ ...player })),
+    board: structuredClone(board),
+    robots: seats.map(({ position, playerId, robotId, modelId }) => ({
+      id: robotId,
+      playerId,
+      ...robotAppearance(modelId),
+      x: position.x,
+      z: position.y,
+      direction: Direction.Up,
+    })),
+    players: seats.map(({ playerId, robotId, name }) => ({
+      id: playerId,
+      name,
+      robotId,
+      damage: 0,
+      lives: 3,
+      checkpointsReached: 0,
+      programmedCardCount: 0,
+      programLocked: false,
+      connected: true,
+    })),
     currentPlayerCards: BASE_GAME_STATE.currentPlayerCards.map((card) => ({
       ...card,
     })),
