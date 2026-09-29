@@ -73,8 +73,8 @@ select lives_ok(
   'a valid program locks in'
 );
 select is(
-  (select locked_in from public.game_players where game_id = '50000000-0000-4000-8000-000000000001' and user_id = auth.uid()),
-  true, 'locking in marks the player'
+  (select count(*) from public.programs where game_id = '50000000-0000-4000-8000-000000000001' and user_id = auth.uid()),
+  1::bigint, 'locking in stores the program'
 );
 select isnt(
   (select timer_started_at from public.games where id = '50000000-0000-4000-8000-000000000001'),

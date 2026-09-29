@@ -22,8 +22,6 @@ create table public.game_players (
   damage integer not null default 0,
   lives integer not null default 3,
   checkpoints_reached integer not null default 0,
-  locked_in boolean not null default false,
-  ready_for_next boolean not null default false,
   primary key (game_id, user_id),
   unique (game_id, seat)
 );
@@ -79,8 +77,13 @@ create policy "programs_select_own_or_revealed" on public.programs
   using (
     user_id = auth.uid()
     or exists (
-      select 1 from public.games g
-      where g.id = programs.game_id and g.phase <> 'programming'
+      select 1
+      from public.games g
+      join public.lobbies l on l.game = g.id
+      join public.lobby_players p on p.lobby_id = l.id
+      where g.id = programs.game_id
+        and g.phase <> 'programming'
+        and p.user_id = auth.uid()
     )
   );
 
@@ -119,7 +122,10 @@ begin
     raise exception 'not_in_game';
   end if;
 
-  if v_player.locked_in then
+  if exists (
+    select 1 from programs
+    where game_id = p_game_id and user_id = auth.uid() and round = v_game.round
+  ) then
     raise exception 'already_locked_in';
   end if;
 
@@ -155,10 +161,6 @@ begin
   values (p_game_id, auth.uid(), v_game.round, v_program)
   on conflict (game_id, user_id) do update
     set round = excluded.round, cards = excluded.cards;
-
-  update game_players
-  set locked_in = true
-  where game_id = p_game_id and user_id = auth.uid();
 
   update games
   set updated_at = now(),
