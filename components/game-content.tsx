@@ -17,7 +17,7 @@ export default async function GameContent({
 
   const { data: game, error } = await supabase
     .from("games")
-    .select("id")
+    .select("id, lobbies(id, max_players, lobby_players(user_id))")
     .eq("id", gameId)
     .maybeSingle();
 
@@ -31,10 +31,25 @@ export default async function GameContent({
     notFound();
   }
 
+  const lobby = Array.isArray(game.lobbies) ? game.lobbies[0] : game.lobbies;
+  const players = lobby?.lobby_players || [];
+
   return (
     <main className="flex min-h-screen flex-col items-center gap-6 p-12 text-center">
       <h1 className="text-3xl font-bold tracking-tight">Game</h1>
       <p className="text-foreground/70">Game ID: {game.id}</p>
+      
+      <div className="mt-4 rounded border p-4">
+        <h2 className="mb-2 text-xl font-semibold">Players in Game</h2>
+        <ul className="text-left">
+          {players.map((player) => (
+            <li key={player.user_id} className="py-1">
+              {player.user_id}
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <Link href="/lobbies" className="underline">
         Back to lobbies
       </Link>
