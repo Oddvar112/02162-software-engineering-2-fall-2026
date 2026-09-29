@@ -1,0 +1,227 @@
+{"kind":"deck","id":"pr/1bqyrk","name":"Deck"}
+{"kind":"layout","layoutId":"54301cd7-aa4c-4037-92b1-3099338dfa1f","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"b71b0258-7f44-47b1-83b9-6a8f6c971210","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/dmwvje","slide":1,"title":"SYS::RR-02162 / GROUP E","textShapes":8}
+{"kind":"textbox","id":"sh/vqt4vaxc","slide":1,"text":"SYS::RR-02162 / GROUP E","textPreview":"SYS::RR-02162 / GROUP E","textChars":23,"textLines":1,"bbox":[64,48,600,30]}
+{"kind":"shape","id":"sh/wr2l4fex","slide":1,"bbox":[64,92,1152,0.01]}
+{"kind":"textbox","id":"sh/xsbmxkf2","slide":1,"text":"RoboRally\nOnline","textPreview":"RoboRally | Online","textChars":16,"textLines":2,"bbox":[64,132,760,230]}
+{"kind":"textbox","id":"sh/ml03y5gf","slide":1,"text":"PROJECT VISION + RELEASE 1","textPreview":"PROJECT VISION + RELEASE 1","textChars":26,"textLines":1,"bbox":[70,382,660,40]}
+{"kind":"textbox","id":"sh/nm9krax0","slide":1,"text":"A digital board game that keeps the chaos and removes the bookkeeping","textPreview":"A digital board game that keeps the chaos and removes the bookkeeping","textChars":69,"textLines":1,"bbox":[70,448,780,92]}
+{"kind":"textbox","id":"sh/8n2l0fel","slide":1,"text":"> PROGRAM","textPreview":"> PROGRAM","textChars":9,"textLines":1,"bbox":[916,176,280,38]}
+{"kind":"textbox","id":"sh/9obmt0f6","slide":1,"text":"> EXECUTE","textPreview":"> EXECUTE","textChars":9,"textLines":1,"bbox":[916,244,280,38]}
+{"kind":"textbox","id":"sh/yx03ulgj","slide":1,"text":"> RESOLVE","textPreview":"> RESOLVE","textChars":9,"textLines":1,"bbox":[916,312,280,38]}
+{"kind":"shape","id":"sh/zy9knqx4","slide":1,"bbox":[916,372,280,0.01]}
+{"kind":"textbox","id":"sh/7als3e58","slide":1,"text":"10 MINUTES","textPreview":"10 MINUTES","textChars":10,"textLines":1,"bbox":[916,392,280,32]}
+{"kind":"notes","id":"nt/dmwvje","slide":1,"text":"Welcome everyone. We are Group E, and our project is a web version of RoboRally. Our goal is to keep the social, chaotic feeling of the physical board game while making it easier to start, follow and play remotely. I will focus on the product vision and the player experience, rather than the technical implementation."}
+{"kind":"slide","id":"sl/bec6n6","slide":2,"title":"SYS::RR-02162","textShapes":14}
+{"kind":"textbox","id":"sh/yd8rix4n","slide":2,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/50zadc3e","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/kzq9k7mt","slide":2,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/bax8725w","slide":2,"text":"Why a digital RoboRally?","textPreview":"Why a digital RoboRally?","textChars":24,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"textbox","id":"sh/a9orex4r","slide":2,"text":"The physical game is difficult to start spontaneously.","textPreview":"The physical game is difficult to start spontaneously.","textChars":54,"textLines":1,"bbox":[56,154,760,116]}
+{"kind":"shape","id":"sh/xczq9cn2","slide":2,"bbox":[56,294,1168,0.01]}
+{"kind":"textbox","id":"sh/wbq9g7mh","slide":2,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[56,330,48,36]}
+{"kind":"textbox","id":"sh/n6x83i50","slide":2,"text":"Same room","textPreview":"Same room","textChars":9,"textLines":1,"bbox":[114,327,292,38]}
+{"kind":"textbox","id":"sh/m5orad4f","slide":2,"text":"Every player needs to meet around one table.","textPreview":"Every player needs to meet around one table.","textChars":44,"textLines":1,"bbox":[114,369,292,72]}
+{"kind":"textbox","id":"sh/8r690rex","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[438,330,48,36]}
+{"kind":"textbox","id":"sh/9sfq9wvi","slide":2,"text":"Manual bookkeeping","textPreview":"Manual bookkeeping","textChars":18,"textLines":1,"bbox":[496,327,292,38]}
+{"kind":"textbox","id":"sh/mporyhw7","slide":2,"text":"Cards, checkpoints, damage and turn order need constant tracking.","textPreview":"Cards, checkpoints, damage and turn order need constant tracking.","textChars":65,"textLines":1,"bbox":[496,369,292,72]}
+{"kind":"textbox","id":"sh/7qx87mdc","slide":2,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[820,330,48,36]}
+{"kind":"textbox","id":"sh/knm9w7e1","slide":2,"text":"Rule ambiguity","textPreview":"Rule ambiguity","textChars":14,"textLines":1,"bbox":[878,327,302,38]}
+{"kind":"textbox","id":"sh/lofq5cfm","slide":2,"text":"One resolution mistake can interrupt the whole round.","textPreview":"One resolution mistake can interrupt the whole round.","textChars":53,"textLines":1,"bbox":[878,369,302,72]}
+{"kind":"textbox","id":"sh/y14ruhwv","slide":2,"text":"The friction comes before the fun starts.","textPreview":"The friction comes before the fun starts.","textChars":41,"textLines":1,"bbox":[56,590,1168,54]}
+{"kind":"notes","id":"nt/bec6n6","slide":2,"text":"The main problem is not the game itself. The problem is the friction around it. Everyone must be in the same place, setup takes time, and players must manually track cards, checkpoints, damage and exact execution order. A small mistake can interrupt the round and create an argument about the correct state."}
+{"kind":"slide","id":"sl/rlxpps","slide":3,"title":"SYS::RR-02162","textShapes":13}
+{"kind":"textbox","id":"sh/vqdo3ydw","slide":3,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/wrm5wjuh","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/xsv65ov2","slide":3,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/m1kn69wf","slide":3,"text":"Product vision","textPreview":"Product vision","textChars":14,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"textbox","id":"sh/n2tozed0","slide":3,"text":"A shared 3D board that feels physical, while the software handles the rules.","textPreview":"A shared 3D board that feels physical, while the software handles the rules.","textChars":76,"textLines":1,"bbox":[56,150,1100,106]}
+{"kind":"shape","id":"sh/8n258jul","slide":3,"bbox":[56,314,238,0.01]}
+{"kind":"textbox","id":"sh/9ob61ovq","slide":3,"text":"SHARED BOARD","textPreview":"SHARED BOARD","textChars":12,"textLines":1,"bbox":[56,336,238,38]}
+{"kind":"textbox","id":"sh/6xon2dcj","slide":3,"text":"One visible state for every player","textPreview":"One visible state for every player","textChars":34,"textLines":1,"bbox":[56,390,238,110]}
+{"kind":"shape","id":"sh/7ixobid4","slide":3,"bbox":[350,314,238,0.01]}
+{"kind":"textbox","id":"sh/f6d8nixk","slide":3,"text":"REMOTE PLAY","textPreview":"REMOTE PLAY","textChars":11,"textLines":1,"bbox":[350,336,238,38]}
+{"kind":"textbox","id":"sh/e547udgz","slide":3,"text":"Friends can join from anywhere","textPreview":"Friends can join from anywhere","textChars":30,"textLines":1,"bbox":[350,390,238,110]}
+{"kind":"shape","id":"sh/18vqp8fa","slide":3,"bbox":[644,314,238,0.01]}
+{"kind":"textbox","id":"sh/07mpw3y5","slide":3,"text":"AUTOMATIC RULES","textPreview":"AUTOMATIC RULES","textChars":15,"textLines":1,"bbox":[644,336,238,38]}
+{"kind":"textbox","id":"sh/nad8rixg","slide":3,"text":"Movement and hazards resolve consistently","textPreview":"Movement and hazards resolve consistently","textChars":41,"textLines":1,"bbox":[644,390,238,110]}
+{"kind":"shape","id":"sh/2947ydgv","slide":3,"bbox":[938,314,238,0.01]}
+{"kind":"textbox","id":"sh/pcfqtsfm","slide":3,"text":"BOARD-GAME FEEL","textPreview":"BOARD-GAME FEEL","textChars":15,"textLines":1,"bbox":[938,336,238,38]}
+{"kind":"textbox","id":"sh/ob6p0ny1","slide":3,"text":"Robots remain tactile and readable","textPreview":"Robots remain tactile and readable","textChars":34,"textLines":1,"bbox":[938,390,238,110]}
+{"kind":"textbox","id":"sh/bex8v2xs","slide":3,"text":"The product supports play. It does not replace the uncertainty that makes RoboRally fun.","textPreview":"The product supports play. It does not replace the uncertainty that makes RoboRally fun.","textChars":88,"textLines":1,"bbox":[56,574,1168,62]}
+{"kind":"notes","id":"nt/rlxpps","slide":3,"text":"Our vision is a shared 3D board that still feels like a real board game. Players join remotely and see the same game state. The software resolves movement, hazards and progress consistently. It removes administration, but it keeps the uncertainty that creates RoboRally's funniest moments."}
+{"kind":"slide","id":"sl/4y3px3","slide":4,"title":"SYS::RR-02162","textShapes":9}
+{"kind":"textbox","id":"sh/tojy9sb2","slide":4,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/6lszedcb","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/7m1g7itw","slide":4,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/gbahk7ud","slide":4,"text":"What players need to understand","textPreview":"What players need to understand","textChars":31,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"shape","id":"sh/hc3ydsby","slide":4,"bbox":[455,318,370,138]}
+{"kind":"textbox","id":"sh/u9szixcn","slide":4,"text":"SHARED\nBOARD","textPreview":"SHARED | BOARD","textChars":12,"textLines":2,"bbox":[485,335,310,100]}
+{"kind":"shape","id":"sh/fa1gb2ts","slide":4,"bbox":[250,390,205,0.01]}
+{"kind":"shape","id":"sh/4fuho7up","slide":4,"bbox":[825,390,205,0.01]}
+{"kind":"shape","id":"sh/pg3ihcba","slide":4,"bbox":[640,226,0.01,92]}
+{"kind":"shape","id":"sh/lwrmxonm","slide":4,"bbox":[640,456,0.01,62]}
+{"kind":"textbox","id":"sh/kvi5oj61","slide":4,"text":"ROBOT POSITION\n+ DIRECTION","textPreview":"ROBOT POSITION | + DIRECTION","textChars":26,"textLines":2,"bbox":[56,330,194,102]}
+{"kind":"textbox","id":"sh/zup4ve5g","slide":4,"text":"STATUS\n+ PROGRESS","textPreview":"STATUS | + PROGRESS","textChars":17,"textLines":2,"bbox":[1030,330,194,102]}
+{"kind":"textbox","id":"sh/ytgnm9ov","slide":4,"text":"CURRENT PHASE","textPreview":"CURRENT PHASE","textChars":13,"textLines":1,"bbox":[490,164,300,54]}
+{"kind":"textbox","id":"sh/90rm1oni","slide":4,"text":"ACTION CARDS","textPreview":"ACTION CARDS","textChars":12,"textLines":1,"bbox":[490,518,300,54]}
+{"kind":"textbox","id":"sh/8zi5s3md","slide":4,"text":"The board stays central. Everything around it explains what happens next.","textPreview":"The board stays central. Everything around it explains what happens next.","textChars":73,"textLines":1,"bbox":[124,622,1032,44]}
+{"kind":"notes","id":"nt/4y3px3","slide":4,"text":"The board is the shared centre of the experience. Players should immediately see every robot's position and direction. The interface then explains the current phase, public status and checkpoint progress. Action cards replace physical card handling. This lets players concentrate on planning instead of maintaining the game state."}
+{"kind":"slide","id":"sl/qe5jtf","slide":5,"title":"SYS::RR-02162","textShapes":19}
+{"kind":"textbox","id":"sh/zudsb6x8","slide":5,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/0vm9kbyt","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/1wvadwfy","slide":5,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/mx4rm1gj","slide":5,"text":"One round from Alex's perspective","textPreview":"One round from Alex's perspective","textChars":33,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"shape","id":"sh/nyxsf6x4","slide":5,"bbox":[120,356,1040,0.01]}
+{"kind":"shape","id":"sh/oz6tobyp","slide":5,"bbox":[149,335,42,42]}
+{"kind":"textbox","id":"sh/90fahgfa","slide":5,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[70,216,200,36]}
+{"kind":"textbox","id":"sh/21krahgf","slide":5,"text":"SEE","textPreview":"SEE","textChars":3,"textLines":1,"bbox":[70,254,200,44]}
+{"kind":"textbox","id":"sh/32ts3mx0","slide":5,"text":"Inspect board state","textPreview":"Inspect board state","textChars":19,"textLines":1,"bbox":[70,406,200,72]}
+{"kind":"shape","id":"sh/ja9cr6tg","slide":5,"bbox":[389,335,42,42]}
+{"kind":"textbox","id":"sh/y9gvy1sv","slide":5,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[310,216,200,36]}
+{"kind":"textbox","id":"sh/lcrutgbm","slide":5,"text":"PROGRAM","textPreview":"PROGRAM","textChars":7,"textLines":1,"bbox":[310,254,200,44]}
+{"kind":"textbox","id":"sh/kbid0ba1","slide":5,"text":"Choose five cards","textPreview":"Choose five cards","textChars":17,"textLines":1,"bbox":[310,406,200,72]}
+{"kind":"shape","id":"sh/bmpcnmt4","slide":5,"bbox":[629,335,42,42]}
+{"kind":"textbox","id":"sh/algvuhsz","slide":5,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[550,216,200,36]}
+{"kind":"textbox","id":"sh/xo7upwba","slide":5,"text":"LOCK","textPreview":"LOCK","textChars":4,"textLines":1,"bbox":[550,254,200,44]}
+{"kind":"textbox","id":"sh/wnydwrap","slide":5,"text":"Confirm the order","textPreview":"Confirm the order","textChars":17,"textLines":1,"bbox":[550,406,200,72]}
+{"kind":"shape","id":"sh/nipcjmt8","slide":5,"bbox":[869,335,42,42]}
+{"kind":"textbox","id":"sh/mhwbqhsn","slide":5,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[790,216,200,36]}
+{"kind":"textbox","id":"sh/qdwv2hwf","slide":5,"text":"RESOLVE","textPreview":"RESOLVE","textChars":7,"textLines":1,"bbox":[790,254,200,44]}
+{"kind":"textbox","id":"sh/re5wbmd0","slide":5,"text":"Watch automatic execution","textPreview":"Watch automatic execution","textChars":25,"textLines":1,"bbox":[790,406,200,72]}
+{"kind":"shape","id":"sh/cfed4rel","slide":5,"bbox":[1109,335,42,42]}
+{"kind":"textbox","id":"sh/dgnedcv6","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1030,216,200,36]}
+{"kind":"textbox","id":"sh/ehwv6hwr","slide":5,"text":"SYNC","textPreview":"SYNC","textChars":4,"textLines":1,"bbox":[1030,254,200,44]}
+{"kind":"textbox","id":"sh/zi5wfmdc","slide":5,"text":"Continue from one result","textPreview":"Continue from one result","textChars":24,"textLines":1,"bbox":[1030,406,200,72]}
+{"kind":"textbox","id":"sh/0jyd8rex","slide":5,"text":"Chaos remains in the outcome. Ambiguity disappears from the resolution.","textPreview":"Chaos remains in the outcome. Ambiguity disappears from the resolution.","textChars":71,"textLines":1,"bbox":[100,584,1080,54]}
+{"kind":"notes","id":"nt/qe5jtf","slide":5,"text":"Imagine Alex joining a game. Alex first reads the shared board, then privately chooses five cards and locks the program. Once everyone is ready, the programs reveal and execute in priority order. Board elements activate, progress updates, and every player receives the same resulting state. The outcome can still be chaotic, but the resolution is clear."}
+{"kind":"slide","id":"sl/qg8uyr","slide":6,"title":"SYS::RR-02162","textShapes":6}
+{"kind":"textbox","id":"sh/mdwf2lkj","slide":6,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/9gnyx0ja","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/8fex4v2p","slide":6,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/zalgrq18","slide":6,"text":"Current product mockup","textPreview":"Current product mockup","textChars":22,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"shape","id":"sh/y9cfylkn","slide":6,"bbox":[72,150,1136,492]}
+{"kind":"textbox","id":"sh/kbux0b2t","slide":6,"text":"BOARD","textPreview":"BOARD","textChars":5,"textLines":1,"bbox":[83,650,110,24]}
+{"kind":"textbox","id":"sh/b6lwn61w","slide":6,"text":"PUBLIC STATUS","textPreview":"PUBLIC STATUS","textChars":13,"textLines":1,"bbox":[492,650,160,24]}
+{"kind":"textbox","id":"sh/a5cfu1kb","slide":6,"text":"PRIVATE PROGRAM","textPreview":"PRIVATE PROGRAM","textChars":15,"textLines":1,"bbox":[1010,650,190,24]}
+{"kind":"image","id":"im/8z2d8jed","slide":6,"name":"","geometry":"roundRect","alt":"RoboRally game-screen mockup with shared board, four robots, player list and action cards","bbox":[80,158,1120,476]}
+{"kind":"notes","id":"nt/qg8uyr","slide":6,"text":"This screen is a product mockup of the intended player experience. The board occupies the centre, robot directions are visible, player status appears to the side, and the action cards sit close to the play area. The mockup demonstrates the vision. It is not a presentation about Three.js, Next.js or backend architecture."}
+{"kind":"slide","id":"sl/iiucoy","slide":7,"title":"SYS::RR-02162","textShapes":24}
+{"kind":"textbox","id":"sh/g7mhgvu9","slide":7,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/f6dg7qdo","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/e54zelc3","slide":7,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/pwfidkbq","slide":7,"text":"Release 1 scope","textPreview":"Release 1 scope","textChars":15,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"textbox","id":"sh/ob6hkfu5","slide":7,"text":"RELEASE 1","textPreview":"RELEASE 1","textChars":9,"textLines":1,"bbox":[56,158,520,44]}
+{"kind":"textbox","id":"sh/3ad0bat0","slide":7,"text":"FUTURE OPTIONS","textPreview":"FUTURE OPTIONS","textChars":14,"textLines":1,"bbox":[704,158,520,44]}
+{"kind":"shape","id":"sh/294zi5cf","slide":7,"bbox":[56,214,520,0.01]}
+{"kind":"shape","id":"sh/d0fihkb2","slide":7,"bbox":[704,214,520,0.01]}
+{"kind":"textbox","id":"sh/cz6hofuh","slide":7,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[56,248,52,40]}
+{"kind":"textbox","id":"sh/ahkza583","slide":7,"text":"Visible shared game state","textPreview":"Visible shared game state","textChars":25,"textLines":1,"bbox":[120,245,456,44]}
+{"kind":"textbox","id":"sh/bit03a98","slide":7,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[56,316,52,40]}
+{"kind":"textbox","id":"sh/wj2hcfqt","slide":7,"text":"Private card programming","textPreview":"Private card programming","textChars":24,"textLines":1,"bbox":[120,313,456,44]}
+{"kind":"textbox","id":"sh/xkbi5kre","slide":7,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[56,384,52,40]}
+{"kind":"textbox","id":"sh/ylkjep8z","slide":7,"text":"Automatic execution","textPreview":"Automatic execution","textChars":19,"textLines":1,"bbox":[120,381,456,44]}
+{"kind":"textbox","id":"sh/jmt07u9k","slide":7,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[56,452,52,40]}
+{"kind":"textbox","id":"sh/k7m1gzq5","slide":7,"text":"Board element effects","textPreview":"Board element effects","textChars":21,"textLines":1,"bbox":[120,449,456,44]}
+{"kind":"textbox","id":"sh/l8vi94rq","slide":7,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[56,520,52,40]}
+{"kind":"textbox","id":"sh/ep0z2lsv","slide":7,"text":"Synchronized result","textPreview":"Synchronized result","textChars":19,"textLines":1,"bbox":[120,517,456,44]}
+{"kind":"textbox","id":"sh/zq90vq9g","slide":7,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[704,248,52,40]}
+{"kind":"textbox","id":"sh/3u5w3mp8","slide":7,"text":"Different robot types","textPreview":"Different robot types","textChars":21,"textLines":1,"bbox":[768,245,456,44]}
+{"kind":"textbox","id":"sh/2twfa18n","slide":7,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[704,316,52,40]}
+{"kind":"textbox","id":"sh/pw7e5w7y","slide":7,"text":"Custom programming decks","textPreview":"Custom programming decks","textChars":24,"textLines":1,"bbox":[768,313,456,44]}
+{"kind":"textbox","id":"sh/4vexcrqd","slide":7,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[704,384,52,40]}
+{"kind":"textbox","id":"sh/fq5wzmpw","slide":7,"text":"Adaptive or changing boards","textPreview":"Adaptive or changing boards","textChars":27,"textLines":1,"bbox":[768,381,456,44]}
+{"kind":"textbox","id":"sh/upwf6h8b","slide":7,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[704,452,52,40]}
+{"kind":"textbox","id":"sh/hsne1w72","slide":7,"text":"Cosmetics and progression","textPreview":"Cosmetics and progression","textChars":25,"textLines":1,"bbox":[768,449,456,44]}
+{"kind":"textbox","id":"sh/grex8rqh","slide":7,"text":"First prove the shared game loop.","textPreview":"First prove the shared game loop.","textChars":33,"textLines":1,"bbox":[704,560,520,70]}
+{"kind":"notes","id":"nt/iiucoy","slide":7,"text":"For Release 1, we narrow the vision to one complete shared loop. Players need to see the state, choose cards privately, execute programs automatically, apply board effects and continue from a synchronized result. Robot classes, custom decks, adaptive boards and progression remain possible extensions. We should only commit to them after the core loop works well."}
+{"kind":"slide","id":"sl/y8yfti","slide":8,"title":"SYS::RR-02162","textShapes":22}
+{"kind":"textbox","id":"sh/9s72dojm","slide":8,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/mpg3i9kv","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/7qpkbe1g","slide":8,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/0ne1gz2p","slide":8,"text":"Suggested user stories for Release 1","textPreview":"Suggested user stories for Release 1","textChars":36,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"textbox","id":"sh/lon294ja","slide":8,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[56,160,60,38]}
+{"kind":"textbox","id":"sh/ylwje9kz","slide":8,"text":"SEE SHARED STATE","textPreview":"SEE SHARED STATE","textChars":16,"textLines":1,"bbox":[126,158,480,40]}
+{"kind":"textbox","id":"sh/zm5k7e14","slide":8,"text":"Board, robot direction, round and phase","textPreview":"Board, robot direction, round and phase","textChars":39,"textLines":1,"bbox":[126,204,480,56]}
+{"kind":"shape","id":"sh/4jils3i9","slide":8,"bbox":[126,272,480,0.01]}
+{"kind":"textbox","id":"sh/5kr2l8ju","slide":8,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[690,160,60,38]}
+{"kind":"textbox","id":"sh/t4nm5w7e","slide":8,"text":"PROGRAM PRIVATELY","textPreview":"PROGRAM PRIVATELY","textChars":17,"textLines":1,"bbox":[760,158,464,40]}
+{"kind":"textbox","id":"sh/83elwrqt","slide":8,"text":"Receive and order action cards","textPreview":"Receive and order action cards","textChars":30,"textLines":1,"bbox":[760,204,464,56]}
+{"kind":"shape","id":"sh/72lk3mp8","slide":8,"bbox":[760,272,464,0.01]}
+{"kind":"textbox","id":"sh/61c3uh8n","slide":8,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[56,310,60,38]}
+{"kind":"textbox","id":"sh/l0321c72","slide":8,"text":"EXECUTE BY PRIORITY","textPreview":"EXECUTE BY PRIORITY","textChars":19,"textLines":1,"bbox":[126,308,480,40]}
+{"kind":"textbox","id":"sh/kzulsrqx","slide":8,"text":"Reveal and resolve locked programs","textPreview":"Reveal and resolve locked programs","textChars":34,"textLines":1,"bbox":[126,354,480,56]}
+{"kind":"shape","id":"sh/jylkzmpc","slide":8,"bbox":[126,422,480,0.01]}
+{"kind":"textbox","id":"sh/yxc3qh8r","slide":8,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[690,310,60,38]}
+{"kind":"textbox","id":"sh/5w7mdg7m","slide":8,"text":"APPLY BOARD RULES","textPreview":"APPLY BOARD RULES","textChars":17,"textLines":1,"bbox":[760,308,464,40]}
+{"kind":"textbox","id":"sh/4vyl4bq1","slide":8,"text":"Conveyors, gears, walls, pits and checkpoints","textPreview":"Conveyors, gears, walls, pits and checkpoints","textChars":45,"textLines":1,"bbox":[760,354,464,56]}
+{"kind":"shape","id":"sh/of650fed","slide":8,"bbox":[760,422,464,0.01]}
+{"kind":"textbox","id":"sh/p0f69kfi","slide":8,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[56,460,60,38]}
+{"kind":"textbox","id":"sh/2d4nypw7","slide":8,"text":"TRACK CONSEQUENCES","textPreview":"TRACK CONSEQUENCES","textChars":18,"textLines":1,"bbox":[126,458,480,40]}
+{"kind":"textbox","id":"sh/3exo7uxs","slide":8,"text":"Damage, lives and checkpoint progress","textPreview":"Damage, lives and checkpoint progress","textChars":37,"textLines":1,"bbox":[126,504,480,56]}
+{"kind":"shape","id":"sh/gbm5wfe1","slide":8,"bbox":[126,572,480,0.01]}
+{"kind":"textbox","id":"sh/1cv65kfm","slide":8,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[690,460,60,38]}
+{"kind":"textbox","id":"sh/e94nu5wv","slide":8,"text":"SYNCHRONIZE RESULTS","textPreview":"SYNCHRONIZE RESULTS","textChars":19,"textLines":1,"bbox":[760,458,464,40]}
+{"kind":"textbox","id":"sh/fado3axg","slide":8,"text":"The same state for every player","textPreview":"The same state for every player","textChars":31,"textLines":1,"bbox":[760,504,464,56]}
+{"kind":"shape","id":"sh/s7m5sve5","slide":8,"bbox":[760,572,464,0.01]}
+{"kind":"textbox","id":"sh/t8vm10fq","slide":8,"text":"Together, the stories describe one coherent playable round.","textPreview":"Together, the stories describe one coherent playable round.","textChars":59,"textLines":1,"bbox":[56,632,1168,38]}
+{"kind":"notes","id":"nt/y8yfti","slide":8,"text":"These six stories convert the vision into Release 1 work. A player sees the shared state, programs privately, and watches priority-based execution. The game applies board rules, tracks damage and checkpoint progress, and synchronizes the final state. Together they describe one coherent playable round rather than a collection of disconnected features."}
+{"kind":"slide","id":"sl/3nbmbw","slide":9,"title":"SYS::RR-02162","textShapes":21}
+{"kind":"textbox","id":"sh/jil03q18","slide":9,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/kjehcv2t","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/lkni50jy","slide":9,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/adcz6lkb","slide":9,"text":"Scoped domain model","textPreview":"Scoped domain model","textChars":19,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"shape","id":"sh/bel0zq1w","slide":9,"bbox":[550,210,0.01,70]}
+{"kind":"shape","id":"sh/wfuh8v2h","slide":9,"bbox":[420,280,130,0.01]}
+{"kind":"textbox","id":"sh/xg3i10j2","slide":9,"text":"HAS","textPreview":"HAS","textChars":3,"textLines":1,"bbox":[435,234,110,22]}
+{"kind":"shape","id":"sh/2psz21kf","slide":9,"bbox":[730,210,120,70]}
+{"kind":"textbox","id":"sh/na1gb610","slide":9,"text":"USES","textPreview":"USES","textChars":4,"textLines":1,"bbox":[735,234,110,22]}
+{"kind":"shape","id":"sh/7ypozy50","slide":9,"bbox":[760,181,195,0.01]}
+{"kind":"textbox","id":"sh/6xwn6tof","slide":9,"text":"TRACKS","textPreview":"TRACKS","textChars":6,"textLines":1,"bbox":[800,160,110,22]}
+{"kind":"shape","id":"sh/t0761on6","slide":9,"bbox":[315,336,90,94]}
+{"kind":"textbox","id":"sh/szy58jml","slide":9,"text":"CONTROLS","textPreview":"CONTROLS","textChars":8,"textLines":1,"bbox":[260,374,110,22]}
+{"kind":"shape","id":"sh/fmpo3y5w","slide":9,"bbox":[280,336,0.01,94]}
+{"kind":"shape","id":"sh/ulgnat4b","slide":9,"bbox":[195,430,85,0.01]}
+{"kind":"textbox","id":"sh/ho7658n2","slide":9,"text":"CREATES","textPreview":"CREATES","textChars":7,"textLines":1,"bbox":[160,374,110,22]}
+{"kind":"shape","id":"sh/gny5c3mh","slide":9,"bbox":[195,486,0.01,84]}
+{"kind":"textbox","id":"sh/bq54re5s","slide":9,"text":"CONTAINS","textPreview":"CONTAINS","textChars":8,"textLines":1,"bbox":[205,518,110,22]}
+{"kind":"shape","id":"sh/apcny9o7","slide":9,"bbox":[460,458,270,0.01]}
+{"kind":"textbox","id":"sh/elkr6hov","slide":9,"text":"OCCUPIES","textPreview":"OCCUPIES","textChars":8,"textLines":1,"bbox":[540,438,110,22]}
+{"kind":"shape","id":"sh/zmt8zmpg","slide":9,"bbox":[865,336,0.01,94]}
+{"kind":"shape","id":"sh/0n298761","slide":9,"bbox":[835,430,30,0.01]}
+{"kind":"textbox","id":"sh/1obq1c76","slide":9,"text":"CONTAINS","textPreview":"CONTAINS","textChars":8,"textLines":1,"bbox":[850,374,110,22]}
+{"kind":"shape","id":"sh/qhkr2xoj","slide":9,"bbox":[835,486,250,84]}
+{"kind":"textbox","id":"sh/rit8v2p4","slide":9,"text":"MAY CONTAIN","textPreview":"MAY CONTAIN","textChars":11,"textLines":1,"bbox":[885,518,110,22]}
+{"kind":"shape","id":"sh/cj29476p","slide":9,"bbox":[520,152,240,58]}
+{"kind":"textbox","id":"sh/dkbqxc7a","slide":9,"text":"GAME","textPreview":"GAME","textChars":4,"textLines":1,"bbox":[530,160,220,42]}
+{"kind":"shape","id":"sh/2t07yx8n","slide":9,"bbox":[250,280,210,56]}
+{"kind":"textbox","id":"sh/3u98rip8","slide":9,"text":"PLAYER","textPreview":"PLAYER","textChars":6,"textLines":1,"bbox":[260,288,190,40]}
+{"kind":"shape","id":"sh/l8zux0rq","slide":9,"bbox":[820,280,210,56]}
+{"kind":"textbox","id":"sh/k76t4vq5","slide":9,"text":"BOARD","textPreview":"BOARD","textChars":5,"textLines":1,"bbox":[830,288,190,40]}
+{"kind":"shape","id":"sh/j6xcvq9k","slide":9,"bbox":[955,152,210,56]}
+{"kind":"textbox","id":"sh/y5ob2l8z","slide":9,"text":"ROUND / PHASE","textPreview":"ROUND / PHASE","textChars":13,"textLines":1,"bbox":[965,160,190,40]}
+{"kind":"shape","id":"sh/xkfutgre","slide":9,"bbox":[90,430,210,56]}
+{"kind":"textbox","id":"sh/wj6t0bq9","slide":9,"text":"PROGRAM","textPreview":"PROGRAM","textChars":7,"textLines":1,"bbox":[100,438,190,40]}
+{"kind":"shape","id":"sh/bixsr69o","slide":9,"bbox":[340,430,210,56]}
+{"kind":"textbox","id":"sh/ahobyl83","slide":9,"text":"ROBOT","textPreview":"ROBOT","textChars":5,"textLines":1,"bbox":[350,438,190,40]}
+{"kind":"shape","id":"sh/9gfapgri","slide":9,"bbox":[730,430,210,56]}
+{"kind":"textbox","id":"sh/ofmtwbax","slide":9,"text":"TILE","textPreview":"TILE","textChars":4,"textLines":1,"bbox":[740,438,190,40]}
+{"kind":"shape","id":"sh/ojy1wfqt","slide":9,"bbox":[90,570,210,56]}
+{"kind":"textbox","id":"sh/pk725kre","slide":9,"text":"ACTION CARD","textPreview":"ACTION CARD","textChars":11,"textLines":1,"bbox":[100,578,190,40]}
+{"kind":"shape","id":"sh/2hwju583","slide":9,"bbox":[980,570,210,56]}
+{"kind":"textbox","id":"sh/ni5k3a9o","slide":9,"text":"BOARD ELEMENT","textPreview":"BOARD ELEMENT","textChars":13,"textLines":1,"bbox":[990,578,190,40]}
+{"kind":"notes","id":"nt/3nbmbw","slide":9,"text":"This scoped model gives the team a shared vocabulary for Release 1. A game has players, a board and a current round or phase. A player creates a program and controls a robot. Programs contain action cards. Robots occupy tiles, while the board contains tiles and board elements. The model stays intentionally small and avoids implementation details."}
+{"kind":"slide","id":"sl/sm3tvf","slide":10,"title":"SYS::RR-02162","textShapes":9}
+{"kind":"textbox","id":"sh/zix0za5w","slide":10,"text":"SYS::RR-02162","textPreview":"SYS::RR-02162","textChars":13,"textLines":1,"bbox":[56,28,280,26]}
+{"kind":"textbox","id":"sh/0j618fm1","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1168,28,56,26]}
+{"kind":"shape","id":"sh/1kfi1knm","slide":10,"bbox":[56,61,1168,0.01]}
+{"kind":"textbox","id":"sh/qt4j25oz","slide":10,"text":"Release 1 success","textPreview":"Release 1 success","textChars":17,"textLines":1,"bbox":[56,78,1168,64]}
+{"kind":"textbox","id":"sh/rux0vq5k","slide":10,"text":"A complete round runs from card selection to a synchronized result without manual rule checking.","textPreview":"A complete round runs from card selection to a synchronized result without manual rule checking.","textChars":96,"textLines":1,"bbox":[56,158,1100,150]}
+{"kind":"shape","id":"sh/cf614v65","slide":10,"bbox":[56,342,1168,0.01]}
+{"kind":"textbox","id":"sh/dgfix0nq","slide":10,"text":"READABLE","textPreview":"READABLE","textChars":8,"textLines":1,"bbox":[56,382,260,38]}
+{"kind":"textbox","id":"sh/ip4jylo3","slide":10,"text":"Players understand positions, directions and the current phase.","textPreview":"Players understand positions, directions and the current phase.","textChars":63,"textLines":1,"bbox":[56,426,500,78]}
+{"kind":"textbox","id":"sh/3qd0rq5o","slide":10,"text":"RELIABLE","textPreview":"RELIABLE","textChars":8,"textLines":1,"bbox":[680,382,260,38]}
+{"kind":"textbox","id":"sh/v2do7qdo","slide":10,"text":"The game resolves the same rules and state for everyone.","textPreview":"The game resolves the same rules and state for everyone.","textChars":56,"textLines":1,"bbox":[680,426,500,78]}
+{"kind":"textbox","id":"sh/u147elw3","slide":10,"text":"QUESTIONS?","textPreview":"QUESTIONS?","textChars":10,"textLines":1,"bbox":[56,584,1168,64]}
+{"kind":"notes","id":"nt/sm3tvf","slide":10,"text":"Release 1 succeeds when a complete round runs from private card selection to one synchronized result without manual rule checking. Players should understand what is happening, and the system should resolve the rules consistently. That gives us a strong foundation for every later extension. Thank you. We are ready for questions."}

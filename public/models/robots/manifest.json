@@ -1,0 +1,212 @@
+[
+  {
+    "id": "bolt",
+    "name": "Bolt",
+    "color": "#f45b55",
+    "role": "The reckless racer",
+    "personality": "Brakes are a manufacturing defect.",
+    "shape": "Low racing wedge, swept fins, three wheels",
+    "triangles": 5644,
+    "bytes": 532504,
+    "dimensions": [0.726, 0.8415, 0.7545],
+    "animations": {
+      "Idle": {
+        "duration": 3.2,
+        "description": "Impatient engine tremor and antenna sway"
+      },
+      "Move": {
+        "duration": 0.9,
+        "description": "Fast wheels and a forward racing lean"
+      }
+    }
+  },
+  {
+    "id": "gizmo",
+    "name": "Gizmo",
+    "color": "#ffd34f",
+    "role": "The nervous optimist",
+    "personality": "Has a backup plan for the backup plan.",
+    "shape": "Pear-shaped cyclops on three little feet",
+    "triangles": 6116,
+    "bytes": 480720,
+    "dimensions": [0.78255, 1.035, 0.5824],
+    "animations": {
+      "Idle": {
+        "duration": 4.0,
+        "description": "Nervous glances, blinking and fidgeting hands"
+      },
+      "Move": {
+        "duration": 0.8,
+        "description": "Alternating tripod steps and eager arm swings"
+      }
+    }
+  },
+  {
+    "id": "brutus",
+    "name": "Brutus",
+    "color": "#427cf5",
+    "role": "The gentle bulldozer",
+    "personality": "Would help you up. Has already run you over.",
+    "shape": "Broad tracked brick with an enormous boxing claw",
+    "triangles": 6460,
+    "bytes": 795660,
+    "dimensions": [0.86, 0.81625, 0.65197],
+    "animations": {
+      "Idle": {
+        "duration": 4.8,
+        "description": "Slow head scan and a heavy fist shrug"
+      },
+      "Move": {
+        "duration": 1.6,
+        "description": "Rolling tracks, turning sprockets and suspension rumble"
+      }
+    }
+  },
+  {
+    "id": "noodle",
+    "name": "Noodle",
+    "color": "#64deb4",
+    "role": "The distracted genius",
+    "personality": "Head in the clouds. Feet in the conveyor belt.",
+    "shape": "Tall spring spine, sideways capsule head, giant boots",
+    "triangles": 7172,
+    "bytes": 433704,
+    "dimensions": [0.68001, 1.23, 0.36827],
+    "animations": {
+      "Idle": {
+        "duration": 4.0,
+        "description": "Spring breathing, dreamy head tilt and loose arms"
+      },
+      "Move": {
+        "duration": 1.2,
+        "description": "Long alternating steps with a bouncing spring spine"
+      }
+    }
+  },
+  {
+    "id": "disco",
+    "name": "Disco",
+    "color": "#a16aef",
+    "role": "The attention magnet",
+    "personality": "Every laser hit is a lighting cue.",
+    "shape": "Faceted disco ball, headphones, equalizer crown",
+    "triangles": 4788,
+    "bytes": 421488,
+    "dimensions": [0.83525, 1.1, 0.52],
+    "animations": {
+      "Idle": {
+        "duration": 2.4,
+        "description": "Rhythmic sway and alternating jazz hands"
+      },
+      "Move": {
+        "duration": 1.2,
+        "description": "Rolling ball, dancing torso and arm groove"
+      }
+    }
+  },
+  {
+    "id": "chomp",
+    "name": "Chomp",
+    "color": "#b4df35",
+    "role": "The tiny menace",
+    "personality": "If it fits in the claw, it is a snack.",
+    "shape": "Low crab shell, eye stalks, four legs, oversized pincer",
+    "triangles": 6122,
+    "bytes": 552572,
+    "dimensions": [0.86, 0.6983, 0.75376],
+    "animations": {
+      "Idle": {
+        "duration": 3.2,
+        "description": "Watchful eye stalks and impatient snapping pincers"
+      },
+      "Move": {
+        "duration": 0.8,
+        "description": "Alternating diagonal crab steps"
+      }
+    }
+  },
+  {
+    "id": "pixel",
+    "name": "Pixel",
+    "color": "#f46db2",
+    "role": "The chaotic sweetheart",
+    "personality": "Error 404: self-preservation not found.",
+    "shape": "Huge CRT head, pixel face, rabbit aerials, tiny wheels",
+    "triangles": 7540,
+    "bytes": 681532,
+    "dimensions": [0.63366, 1.1505, 0.449],
+    "animations": {
+      "Idle": {
+        "duration": 3.6,
+        "description": "Curious CRT head tilt, pixel blink and aerial wobble"
+      },
+      "Move": {
+        "duration": 0.8,
+        "description": "Scooter wheels with a lively head bounce"
+      }
+    }
+  },
+  {
+    "id": "snooze",
+    "name": "Snooze",
+    "color": "#f99a3b",
+    "role": "The unbothered veteran",
+    "personality": "Will get there. Eventually. Probably.",
+    "shape": "Wind-up snail, round shell, sleepy low-slung face",
+    "triangles": 10336,
+    "bytes": 795156,
+    "dimensions": [0.56, 0.9455, 0.784],
+    "animations": {
+      "Idle": {
+        "duration": 6.0,
+        "description": "Slow sleepy head nod and heavy eyelids"
+      },
+      "Move": {
+        "duration": 2.4,
+        "description": "Slow rollers and a rotating wind-up key"
+      }
+    }
+  },
+  {
+    "id": "captain",
+    "name": "Captain",
+    "color": "#e8dec4",
+    "role": "The self-appointed boss",
+    "personality": "No idea where north is. Extremely confident.",
+    "shape": "Conical brass-trimmed body, peaked cap, monocle, moustache",
+    "triangles": 7100,
+    "bytes": 632576,
+    "dimensions": [0.67859, 1.0405, 0.566],
+    "animations": {
+      "Idle": {
+        "duration": 4.8,
+        "description": "A small salute and a confident head scan"
+      },
+      "Move": {
+        "duration": 1.6,
+        "description": "Steady castors and a restrained commanding sway"
+      }
+    }
+  },
+  {
+    "id": "glitch",
+    "name": "Glitch",
+    "color": "#39cde5",
+    "role": "The beautiful malfunction",
+    "personality": "That was absolutely, probably intentional.",
+    "shape": "Crooked offset cubes, unequal eyes, one huge wheel",
+    "triangles": 5222,
+    "bytes": 495156,
+    "dimensions": [0.74208, 1.187, 0.41],
+    "animations": {
+      "Idle": {
+        "duration": 3.2,
+        "description": "Short irregular head twitches and mismatched arm fidgets"
+      },
+      "Move": {
+        "duration": 0.8,
+        "description": "A lopsided wheel-and-foot gait with an erratic head bob"
+      }
+    }
+  }
+]

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import Home from "@/app/page";
 
-vi.mock("@/components/auth-button", () => ({
+vi.mock("@/components/auth/auth-button", () => ({
   AuthButton: () => null,
 }));
 
