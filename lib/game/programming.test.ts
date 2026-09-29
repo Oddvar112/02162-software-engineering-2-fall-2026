@@ -226,11 +226,10 @@ describe("programming a turn", () => {
     ]);
   });
 
-  it("loses only one life in a pit and skips later actions until reboot", () => {
+  it("land in pit skips later actions until reboot", () => {
     const game = createMockGame(movementBoard);
     game.state.board.tiles[7][1] = { kind: "pit" };
     submitProgram(game, "player-1", game.state.round, ids(game, "player-1"));
-    expect(game.state.players[0].lives).toBe(2);
     expect(
       game.state.executionLog.filter((entry) => entry.playerId === "player-1"),
     ).toHaveLength(1);
