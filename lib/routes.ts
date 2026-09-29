@@ -1,10 +1,6 @@
 export function isPublicRoute(pathname: string): boolean {
   return (
-    pathname === "/" ||
-    pathname === "/game" ||
-    pathname === "/api/game-state" ||
-    pathname === "/auth" ||
-    pathname.startsWith("/auth/")
+    pathname === "/" || pathname === "/auth" || pathname.startsWith("/auth/")
   );
 }
 
