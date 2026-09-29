@@ -206,6 +206,67 @@ describe("resolveRound", () => {
     });
   });
 
+  it("costs one life for driving off the board and reboots where the robot started", () => {
+    const state = makeState();
+    state.registerCount = 1;
+    Object.assign(state.robots[0], { x: 1, z: 0 });
+    Object.assign(state, resolveRound(state, { p1: [move(1)] }));
+    expect(state.players[0].lives).toBe(2);
+    expect(state.robots[0]).toMatchObject({
+      x: 1,
+      z: 0,
+      direction: Direction.Up,
+    });
+  });
+
+  it("costs a life for a robot pushed off the board and skips the rest of its program", () => {
+    const state = makeState(2);
+    state.registerCount = 2;
+    Object.assign(state.robots[0], { x: 1, z: 1 });
+    Object.assign(state.robots[1], { x: 1, z: 0 });
+    Object.assign(
+      state,
+      resolveRound(state, {
+        p1: [move(1, 900), rotate(1, 800)],
+        p2: [rotate(1, 100), move(1, 50)],
+      }),
+    );
+    expect(state.executionLog.map((entry) => entry.playerId)).toEqual([
+      "p1",
+      "p1",
+    ]);
+    expect(state.players[1].lives).toBe(2);
+    expect(state.robots[0]).toMatchObject({ x: 1, z: 0 });
+    const pushed = state.robots[1];
+    expect(Math.abs(pushed.x - 1) + Math.abs(pushed.z - 0)).toBe(1);
+  });
+
+  it("turns a robot around with a U-turn without moving it", () => {
+    const state = makeState();
+    state.registerCount = 1;
+    Object.assign(
+      state,
+      resolveRound(state, { p1: [card("U-turn", "rotate", 2)] }),
+    );
+    expect(state.robots[0]).toMatchObject({
+      x: 1,
+      z: 8,
+      direction: Direction.Down,
+    });
+  });
+
+  it("returns a new state and leaves its input untouched", () => {
+    const state = makeState(2);
+    const before = structuredClone(state);
+    const after = resolveRound(state, {
+      p1: fill([move(2)]),
+      p2: fill([backup()]),
+    });
+    expect(state).toEqual(before);
+    expect(after.robots[0].z).not.toBe(before.robots[0].z);
+    expect(after.executionLog).not.toHaveLength(0);
+  });
+
   it("removes a robot with no lives left", () => {
     const state = makeState();
     state.players[0].lives = 1;

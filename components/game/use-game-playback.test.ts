@@ -94,6 +94,22 @@ describe("visible program playback", () => {
     expect(result.current.gameState?.phase).toBe("programming");
   });
 
+  it("plays and replays the winning round when the game finishes", () => {
+    const { before, after } = turn();
+    const finished = { ...after, phase: "finished" as const };
+    const { result } = renderHook(useGamePlayback);
+    act(() => result.current.receiveState(before));
+    act(() => result.current.receiveState(finished));
+    expect(result.current.isPlaying).toBe(true);
+    for (let index = 0; index < finished.executionFrames.length; index++) {
+      act(() => vi.advanceTimersByTime(PLAYBACK_STEP_MS));
+    }
+    expect(result.current.isPlaying).toBe(false);
+    expect(result.current.gameState?.phase).toBe("finished");
+    act(() => result.current.replay());
+    expect(result.current.isPlaying).toBe(true);
+  });
+
   it("drops the animation when a different game arrives", () => {
     const { before, after } = turn();
     const { result } = renderHook(useGamePlayback);
