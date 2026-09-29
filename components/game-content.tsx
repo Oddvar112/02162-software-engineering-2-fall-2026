@@ -53,6 +53,9 @@ export default async function GameContent({
       <Link href="/lobbies" className="underline">
         Back to lobbies
       </Link>
+      <Link href="/" className="underline">
+        Back to home
+      </Link>
     </main>
   );
 }

@@ -39,6 +39,9 @@ export default async function LobbyContent({
             <div className="flex items-center gap-5 font-semibold">
               <Link href="/">RoboRally</Link>
             </div>
+            <Link href="/" className="underline">
+              Back to home
+            </Link>
           </div>
         </nav>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
