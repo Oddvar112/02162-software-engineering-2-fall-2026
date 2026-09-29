@@ -4,6 +4,7 @@ import { buildGameState } from "@/lib/game/fixtures";
 const {
   getClaims,
   rpc,
+  lobbyMember,
   loadGame,
   resolveIfReady,
   advanceIfReady,
@@ -11,6 +12,7 @@ const {
 } = vi.hoisted(() => ({
   getClaims: vi.fn(),
   rpc: vi.fn(),
+  lobbyMember: vi.fn(),
   loadGame: vi.fn(),
   resolveIfReady: vi.fn(),
   advanceIfReady: vi.fn(),
@@ -18,7 +20,17 @@ const {
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ auth: { getClaims }, rpc }),
+  createClient: async () => ({
+    auth: { getClaims },
+    rpc,
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({ maybeSingle: async () => ({ data: lobbyMember() }) }),
+        }),
+      }),
+    }),
+  }),
 }));
 vi.mock("@/lib/game/store", async (importActual) => {
   const actual = await importActual<typeof import("@/lib/game/store")>();
@@ -53,6 +65,7 @@ function post(body: unknown) {
 beforeEach(() => {
   vi.clearAllMocks();
   getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
+  lobbyMember.mockReturnValue({ id: "lobby-1" });
   loadGame.mockResolvedValue(loaded);
   resolveIfReady.mockResolvedValue(false);
   advanceIfReady.mockResolvedValue(false);
@@ -67,10 +80,12 @@ describe("GET /api/games/[gameId]", () => {
     expect(response.status).toBe(401);
   });
 
-  it("refuses a signed-in user who is not in the game", async () => {
+  it("refuses an outsider before touching the game", async () => {
     getClaims.mockResolvedValue({ data: { claims: { sub: "outsider" } } });
+    lobbyMember.mockReturnValue(null);
     const response = await GET(new Request("https://example.test"), { params });
     expect(response.status).toBe(403);
+    expect(initialiseGame).not.toHaveBeenCalled();
   });
 
   it("returns the viewer's snapshot and resolves a finished round first", async () => {
