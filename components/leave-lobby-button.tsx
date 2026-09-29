@@ -4,10 +4,10 @@ import { leaveLobby } from "@/app/actions/lobby";
 import { useState } from "react";
 import { Button } from "./ui/button";
 
-export function LeaveLobbyButton({ 
-  lobbyId, 
-  isCreator = false 
-}: { 
+export function LeaveLobbyButton({
+  lobbyId,
+  isCreator = false,
+}: {
   lobbyId: string;
   isCreator?: boolean;
 }) {
@@ -22,7 +22,11 @@ export function LeaveLobbyButton({
       await leaveLobby(lobbyId);
     } catch (err) {
       console.error("Error leaving lobby:", err);
-      setError(err instanceof Error ? err.message : "Could not leave the lobby. Try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not leave the lobby. Try again.",
+      );
       setIsLeaving(false);
     }
   };

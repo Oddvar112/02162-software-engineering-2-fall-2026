@@ -8,7 +8,7 @@ function extractUserLobby(data: any): { userLobby: any; userGame: any } {
   let userGame = null;
 
   if (data?.lobbies) {
-    const lobbiesData = (data.lobbies) as any;
+    const lobbiesData = data.lobbies as any;
     const lobby = {
       id: lobbiesData.id,
       max_players: lobbiesData.max_players,
@@ -38,7 +38,9 @@ export default async function LobbyList() {
   if (currentUserId) {
     const { data } = await supabase
       .from("lobby_players")
-      .select("lobby_id, lobbies(id, max_players, status, game, lobby_players(count))")
+      .select(
+        "lobby_id, lobbies(id, max_players, status, game, lobby_players(count))",
+      )
       .eq("user_id", currentUserId)
       .maybeSingle();
 
@@ -81,11 +83,11 @@ export default async function LobbyList() {
               <p className="font-medium">
                 {userGame.players} / {userGame.max_players} players
               </p>
-              <p className="text-sm text-foreground/70">
-                Game in progress
-              </p>
+              <p className="text-sm text-foreground/70">Game in progress</p>
             </div>
-            <span className="text-sm font-medium text-blue-500">Continue Playing →</span>
+            <span className="text-sm font-medium text-blue-500">
+              Continue Playing →
+            </span>
           </Link>
         </div>
       )}
@@ -105,7 +107,9 @@ export default async function LobbyList() {
                 Status: <span className="capitalize">{userLobby.status}</span>
               </p>
             </div>
-            <span className="text-sm font-medium text-primary">View Lobby →</span>
+            <span className="text-sm font-medium text-primary">
+              View Lobby →
+            </span>
           </Link>
         </div>
       )}

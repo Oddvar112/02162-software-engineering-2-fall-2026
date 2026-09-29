@@ -14,7 +14,9 @@ export default async function LobbyContent({
 
   const { data: lobby } = await supabase
     .from("lobbies")
-    .select("id, max_players, status, created_by, lobby_players(user_id, joined_at)")
+    .select(
+      "id, max_players, status, created_by, lobby_players(user_id, joined_at)",
+    )
     .eq("id", lobbyId)
     .maybeSingle();
 

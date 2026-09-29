@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 export async function leaveLobby(lobbyId: string) {
   const supabase = await createClient();
-  
+
   const { error } = await supabase.rpc("leave_lobby", {
     p_lobby_id: lobbyId,
   });
