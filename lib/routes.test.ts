@@ -14,25 +14,18 @@ describe("isPublicRoute", () => {
     expect(isPublicRoute("/auth/update-password")).toBe(true);
   });
 
-  it("allows the demo board and its state API", () => {
-    expect(isPublicRoute("/game")).toBe(true);
-    expect(isPublicRoute("/api/game-state")).toBe(true);
-  });
-
   it("protects the lobby and game pages", () => {
     expect(isPublicRoute("/lobbies")).toBe(false);
     expect(isPublicRoute("/lobbies/abc")).toBe(false);
     expect(isPublicRoute("/games/abc")).toBe(false);
-    expect(isPublicRoute("/game/abc")).toBe(false);
+    expect(isPublicRoute("/game")).toBe(false);
+    expect(isPublicRoute("/api/games/abc")).toBe(false);
     expect(isPublicRoute("/protected")).toBe(false);
   });
 
   it("stops at a segment boundary, so a prefix does not leak access", () => {
     expect(isPublicRoute("/games")).toBe(false);
     expect(isPublicRoute("/authorize")).toBe(false);
-    expect(isPublicRoute("/game-admin")).toBe(false);
-    expect(isPublicRoute("/api/game-state-admin")).toBe(false);
-    expect(isPublicRoute("/api/game-state/private")).toBe(false);
   });
 });
 

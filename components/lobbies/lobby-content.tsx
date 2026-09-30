@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 import { LobbyRealtime } from "./lobby-realtime";
+import { StartLobbyButton } from "./start-lobby-button";
 
 export default async function LobbyContent({
   params,
@@ -18,7 +19,7 @@ export default async function LobbyContent({
   const { data: lobby } = await supabase
     .from("lobbies")
     .select(
-      "id, max_players, status, created_by, lobby_players(user_id, joined_at)",
+      "id, max_players, status, created_by, game, lobby_players(user_id, joined_at)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
@@ -41,6 +42,16 @@ export default async function LobbyContent({
   const names = new Map(profiles?.map((p) => [p.id, p.display_name]) ?? []);
   const isMember = players.some((p) => p.user_id === userId);
 
+  const { data: game } =
+    lobby.status === "finished"
+      ? await supabase
+          .from("games")
+          .select("winner_id")
+          .eq("id", lobby.game)
+          .maybeSingle()
+      : { data: null };
+  const winnerName = game?.winner_id ? names.get(game.winner_id) : null;
+
   return (
     <main className="flex min-h-screen flex-col items-center">
       <div className="flex w-full flex-1 flex-col items-center">
@@ -56,10 +67,20 @@ export default async function LobbyContent({
           <p className="text-lg text-foreground/70">
             {players.length} / {lobby.max_players} players
           </p>
-          {lobby.status !== "open" && (
+          {lobby.status === "started" && (
             <p className="text-sm text-foreground/50">
               This game has already started.
             </p>
+          )}
+          {lobby.status === "finished" && (
+            <p className="text-lg font-semibold">
+              {winnerName ? `${winnerName} won the race.` : "The game is over."}
+            </p>
+          )}
+          {lobby.status === "started" && isMember && (
+            <Link href={`/games/${lobby.game}`} className="underline">
+              Go to the game
+            </Link>
           )}
           <div className="mt-4 rounded border p-4">
             <h2 className="mb-2 text-xl font-semibold">Players</h2>
@@ -76,7 +97,15 @@ export default async function LobbyContent({
               ))}
             </ul>
           </div>
-          <LobbyRealtime lobbyId={lobby.id} />
+          <LobbyRealtime lobbyId={lobby.id} isMember={isMember} />
+          {isMember &&
+            lobby.status === "open" &&
+            lobby.created_by === userId && (
+              <StartLobbyButton
+                lobbyId={lobby.id}
+                playerCount={players.length}
+              />
+            )}
           {isMember && lobby.status === "open" ? (
             <LeaveLobbyButton
               lobbyId={lobby.id}

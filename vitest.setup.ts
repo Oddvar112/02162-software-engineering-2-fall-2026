@@ -1,6 +1,8 @@
 // vitest.setup.ts
 import { vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 // mock test for router
 vi.mock("next/navigation", () => ({
   useRouter: () => ({

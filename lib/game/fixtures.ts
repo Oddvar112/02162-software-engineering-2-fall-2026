@@ -22,6 +22,8 @@ const BASE_GAME_STATE: Omit<
   "updatedAt" | "board" | "robots" | "players"
 > = {
   gameId: "RR-02162",
+  lobbyId: "lobby-1",
+  winnerId: null,
   round: 1,
   phase: "programming",
   currentPlayerId: "player-1",
@@ -29,6 +31,7 @@ const BASE_GAME_STATE: Omit<
   currentPlayerProgram: [],
   executionLog: [],
   executionFrames: [],
+  timerEndsAt: null,
   currentPlayerCards: [
     { id: "card-1", name: "Move 3", type: "move", value: 3, priority: 840 },
     { id: "card-2", name: "Move 2", type: "move", value: 2, priority: 670 },
@@ -51,10 +54,10 @@ const BASE_GAME_STATE: Omit<
   ],
 };
 
-export function getMockGameState(board: Board = staticBoard): GameState {
+export function buildGameState(board: Board = staticBoard): GameState {
   validateBoard(board);
   if (board.startpositions.length === 0) {
-    throw new Error("A demo board needs at least one start position.");
+    throw new Error("A board needs at least one start position.");
   }
   const seats = board.startpositions.map((position, index) => ({
     position,

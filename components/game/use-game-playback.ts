@@ -18,15 +18,17 @@ export function useGamePlayback() {
     const previous = latest.current;
     latest.current = next;
     setResult(next);
-    const sameRound =
+    const sameGame =
       previous?.gameId === next.gameId &&
-      previous.round === next.round &&
       previous.currentPlayerId === next.currentPlayerId;
-    if (!sameRound) setPlayback(null);
+    const sameRound = sameGame && previous.round === next.round;
+    if (!sameGame) setPlayback(null);
+    const resolved = (phase: GameState["phase"]) =>
+      phase === "end-of-round" || phase === "finished";
     if (
       sameRound &&
-      previous.phase !== "end-of-round" &&
-      next.phase === "end-of-round" &&
+      !resolved(previous.phase) &&
+      resolved(next.phase) &&
       next.executionFrames.length > 0
     ) {
       setPlayback({ result: next, index: 0 });
@@ -49,7 +51,7 @@ export function useGamePlayback() {
   const replay = useCallback(() => {
     const current = latest.current;
     if (
-      current?.phase === "end-of-round" &&
+      (current?.phase === "end-of-round" || current?.phase === "finished") &&
       current.executionFrames.length > 0
     ) {
       setPlayback({ result: current, index: 0 });
