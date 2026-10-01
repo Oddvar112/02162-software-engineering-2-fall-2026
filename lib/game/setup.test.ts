@@ -3,7 +3,6 @@ import { Direction } from "@/lib/direction";
 import { HAND_SIZE } from "@/lib/game/deck";
 import { staticBoard } from "@/lib/game/game-model";
 import type { ActionCard } from "@/lib/game/types";
-import roster from "@/lib/robots.json";
 
 type Write = {
   table: string;
@@ -62,13 +61,14 @@ vi.mock("@/lib/supabase/service", () => ({
 
 import { initialiseGame } from "./setup";
 
-function lobby(status: string, members: [string, string][]) {
+function lobby(status: string, members: [string, string, string][]) {
   return {
     id: "lobby-1",
     status,
-    lobby_players: members.map(([user_id, joined_at]) => ({
+    lobby_players: members.map(([user_id, joined_at, robot_model]) => ({
       user_id,
       joined_at,
+      robot_model,
     })),
   };
 }
@@ -76,15 +76,15 @@ function lobby(status: string, members: [string, string][]) {
 beforeEach(() => {
   db.game = { board: null };
   db.lobby = lobby("started", [
-    ["guest", "2026-09-29T10:00:05.000000+00:00"],
-    ["host", "2026-09-29T10:00:01.000000+00:00"],
+    ["guest", "2026-09-29T10:00:05.000000+00:00", "pixel"],
+    ["host", "2026-09-29T10:00:01.000000+00:00", "glitch"],
   ]);
   db.failingTable = null;
   db.writes = [];
 });
 
 describe("initialiseGame", () => {
-  it("seats players in join order, deals their hands and copies the board last", async () => {
+  it("seats players in join order with their chosen robots, deals their hands and copies the board last", async () => {
     await initialiseGame("game-1");
 
     expect(db.writes.map(({ op, table }) => `${op} ${table}`)).toEqual([
@@ -95,11 +95,14 @@ describe("initialiseGame", () => {
     const [players, hands, board] = db.writes;
 
     expect(players.values).toEqual(
-      ["host", "guest"].map((user_id, seat) => ({
+      [
+        ["host", "glitch"],
+        ["guest", "pixel"],
+      ].map(([user_id, robot_model], seat) => ({
         game_id: "game-1",
         user_id,
         seat,
-        robot_model: roster[seat].id,
+        robot_model,
         x: staticBoard.startpositions[seat].x,
         z: staticBoard.startpositions[seat].y,
         direction: Direction.Up,
@@ -148,7 +151,7 @@ describe("initialiseGame", () => {
   });
 
   it("refuses a lobby that has not been started", async () => {
-    db.lobby = lobby("open", [["host", "2026-09-29T10:00:01+00:00"]]);
+    db.lobby = lobby("open", [["host", "2026-09-29T10:00:01+00:00", "bolt"]]);
     await expect(initialiseGame("game-1")).rejects.toMatchObject({
       status: 409,
     });
@@ -160,9 +163,10 @@ describe("initialiseGame", () => {
       "started",
       Array.from(
         { length: staticBoard.startpositions.length + 1 },
-        (_, index): [string, string] => [
+        (_, index): [string, string, string] => [
           `player-${index}`,
           `2026-09-29T10:00:0${index}+00:00`,
+          "bolt",
         ],
       ),
     );
