@@ -75,5 +75,23 @@ describe("RobotPicker", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(expected);
     expect(refresh).not.toHaveBeenCalled();
     expect(robot("Pixel").disabled).toBe(false);
+    expect(screen.queryByText(/Preview of/)).toBeNull();
+  });
+
+  it("goes back to showing my own robot when the server refuses another", async () => {
+    rpc.mockResolvedValue({ error: { message: "robot_taken" } });
+    render(<RobotPicker lobbyId="lobby-1" chosen="bolt" taken={[]} />);
+    fireEvent.click(robot("Pixel"));
+    await screen.findByRole("alert");
+    expect(screen.getByText("Preview of bolt")).toBeDefined();
+    expect(screen.queryByText("Preview of pixel")).toBeNull();
+  });
+
+  it("goes back to showing my own robot when the request fails", async () => {
+    rpc.mockRejectedValue(new Error("offline"));
+    render(<RobotPicker lobbyId="lobby-1" chosen="bolt" taken={[]} />);
+    fireEvent.click(robot("Pixel"));
+    await screen.findByRole("alert");
+    expect(screen.getByText("Preview of bolt")).toBeDefined();
   });
 });

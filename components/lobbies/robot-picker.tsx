@@ -45,12 +45,14 @@ export function RobotPicker({
 
       if (rpcError) {
         setError(MESSAGES[rpcError.message] ?? "Could not choose that robot.");
+        setPreviewed(chosen);
         return;
       }
 
       router.refresh();
     } catch {
       setError("Could not choose that robot. Try again.");
+      setPreviewed(chosen);
     } finally {
       setIsChoosing(false);
     }
