@@ -156,15 +156,15 @@ If you added a dependency, commit `package-lock.json` with it. CI installs with 
 
 ## Playing a game
 
-A game starts from a lobby. The host presses **Start game** once at least two players have joined, and everyone in the lobby is taken to `/games/<id>` through Realtime.
+A game starts from a lobby. Every player picks a robot on the lobby page, and a robot can only be picked by one player. The host presses **Start game** once at least two players have joined and everyone has a robot, and everyone in the lobby is taken to `/games/<id>` through Realtime.
 
 Each round works like this:
 
 1. Every player holds nine cards. Pick five in the order they should run and press **Lock In**. The first lock in starts a 30 second timer.
 2. The round resolves when everyone has locked in, or when the timer runs out. A player who did not finish gets five random cards from their hand.
-3. The server runs every program register by register in card priority order, then records the movement frames. Each client animates them. **Replay movement** plays the sequence again.
-4. The next round starts by itself 45 seconds after the round resolves, which leaves time to watch the animation. The countdown is shown next to the phase.
+3. The server runs every program register by register in card priority order. After each register the board acts: express conveyors move one tile, then every conveyor moves one tile, then gears turn the robot standing on them. The server records the movement frames and each client animates them. **Replay movement** plays the sequence again.
+4. The next round starts by itself 15 seconds after the round resolves, which leaves time to watch the animation. The countdown is shown next to the phase.
 
 The first robot to reach the last checkpoint wins. A robot that falls off the board or into a pit loses a life and reboots near where it started the round; at zero lives it is out.
 
-The board comes from `staticBoard` in `lib/game/game-model.ts`. The rules live in `lib/game/engine.ts`, the deck in `lib/game/deck.ts`, and the database side in `lib/game/store.ts`. Hands are readable only by their owner, and programs only by their owner until the round resolves. The pgTAP suite in `supabase/tests/game_state_test.sql` proves both.
+The board comes from `staticBoard` in `lib/game/game-model.ts`. The rules live in `lib/game/engine.ts` and `lib/game/board-elements.ts`, the deck in `lib/game/deck.ts`, and the database side in `lib/game/store.ts`. Hands are readable only by their owner, and programs only by their owner until the round resolves. The pgTAP suite in `supabase/tests/game_state_test.sql` proves both.
