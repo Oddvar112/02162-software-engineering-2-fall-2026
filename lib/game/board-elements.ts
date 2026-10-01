@@ -1,3 +1,4 @@
+import type { Board } from "@/lib/board";
 import {
   neighbour,
   place,
@@ -5,61 +6,44 @@ import {
   tileAt,
   turn,
   wallBetween,
+  type Point,
 } from "@/lib/game/grid";
 import type { GameState, RobotState } from "@/lib/game/types";
 import type { ConveyorTile } from "@/lib/tile";
 
 type Carry = { robot: RobotState; belt: ConveyorTile; x: number; z: number };
 
-function carries(
-  state: GameState,
-  fallen: Set<string>,
-  expressOnly: boolean,
-): Carry[] {
-  return state.robots.flatMap((robot): Carry[] => {
+function isTurning(board: Board, at: Point, belt: ConveyorTile): boolean {
+  return [1, -1].some((side) => {
+    const feeder = tileAt(board, neighbour(at, turn(belt.direction, side)));
+    return (
+      feeder?.kind === "conveyor" &&
+      feeder.direction === turn(belt.direction, side + 2)
+    );
+  });
+}
+
+function moveConveyors(state: GameState, fallen: Set<string>): boolean {
+  const carries = state.robots.flatMap((robot): Carry[] => {
     const belt = tileAt(state.board, robot);
     if (fallen.has(robot.id) || belt?.kind !== "conveyor") return [];
-    if (expressOnly && !belt.express) return [];
     const target = neighbour(robot, belt.direction);
     if (wallBetween(state.board, robot, target)) return [];
     return [{ robot, belt, ...target }];
   });
-}
-
-function settle(
-  state: GameState,
-  fallen: Set<string>,
-  moves: Carry[],
-): Carry[] {
-  const allowed = moves.filter((move) => {
-    const contested = moves.some(
-      (other) => other !== move && other.x === move.x && other.z === move.z,
-    );
-    const occupant = robotAt(state, move, fallen);
-    const leaving = moves.find((other) => other.robot === occupant);
-    const swap = leaving?.x === move.robot.x && leaving?.z === move.robot.z;
-    return !contested && (!occupant || (leaving !== undefined && !swap));
-  });
-  return allowed.length === moves.length
-    ? moves
-    : settle(state, fallen, allowed);
-}
-
-function moveConveyors(
-  state: GameState,
-  fallen: Set<string>,
-  expressOnly: boolean,
-): boolean {
-  const moves = settle(state, fallen, carries(state, fallen, expressOnly));
-  for (const { robot, belt, x, z } of moves) {
+  const allowed = carries.filter(
+    (carry) =>
+      !robotAt(state, carry, fallen) &&
+      !carries.some(
+        (other) =>
+          other !== carry && other.x === carry.x && other.z === carry.z,
+      ),
+  );
+  for (const { robot, belt, x, z } of allowed) {
+    if (isTurning(state.board, robot, belt)) robot.direction = belt.direction;
     place(state, robot, { x, z }, fallen);
-    const next = tileAt(state.board, robot);
-    if (next?.kind !== "conveyor") continue;
-    const bend = (next.direction - belt.direction + 4) % 4;
-    if (bend === 1) robot.direction = turn(robot.direction, 1);
-    if (bend === 3) robot.direction = turn(robot.direction, -1);
   }
-  return moves.length > 0;
+  return allowed.length > 0;
 }
 
 function turnGears(state: GameState, fallen: Set<string>): boolean {
@@ -78,7 +62,6 @@ export function activateBoard(
   fallen: Set<string>,
   record: (message: string) => void,
 ) {
-  if (moveConveyors(state, fallen, true)) record("Express conveyors move");
-  if (moveConveyors(state, fallen, false)) record("Conveyors move");
+  if (moveConveyors(state, fallen)) record("Conveyors move");
   if (turnGears(state, fallen)) record("Gears turn");
 }

@@ -8,7 +8,7 @@ const LEGEND: Record<string, Tile> = {
   "1": { kind: "checkpoint", number: 1 },
   "^": { kind: "conveyor", direction: Direction.Up, express: false },
   "<": { kind: "conveyor", direction: Direction.Left, express: false },
-  "}": { kind: "conveyor", direction: Direction.Right, express: true },
+  ">": { kind: "conveyor", direction: Direction.Right, express: false },
   c: { kind: "gear", clockwise: true },
   a: { kind: "gear", clockwise: false },
 };
@@ -16,7 +16,7 @@ const LEGEND: Record<string, Tile> = {
 const LAYOUT = [
   ".........1",
   "..........",
-  "..}}}}}^..",
+  "..>>>>>^..",
   "...#......",
   ".^......a.",
   ".^..c.#...",

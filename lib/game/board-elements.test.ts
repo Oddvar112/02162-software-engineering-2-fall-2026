@@ -72,14 +72,26 @@ describe("conveyor belts", () => {
   });
 
   it.each([
-    [Direction.Down, Direction.Right],
-    [Direction.Up, Direction.Left],
-  ])("turns the robot with the bend onto a belt facing %s", (next, facing) => {
-    const tiles = { "1,1": belt(Direction.Right), "2,1": belt(next) };
-    expect(play(tiles, [{ x: 1, y: 1 }]).robots[0]).toMatchObject({
+    [Direction.Right, 3],
+    [Direction.Left, 1],
+  ])(
+    "rotates a robot on a turning belt to the belt's direction %s, then moves it",
+    (direction, x) => {
+      const tiles = { "2,1": belt(Direction.Down), "2,2": belt(direction) };
+      expect(play(tiles, [{ x: 2, y: 2 }]).robots[0]).toMatchObject({
+        x,
+        z: 2,
+        direction,
+      });
+    },
+  );
+
+  it("does not rotate a robot that a straight belt carries onto a turning belt", () => {
+    const tiles = { "2,1": belt(Direction.Down), "2,2": belt(Direction.Right) };
+    expect(play(tiles, [{ x: 2, y: 1 }]).robots[0]).toMatchObject({
       x: 2,
-      z: 1,
-      direction: facing,
+      z: 2,
+      direction: Direction.Up,
     });
   });
 
@@ -118,7 +130,7 @@ describe("conveyor belts", () => {
     ]);
   });
 
-  it("moves a line of robots on the same belt together", () => {
+  it("does not carry a robot into the tile of the robot ahead on the same belt", () => {
     const tiles = {
       "1,1": belt(Direction.Right),
       "2,1": belt(Direction.Right),
@@ -128,7 +140,7 @@ describe("conveyor belts", () => {
       { x: 2, y: 1 },
     ];
     expect(spots(play(tiles, starts))).toEqual([
-      [2, 1],
+      [1, 1],
       [3, 1],
     ]);
   });
@@ -141,12 +153,12 @@ describe("conveyor belts", () => {
     expect(spots(state)).toEqual([[1, 1]]);
   });
 
-  it("carries a robot on an express belt two tiles", () => {
+  it("carries a robot on an express belt one tile like every other belt", () => {
     const tiles = {
       "1,1": belt(Direction.Right, true),
       "2,1": belt(Direction.Right, true),
     };
-    expect(spots(play(tiles, [{ x: 1, y: 1 }]))).toEqual([[3, 1]]);
+    expect(spots(play(tiles, [{ x: 1, y: 1 }]))).toEqual([[2, 1]]);
   });
 
   it("costs a life when a belt carries a robot into a pit", () => {
