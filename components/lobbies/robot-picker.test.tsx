@@ -13,6 +13,11 @@ const { refresh, rpc } = vi.hoisted(() => ({ refresh: vi.fn(), rpc: vi.fn() }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ rpc }) }));
+vi.mock("@/components/lobbies/robot-preview", () => ({
+  RobotPreview: ({ id }: { id: string | null }) =>
+    id ? <div>Preview of {id}</div> : null,
+  usePreloadRobots: () => undefined,
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -32,6 +37,21 @@ describe("RobotPicker", () => {
     expect(robot("Bolt").getAttribute("aria-pressed")).toBe("true");
     expect(robot("Gizmo").disabled).toBe(true);
     expect(robot("Pixel").disabled).toBe(false);
+  });
+
+  it("shows a robot only after it is clicked, not when it is pointed at", () => {
+    render(<RobotPicker lobbyId="lobby-1" chosen={null} taken={[]} />);
+    fireEvent.mouseEnter(robot("Bolt"));
+    fireEvent.focus(robot("Bolt"));
+    expect(screen.queryByText(/Preview of/)).toBeNull();
+    fireEvent.click(robot("Bolt"));
+    expect(screen.getByText("Preview of bolt")).toBeDefined();
+    expect(screen.getByText(/The reckless racer/)).toBeDefined();
+  });
+
+  it("shows the robot I already have when the lobby opens", () => {
+    render(<RobotPicker lobbyId="lobby-1" chosen="glitch" taken={[]} />);
+    expect(screen.getByText("Preview of glitch")).toBeDefined();
   });
 
   it("sends the chosen model to the server and refreshes the lobby", async () => {
