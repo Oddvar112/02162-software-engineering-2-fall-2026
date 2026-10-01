@@ -1,7 +1,8 @@
 import type { Board } from "@/lib/board";
 import { Direction } from "@/lib/direction";
 import { describe, expect, it } from "vitest";
-import { resolveRound, turn, type Programs } from "./engine";
+import { resolveRound, type Programs } from "./engine";
+import { turn } from "./grid";
 import type { ActionCard, GameState } from "./types";
 
 const flatBoard = (): Board => ({

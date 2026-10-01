@@ -1,25 +1,9 @@
-import { Direction } from "@/lib/direction";
+import type { Direction } from "@/lib/direction";
+import { activateBoard } from "@/lib/game/board-elements";
+import { neighbour, place, robotAt, turn, wallBetween } from "@/lib/game/grid";
 import type { ActionCard, GameState, RobotState } from "@/lib/game/types";
 
 export type Programs = Record<string, ActionCard[]>;
-
-const DIRECTIONS: Direction[] = [
-  Direction.Up,
-  Direction.Right,
-  Direction.Down,
-  Direction.Left,
-];
-
-const STEPS: Record<Direction, [number, number]> = {
-  [Direction.Up]: [0, -1],
-  [Direction.Right]: [1, 0],
-  [Direction.Down]: [0, 1],
-  [Direction.Left]: [-1, 0],
-};
-
-export function turn(direction: Direction, amount: number): Direction {
-  return DIRECTIONS[(DIRECTIONS.indexOf(direction) + amount + 4) % 4];
-}
 
 function moveRobot(
   state: GameState,
@@ -27,39 +11,11 @@ function moveRobot(
   direction: Direction,
   fallen: Set<string>,
 ): boolean {
-  const [dx, dz] = STEPS[direction];
-  const x = robot.x + dx;
-  const z = robot.z + dz;
-  const blocked = state.board.walls.some(
-    ({ One, Two }) =>
-      (One.x === robot.x && One.y === robot.z && Two.x === x && Two.y === z) ||
-      (Two.x === robot.x && Two.y === robot.z && One.x === x && One.y === z),
-  );
-  if (blocked) return false;
-
-  const occupant = state.robots.find(
-    (other) =>
-      other.id !== robot.id &&
-      !fallen.has(other.id) &&
-      other.x === x &&
-      other.z === z,
-  );
+  const target = neighbour(robot, direction);
+  if (wallBetween(state.board, robot, target)) return false;
+  const occupant = robotAt(state, target, fallen);
   if (occupant && !moveRobot(state, occupant, direction, fallen)) return false;
-  robot.x = x;
-  robot.z = z;
-  if (
-    x < 0 ||
-    z < 0 ||
-    x >= state.board.width ||
-    z >= state.board.height ||
-    state.board.tiles[z][x].kind === "pit"
-  ) {
-    fallen.add(robot.id);
-    const player = state.players.find(
-      (candidate) => candidate.id === robot.playerId,
-    )!;
-    player.lives = Math.max(0, player.lives - 1);
-  }
+  place(state, robot, target, fallen);
   return true;
 }
 
@@ -164,6 +120,10 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
         }
       }
     }
+
+    activateBoard(state, fallen, (message) =>
+      recordFrame(register + 1, null, `Register ${register + 1}: ${message}`),
+    );
 
     for (const player of state.players) {
       const robot = state.robots.find(
