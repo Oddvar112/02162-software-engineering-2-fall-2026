@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import roster from "@/lib/robots.json";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 import { LobbyRealtime } from "./lobby-realtime";
+import { RobotPicker } from "./robot-picker";
 import { StartLobbyButton } from "./start-lobby-button";
 
 export default async function LobbyContent({
@@ -19,7 +21,7 @@ export default async function LobbyContent({
   const { data: lobby } = await supabase
     .from("lobbies")
     .select(
-      "id, max_players, status, created_by, game, lobby_players(user_id, joined_at)",
+      "id, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
@@ -40,7 +42,9 @@ export default async function LobbyContent({
     );
 
   const names = new Map(profiles?.map((p) => [p.id, p.display_name]) ?? []);
-  const isMember = players.some((p) => p.user_id === userId);
+  const me = players.find((p) => p.user_id === userId);
+  const isMember = me !== undefined;
+  const robotNames = new Map(roster.map((robot) => [robot.id, robot.name]));
 
   const { data: game } =
     lobby.status === "finished"
@@ -88,6 +92,9 @@ export default async function LobbyContent({
               {players.map((player) => (
                 <li key={player.user_id} className="py-1">
                   {names.get(player.user_id) ?? "Unknown player"}
+                  <span className="ml-2 text-sm text-foreground/70">
+                    {robotNames.get(player.robot_model) ?? "No robot yet"}
+                  </span>
                   {player.user_id === lobby.created_by && (
                     <span className="ml-2 text-xs text-foreground/50">
                       host
@@ -98,12 +105,22 @@ export default async function LobbyContent({
             </ul>
           </div>
           <LobbyRealtime lobbyId={lobby.id} isMember={isMember} />
+          {me && lobby.status === "open" && (
+            <RobotPicker
+              lobbyId={lobby.id}
+              chosen={me.robot_model}
+              taken={players
+                .filter((p) => p.user_id !== userId && p.robot_model)
+                .map((p) => p.robot_model)}
+            />
+          )}
           {isMember &&
             lobby.status === "open" &&
             lobby.created_by === userId && (
               <StartLobbyButton
                 lobbyId={lobby.id}
                 playerCount={players.length}
+                robotsChosen={players.every((p) => p.robot_model)}
               />
             )}
           {isMember && lobby.status === "open" ? (
