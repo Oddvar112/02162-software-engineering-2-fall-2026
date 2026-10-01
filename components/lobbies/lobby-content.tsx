@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import roster from "@/lib/robots.json";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 import { LobbyRealtime } from "./lobby-realtime";
+import { OtherRobots } from "./other-robots";
 import { RobotPicker } from "./robot-picker";
 import { StartLobbyButton } from "./start-lobby-button";
 
@@ -44,6 +45,7 @@ export default async function LobbyContent({
   const names = new Map(profiles?.map((p) => [p.id, p.display_name]) ?? []);
   const me = players.find((p) => p.user_id === userId);
   const isMember = me !== undefined;
+  const canChoose = isMember && lobby.status === "open";
   const robotNames = new Map(roster.map((robot) => [robot.id, robot.name]));
 
   const { data: game } =
@@ -57,7 +59,16 @@ export default async function LobbyContent({
   const winnerName = game?.winner_id ? names.get(game.winner_id) : null;
 
   return (
-    <main className="flex min-h-screen flex-col items-center">
+    <main className="relative flex min-h-screen flex-col items-center">
+      <OtherRobots
+        players={players
+          .filter((p) => p.user_id !== userId && p.robot_model)
+          .map((p) => ({
+            id: p.user_id,
+            name: names.get(p.user_id) ?? "Unknown player",
+            robot: p.robot_model,
+          }))}
+      />
       <div className="flex w-full flex-1 flex-col items-center">
         <nav className="flex h-16 w-full justify-center border-b border-b-foreground/10">
           <div className="flex w-full max-w-5xl items-center justify-between p-3 px-5 text-sm">
@@ -86,34 +97,42 @@ export default async function LobbyContent({
               Go to the game
             </Link>
           )}
-          <div className="mt-4 rounded border p-4">
-            <h2 className="mb-2 text-xl font-semibold">Players</h2>
-            <ul className="text-left">
-              {players.map((player) => (
-                <li key={player.user_id} className="py-1">
-                  {names.get(player.user_id) ?? "Unknown player"}
-                  <span className="ml-2 text-sm text-foreground/70">
-                    {robotNames.get(player.robot_model) ?? "No robot yet"}
-                  </span>
-                  {player.user_id === lobby.created_by && (
-                    <span className="ml-2 text-xs text-foreground/50">
-                      host
+          <div
+            className={
+              canChoose
+                ? "mt-4 grid w-full max-w-5xl justify-items-center gap-6 md:grid-cols-[1fr_auto_1fr] md:items-start"
+                : "mt-4"
+            }
+          >
+            <div className="rounded border p-4 md:justify-self-end">
+              <h2 className="mb-2 text-xl font-semibold">Players</h2>
+              <ul className="text-left">
+                {players.map((player) => (
+                  <li key={player.user_id} className="py-1">
+                    {names.get(player.user_id) ?? "Unknown player"}
+                    <span className="ml-2 text-sm text-foreground/70">
+                      {robotNames.get(player.robot_model) ?? "No robot yet"}
                     </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+                    {player.user_id === lobby.created_by && (
+                      <span className="ml-2 text-xs text-foreground/50">
+                        host
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {me && lobby.status === "open" && (
+              <RobotPicker
+                lobbyId={lobby.id}
+                chosen={me.robot_model}
+                taken={players
+                  .filter((p) => p.user_id !== userId && p.robot_model)
+                  .map((p) => p.robot_model)}
+              />
+            )}
           </div>
           <LobbyRealtime lobbyId={lobby.id} isMember={isMember} />
-          {me && lobby.status === "open" && (
-            <RobotPicker
-              lobbyId={lobby.id}
-              chosen={me.robot_model}
-              taken={players
-                .filter((p) => p.user_id !== userId && p.robot_model)
-                .map((p) => p.robot_model)}
-            />
-          )}
           {isMember &&
             lobby.status === "open" &&
             lobby.created_by === userId && (

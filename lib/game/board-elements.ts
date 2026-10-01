@@ -26,7 +26,7 @@ function isTurning(board: Board, at: Point, belt: ConveyorTile): boolean {
 function moveConveyors(state: GameState, fallen: Set<string>): boolean {
   const carries = state.robots.flatMap((robot): Carry[] => {
     const belt = tileAt(state.board, robot);
-    if (fallen.has(robot.id) || belt?.kind !== "conveyor") return [];
+    if (belt?.kind !== "conveyor") return [];
     const target = neighbour(robot, belt.direction);
     if (wallBetween(state.board, robot, target)) return [];
     return [{ robot, belt, ...target }];
@@ -46,11 +46,11 @@ function moveConveyors(state: GameState, fallen: Set<string>): boolean {
   return allowed.length > 0;
 }
 
-function turnGears(state: GameState, fallen: Set<string>): boolean {
+function turnGears(state: GameState): boolean {
   let turned = false;
   for (const robot of state.robots) {
     const gear = tileAt(state.board, robot);
-    if (fallen.has(robot.id) || gear?.kind !== "gear") continue;
+    if (gear?.kind !== "gear") continue;
     robot.direction = turn(robot.direction, gear.clockwise ? 1 : -1);
     turned = true;
   }
@@ -63,5 +63,5 @@ export function activateBoard(
   record: (message: string) => void,
 ) {
   if (moveConveyors(state, fallen)) record("Conveyors move");
-  if (turnGears(state, fallen)) record("Gears turn");
+  if (turnGears(state)) record("Gears turn");
 }

@@ -40,8 +40,8 @@ function Conveyor({ direction, express }: ConveyorTile) {
       {[-0.105, 0.105].map((x) => (
         <mesh
           key={x}
-          position={[x, 0.145, -0.08]}
-          rotation={[0, x < 0 ? -Math.PI / 4 : Math.PI / 4, 0]}
+          position={[x, 0.145, 0.08]}
+          rotation={[0, x < 0 ? Math.PI / 4 : -Math.PI / 4, 0]}
         >
           <boxGeometry args={[0.29, 0.025, 0.065]} />
           <meshBasicMaterial color="#d6fbff" />
