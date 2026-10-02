@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(43);
+select plan(44);
 
 insert into auth.users (id, email) values
   ('40000000-0000-4000-8000-000000000001', 'game-alice@example.test'),
@@ -245,6 +245,22 @@ select is(
 select is(
   public.begin_next_round('50000000-0000-4000-8000-000000000001', 1, '[]'),
   false, 'the same round cannot be started twice'
+);
+
+select ok(
+  has_table_privilege('service_role', 'public.games', 'SELECT')
+  and has_table_privilege('service_role', 'public.games', 'UPDATE')
+  and has_table_privilege('service_role', 'public.game_players', 'SELECT')
+  and has_table_privilege('service_role', 'public.game_players', 'INSERT')
+  and has_table_privilege('service_role', 'public.hands', 'SELECT')
+  and has_table_privilege('service_role', 'public.hands', 'INSERT')
+  and has_table_privilege('service_role', 'public.programs', 'SELECT')
+  and has_table_privilege('service_role', 'public.lobbies', 'SELECT')
+  and has_table_privilege('service_role', 'public.lobby_players', 'SELECT')
+  and has_table_privilege('service_role', 'public.users', 'SELECT')
+  and has_function_privilege('service_role', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, uuid)', 'EXECUTE')
+  and has_function_privilege('service_role', 'public.begin_next_round(uuid, integer, jsonb)', 'EXECUTE'),
+  'the server role can read and write everything the game needs'
 );
 
 select * from finish();

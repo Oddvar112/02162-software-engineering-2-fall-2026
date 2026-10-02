@@ -71,6 +71,8 @@ npx supabase db push
 
 Commit the migration file with the rest of your change.
 
+The hosted project gives new tables and functions no rights by default, while the local database gives every role full rights. A migration that adds a table or a function must therefore grant what the app needs: to `authenticated` for the browser, and to `service_role` for the server code in `lib/game/`. Without the grant everything works locally and fails in production.
+
 Never edit a migration that has already been pushed. Supabase tracks which ones have run by their timestamp, so edits to an old file are silently skipped — the repo and the database drift apart and nobody notices until something breaks. Make a new migration instead.
 
 ## Deployment secrets
