@@ -246,7 +246,7 @@ function labeledPoint(slide, number, heading, body, x, y, width, color = C.lime)
     ["02", "PROGRAM PRIVATELY", "Receive and order action cards"],
     ["03", "EXECUTE BY PRIORITY", "Reveal and resolve locked programs"],
     ["04", "APPLY BOARD RULES", "Conveyors, gears, walls, pits and checkpoints"],
-    ["05", "TRACK CONSEQUENCES", "Damage, lives and checkpoint progress"],
+    ["05", "TRACK CONSEQUENCES", "Damage and checkpoint progress"],
     ["06", "SYNCHRONIZE RESULTS", "The same state for every player"],
   ];
   for (let i = 0; i < stories.length; i++) {
