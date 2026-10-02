@@ -105,10 +105,6 @@ export function GameHeader({
                 {currentPlayer?.damage ?? 0} damage
               </span>
               <span>
-                <Heart aria-hidden="true" />
-                {currentPlayer?.lives ?? 0} lives
-              </span>
-              <span>
                 <Flag aria-hidden="true" />
                 {currentPlayer?.checkpointsReached ?? 0} checkpoints
               </span>
