@@ -68,7 +68,6 @@ export function LeaveLobbyButton({
 
   return (
     <div className="flex flex-col items-center gap-2">
-
       <div className="flex gap-2">
         <Button
           variant={confirming ? "destructive" : "outline"}
@@ -87,7 +86,11 @@ export function LeaveLobbyButton({
           </Button>
         )}
       </div>
-      {confirming && <p className="text-sm text-foreground/70">Close this lobby for everyone?</p>}
+      {confirming && (
+        <p className="text-sm text-foreground/70">
+          Close this lobby for everyone?
+        </p>
+      )}
       {error && (
         <p role="alert" className="text-sm text-red-600">
           {error}
