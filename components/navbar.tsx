@@ -12,17 +12,7 @@ export function Navbar() {
             href="/"
             className="flex items-center transition-opacity hover:opacity-90"
           >
-            <span
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight select-none"
-              style={{
-                WebkitTextStroke: "1px #000",
-                paintOrder: "stroke fill",
-                textShadow: "0 1px 2px rgba(0, 0, 0, 0.6), 0 0 1px #000",
-              }}
-            >
-              <span className="text-white">Robo</span>
-              <span className="text-orange-500">Rally</span>
-            </span>
+            <image href="../public/logo/RoboRallyLogo.png"/>
           </Link>
         </div>
         <div className="flex items-center gap-3">

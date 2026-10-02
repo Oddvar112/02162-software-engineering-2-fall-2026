@@ -13,7 +13,7 @@ export async function AuthButton() {
 
   return user ? (
     <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-foreground/80 hidden sm:inline">
+      <span className="hidden text-sm font-medium text-foreground/80 sm:inline">
         {user.email}!
       </span>
       <LogoutButton email={user.email} />

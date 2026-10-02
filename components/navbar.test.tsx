@@ -19,4 +19,3 @@ it("renders the RoboRally brand link with prominent styling", () => {
   expect(screen.getByText("Robo")).toBeDefined();
   expect(screen.getByText("Rally")).toBeDefined();
 });
-
