@@ -123,7 +123,7 @@ select is(
     '50000000-0000-4000-8000-000000000001', 1,
     (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
     'end-of-round', '[]', '[]',
-    '[{"user_id":"40000000-0000-4000-8000-000000000001","x":0,"z":0,"direction":1,"lives":2,"checkpoints_reached":0}]',
+    '[{"user_id":"40000000-0000-4000-8000-000000000001","x":0,"z":0,"direction":1,"checkpoints_reached":0}]',
     '[]',
     null
   ),
@@ -138,8 +138,8 @@ select is(
   false, 'the same round cannot be applied twice'
 );
 select is(
-  (select lives from public.game_players where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000001'),
-  2, 'the applied result updated the player'
+  (select row(z, lives)::text from public.game_players where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000001'),
+  '(0,3)', 'the applied result moved the player, and a result without lives is accepted'
 );
 set local role authenticated;
 set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000002';
