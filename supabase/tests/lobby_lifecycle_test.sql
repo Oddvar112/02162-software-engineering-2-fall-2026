@@ -126,6 +126,12 @@ select throws_ok(
   '42501', 'permission denied for table lobby_players', 'direct updates cannot move membership between lobbies'
 );
 
+reset role;
+update public.lobby_players set robot_model = 'bolt'
+  where lobby_id = '30000000-0000-4000-8000-000000000001' and user_id = '10000000-0000-4000-8000-000000000001';
+update public.lobby_players set robot_model = 'gizmo'
+  where lobby_id = '30000000-0000-4000-8000-000000000001' and user_id = '10000000-0000-4000-8000-000000000002';
+set local role authenticated;
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 select is(
   public.start_lobby('30000000-0000-4000-8000-000000000001'),

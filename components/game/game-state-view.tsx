@@ -1,18 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  Bot,
-  ChevronDown,
-  Flag,
-  LoaderCircle,
-  LockKeyhole,
-  Radio,
-  RefreshCw,
-  Shield,
-  Wifi,
-  WifiOff,
-} from "lucide-react";
+import { AlertTriangle, LoaderCircle, RefreshCw } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -23,21 +11,28 @@ import {
 } from "react";
 import styles from "@/components/game/game-state.module.css";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import type { GameState } from "@/lib/game/types";
-import { DIRECTION_LABELS, PHASE_LABELS } from "@/lib/game/types";
 import { GameBoard } from "./board/game-board";
+import { GameHeader } from "./game-header";
+import { PlayerList } from "./player-list";
 import { ProgramEditor } from "./program-editor";
-import { useGamePlayback } from "./use-game-playback";
+import { RoundResult } from "./round-result";
+import { PLAYBACK_STEP_MS, useGamePlayback } from "./use-game-playback";
 
 const SYNC_INTERVAL_MS = 5_000;
+
+function useCountdown(endsAt: string | null): number | null {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!endsAt) return;
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, [endsAt]);
+  if (!endsAt) return null;
+  return Math.max(0, Math.ceil((new Date(endsAt).getTime() - now) / 1000));
+}
 
 export function GameLoading() {
   return (
@@ -69,11 +64,8 @@ function GameError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-export function GameStateView({
-  playerId = "player-1",
-}: {
-  playerId?: string;
-}) {
+export function GameStateView({ gameId }: { gameId: string }) {
+  const endpoint = `/api/games/${gameId}`;
   const {
     gameState,
     receiveState: setGameState,
@@ -88,10 +80,14 @@ export function GameStateView({
   const submitting = useRef(false);
   const [playersCollapsed, setPlayersCollapsed] = useState(false);
   const requestController = useRef<AbortController | null>(null);
+  const reloadWanted = useRef(false);
   const playerListId = useId();
 
   const loadGameState = useCallback(async () => {
-    if (requestController.current || submitting.current) return;
+    if (requestController.current || submitting.current) {
+      reloadWanted.current = true;
+      return;
+    }
 
     const controller = new AbortController();
     requestController.current = controller;
@@ -100,13 +96,10 @@ export function GameStateView({
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/game-state?player=${encodeURIComponent(playerId)}`,
-        {
-          cache: "no-store",
-          signal: controller.signal,
-        },
-      );
+      const response = await fetch(endpoint, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
       if (!response.ok)
         throw new Error(`Request failed with ${response.status}`);
 
@@ -126,13 +119,42 @@ export function GameStateView({
       if (requestController.current === controller) {
         requestController.current = null;
         setIsSyncing(false);
+        if (reloadWanted.current) {
+          reloadWanted.current = false;
+          void loadGameState();
+        }
       }
     }
-  }, [playerId, setGameState]);
+  }, [endpoint, setGameState]);
 
   useEffect(() => {
     void loadGameState();
     const interval = window.setInterval(loadGameState, SYNC_INTERVAL_MS);
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`game:${gameId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "games",
+          filter: `id=eq.${gameId}`,
+        },
+        () => void loadGameState(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "game_players",
+          filter: `game_id=eq.${gameId}`,
+        },
+        () => void loadGameState(),
+      )
+      .subscribe();
 
     const syncWhenVisible = () => {
       if (document.visibilityState === "visible") void loadGameState();
@@ -142,18 +164,16 @@ export function GameStateView({
     document.addEventListener("visibilitychange", syncWhenVisible);
 
     return () => {
+      supabase.removeChannel(channel);
       window.clearInterval(interval);
       window.removeEventListener("online", loadGameState);
       document.removeEventListener("visibilitychange", syncWhenVisible);
       requestController.current?.abort();
       requestController.current = null;
     };
-  }, [loadGameState]);
+  }, [gameId, loadGameState]);
 
-  async function submitAction(
-    action: "lock-in" | "next-round",
-    cardIds?: string[],
-  ) {
+  async function submitAction(action: "lock-in", cardIds?: string[]) {
     if (!gameState || submitting.current || isPlaying) return;
     submitting.current = true;
     setIsSubmitting(true);
@@ -163,15 +183,10 @@ export function GameStateView({
     requestController.current = null;
     setIsSyncing(false);
     try {
-      const response = await fetch("/api/game-state", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          playerId,
-          round: gameState.round,
-          cardIds,
-        }),
+        body: JSON.stringify({ action, round: gameState.round, cardIds }),
       });
       const result = await response.json();
       if (!response.ok)
@@ -195,6 +210,19 @@ export function GameStateView({
     }
   }
 
+  const secondsLeft = useCountdown(gameState?.timerEndsAt ?? null);
+  const router = useRouter();
+  const finishedLobby =
+    gameState?.phase === "finished" && !isPlaying ? gameState.lobbyId : null;
+  useEffect(() => {
+    if (!finishedLobby) return;
+    const timer = window.setTimeout(
+      () => router.replace(`/lobbies/${finishedLobby}`),
+      PLAYBACK_STEP_MS * 3,
+    );
+    return () => window.clearTimeout(timer);
+  }, [finishedLobby, router]);
+
   const robotById = useMemo(
     () => new Map(gameState?.robots.map((robot) => [robot.id, robot]) ?? []),
     [gameState],
@@ -216,203 +244,32 @@ export function GameStateView({
 
   return (
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <div className={styles.gameIdentity}>
-          <span className={styles.brandMark} aria-hidden="true">
-            <Bot />
-          </span>
-          <div>
-            <p className={styles.eyebrow}>SYS::{gameState.gameId}</p>
-            <h1>
-              FACTORY FLOOR / {gameState.board.width}×{gameState.board.height}
-            </h1>
-          </div>
-        </div>
-
-        <div className={styles.roundStatus}>
-          <span className={styles.roundNumber}>
-            ROUND {String(gameState.round).padStart(2, "0")}
-          </span>
-          <span className={styles.phaseBadge}>
-            <Radio aria-hidden="true" />
-            MODE / {PHASE_LABELS[gameState.phase]}
-          </span>
-        </div>
-
-        <div className={styles.accountArea}>
-          <span className={error ? styles.syncError : styles.syncStatus}>
-            {error ? (
-              <WifiOff aria-hidden="true" />
-            ) : (
-              <Wifi aria-hidden="true" />
-            )}
-            <span>{error ? "LINK DOWN" : isSyncing ? "SYNC" : "LINK OK"}</span>
-          </span>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={styles.playerMenuTrigger} type="button">
-                <span
-                  className={styles.accountSwatch}
-                  style={{ backgroundColor: currentRobot?.color }}
-                  aria-hidden="true"
-                />
-                <span>{currentPlayer?.name ?? "Player"}</span>
-                <ChevronDown
-                  className={styles.profileChevron}
-                  aria-hidden="true"
-                />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className={styles.playerMenu}>
-              <DropdownMenuLabel className={styles.playerMenuLabel}>
-                <strong>{currentPlayer?.name ?? "Player"}</strong>
-                <span>
-                  {currentRobot?.name} ·{" "}
-                  {currentRobot
-                    ? DIRECTION_LABELS[currentRobot.direction]
-                    : "Robot"}
-                </span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className={styles.menuSeparator} />
-              <div className={styles.menuStats}>
-                <span>
-                  <Shield aria-hidden="true" />
-                  {currentPlayer?.damage ?? 0} damage
-                </span>
-                <span>
-                  <Flag aria-hidden="true" />
-                  {currentPlayer?.checkpointsReached ?? 0} checkpoints
-                </span>
-              </div>
-              <DropdownMenuSeparator className={styles.menuSeparator} />
-              <DropdownMenuLabel>Demo player</DropdownMenuLabel>
-              {gameState.players.map((player) => (
-                <DropdownMenuItem key={player.id} asChild>
-                  <a href={`/game?player=${player.id}`}>
-                    {player.name}
-                    {player.id === playerId ? " (you)" : ""}
-                  </a>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator className={styles.menuSeparator} />
-              <DropdownMenuItem
-                className={styles.menuItem}
-                onSelect={loadGameState}
-              >
-                <RefreshCw className={isSyncing ? styles.spinner : undefined} />
-                Refresh game state
-                <span>{syncedAt}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+      <GameHeader
+        gameState={gameState}
+        currentPlayer={currentPlayer}
+        currentRobot={currentRobot}
+        secondsLeft={secondsLeft}
+        error={error}
+        isSyncing={isSyncing}
+        syncedAt={syncedAt}
+        onRefresh={loadGameState}
+      />
 
       <div className={styles.workspace}>
         <section className={styles.boardPanel} aria-label="Game board">
           <div className={styles.boardScene}>
             <GameBoard gameState={gameState} />
-            <section
-              className={`${styles.boardPlayers} ${playersCollapsed ? styles.playersCollapsed : ""}`}
-              aria-label="Players"
-            >
-              <button
-                type="button"
-                className={styles.playersToggle}
-                aria-expanded={!playersCollapsed}
-                aria-controls={playerListId}
-                onClick={() => setPlayersCollapsed((collapsed) => !collapsed)}
-              >
-                <div>
-                  <p className={styles.eyebrow}>Network</p>
-                  <h2>CONNECTED UNITS</h2>
-                </div>
-                <span className={styles.playersToggleEnd}>
-                  <span className={styles.playerCount}>
-                    {gameState.players.length}
-                  </span>
-                  <ChevronDown
-                    className={styles.playersChevron}
-                    aria-hidden="true"
-                  />
-                </span>
-              </button>
-
-              <div
-                className={styles.playerList}
-                id={playerListId}
-                hidden={playersCollapsed}
-              >
-                {gameState.players.map((player) => {
-                  const robot = robotById.get(player.robotId);
-                  const isCurrent = player.id === gameState.currentPlayerId;
-
-                  return (
-                    <article
-                      key={player.id}
-                      className={`${styles.playerCard} ${isCurrent ? styles.currentPlayer : ""}`}
-                    >
-                      <div className={styles.playerHeader}>
-                        <span
-                          className={styles.robotSwatch}
-                          style={{ backgroundColor: robot?.color }}
-                          aria-hidden="true"
-                        />
-                        <div className={styles.playerName}>
-                          <strong>{player.name}</strong>
-                          <span>
-                            {robot?.name} ·{" "}
-                            {robot
-                              ? DIRECTION_LABELS[robot.direction]
-                              : "Unknown"}
-                            {robot ? ` · X${robot.x + 1} Y${robot.z + 1}` : ""}
-                          </span>
-                        </div>
-                        {isCurrent ? (
-                          <span className={styles.youBadge}>You</span>
-                        ) : (
-                          <span
-                            className={
-                              player.connected
-                                ? styles.onlineDot
-                                : styles.offlineDot
-                            }
-                            title={
-                              player.connected ? "Connected" : "Disconnected"
-                            }
-                            aria-label={
-                              player.connected ? "Connected" : "Disconnected"
-                            }
-                          />
-                        )}
-                      </div>
-
-                      <div className={styles.playerStats}>
-                        <span>
-                          <Shield aria-label="Damage" />
-                          {player.damage}
-                        </span>
-                        <span>
-                          <Flag aria-label="Checkpoints" />
-                          {player.checkpointsReached}
-                        </span>
-                        <span className={styles.hiddenCards}>
-                          <LockKeyhole aria-hidden="true" />
-                          {player.programLocked
-                            ? "Ready"
-                            : `${player.programmedCardCount}/${gameState.registerCount}`}
-                        </span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
+            <PlayerList
+              gameState={gameState}
+              robotById={robotById}
+              collapsed={playersCollapsed}
+              listId={playerListId}
+              onToggle={() => setPlayersCollapsed((collapsed) => !collapsed)}
+            />
           </div>
           <section className={styles.boardCards} aria-label="Your action cards">
             <ProgramEditor
-              key={`${gameState.gameId}-${gameState.round}-${playerId}`}
+              key={`${gameState.gameId}-${gameState.round}`}
               gameState={gameState}
               isSubmitting={isSubmitting}
               activeCardId={activeFrame?.cardId}
@@ -424,50 +281,11 @@ export function GameStateView({
                 {submitError}
               </p>
             )}
-            {gameState.phase === "end-of-round" && (
-              <div className={styles.turnResult}>
-                <p role="status">
-                  Round {gameState.round} resolved. The board shows the
-                  resulting positions.
-                </p>
-                <details>
-                  <summary>
-                    Executed actions ({gameState.executionLog.length})
-                  </summary>
-                  <ol>
-                    {gameState.executionLog.map((entry, index) => (
-                      <li key={index}>
-                        Register {entry.register} ·{" "}
-                        {
-                          gameState.players.find(
-                            (player) => player.id === entry.playerId,
-                          )?.name
-                        }
-                        : {entry.card.name} (P.{entry.card.priority})
-                      </li>
-                    ))}
-                  </ol>
-                </details>
-                {gameState.executionFrames.length > 0 && (
-                  <button
-                    type="button"
-                    className={styles.replayButton}
-                    onClick={replay}
-                    disabled={isSubmitting}
-                  >
-                    <RefreshCw aria-hidden="true" /> Replay movement
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={styles.lockInButton}
-                  disabled={isSubmitting}
-                  onClick={() => void submitAction("next-round")}
-                >
-                  Start next round
-                </button>
-              </div>
-            )}
+            <RoundResult
+              gameState={gameState}
+              disabled={isSubmitting}
+              onReplay={replay}
+            />
           </section>
         </section>
       </div>

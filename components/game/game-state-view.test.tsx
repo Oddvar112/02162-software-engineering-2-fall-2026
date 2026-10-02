@@ -8,19 +8,28 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { getMockGameState } from "@/lib/game/mock-game-state";
+import { buildGameState } from "@/lib/game/fixtures";
 import { GameStateView } from "./game-state-view";
 
 vi.mock("./board/game-board", () => ({
   GameBoard: () => <div>Board preview</div>,
 }));
+vi.mock("@/lib/supabase/client", () => {
+  const channel = { on: vi.fn().mockReturnThis(), subscribe: vi.fn() };
+  return {
+    createClient: () => ({
+      channel: () => channel,
+      removeChannel: vi.fn(),
+    }),
+  };
+});
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
 
 it("shows submission errors, preserves the draft for retry, and locks accepted programs", async () => {
-  const state = getMockGameState();
+  const state = buildGameState();
   const locked = structuredClone(state);
   locked.players[0].programLocked = true;
   locked.players[0].programmedCardCount = 5;
@@ -43,7 +52,7 @@ it("shows submission errors, preserves the draft for retry, and locks accepted p
     return { ok: true, json: async () => (accepted ? locked : state) };
   });
   vi.stubGlobal("fetch", fetchMock);
-  render(<GameStateView />);
+  render(<GameStateView gameId="game-1" />);
   await screen.findByRole("button", { name: "Move 3, priority 840" });
   for (const card of state.currentPlayerCards.slice(0, 5))
     fireEvent.click(
@@ -79,13 +88,12 @@ it("shows submission errors, preserves the draft for retry, and locks accepted p
   expect(JSON.parse(submission![1].body)).toMatchObject({
     action: "lock-in",
     round: 1,
-    playerId: "player-1",
     cardIds: state.currentPlayerCards.slice(0, 5).map((card) => card.id),
   });
 });
 
 it("does not let a poll started before submission overwrite the locked state", async () => {
-  const state = getMockGameState();
+  const state = buildGameState();
   const locked = structuredClone(state);
   locked.players[0].programLocked = true;
   locked.currentPlayerProgram = locked.currentPlayerCards.slice(0, 5);
@@ -108,7 +116,7 @@ it("does not let a poll started before submission overwrite the locked state", a
       });
     }),
   );
-  render(<GameStateView />);
+  render(<GameStateView gameId="game-1" />);
   await screen.findByRole("button", { name: "Move 3, priority 840" });
   for (const card of state.currentPlayerCards.slice(0, 5))
     fireEvent.click(

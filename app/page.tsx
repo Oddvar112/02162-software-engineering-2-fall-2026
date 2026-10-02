@@ -34,10 +34,6 @@ export default function Home() {
               <Link href={"/lobbies"}>Join Lobby</Link>
             </Button>
           </div>
-
-          <Button asChild className="mt-3">
-            <Link href="/game">Open 3D board prototype</Link>
-          </Button>
         </div>
       </div>
     </main>

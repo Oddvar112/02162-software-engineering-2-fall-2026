@@ -6,14 +6,14 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getMockGameState } from "@/lib/game/mock-game-state";
+import { buildGameState } from "@/lib/game/fixtures";
 import { ProgramEditor } from "./program-editor";
 
 afterEach(cleanup);
 
 describe("program editor", () => {
   it("limits selections, supports ordering and replacement, and submits in register order", () => {
-    const gameState = getMockGameState();
+    const gameState = buildGameState();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(
       <ProgramEditor
@@ -59,7 +59,7 @@ describe("program editor", () => {
   });
 
   it("keeps a draft through polling and replaces it with the server's locked program", () => {
-    const gameState = getMockGameState();
+    const gameState = buildGameState();
     const props = { gameState, isSubmitting: false, onSubmit: vi.fn() };
     const { rerender } = render(<ProgramEditor {...props} />);
     fireEvent.click(
@@ -97,8 +97,8 @@ describe("program editor", () => {
   });
 
   it("disables edits while submitting but lets an unlocked player program while others wait", () => {
-    const gameState = getMockGameState();
-    gameState.phase = "waiting";
+    const gameState = buildGameState();
+    gameState.players[1].programLocked = true;
     const props = { gameState, isSubmitting: false, onSubmit: vi.fn() };
     const { rerender } = render(<ProgramEditor {...props} />);
     const card = screen.getByRole("button", {
