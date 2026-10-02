@@ -10,9 +10,16 @@ export function Navbar() {
         <div className="flex items-center gap-5">
           <Link
             href="/"
-            className="text-2xl sm:text-3xl font-black tracking-wider uppercase bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 bg-clip-text text-transparent hover:opacity-90 transition-opacity drop-shadow-sm"
+            className="text-2xl sm:text-3xl font-extrabold tracking-tight select-none hover:opacity-90 transition-opacity"
+            style={{
+              WebkitTextStroke: "1.5px #000",
+              paintOrder: "stroke fill",
+              textShadow:
+                "-1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000, 0 2px 4px rgba(0, 0, 0, 0.4)",
+            }}
           >
-            RoboRally
+            <span className="text-white">Robo</span>
+            <span className="text-orange-500">Rally</span>
           </Link>
         </div>
         <div className="flex items-center gap-3">

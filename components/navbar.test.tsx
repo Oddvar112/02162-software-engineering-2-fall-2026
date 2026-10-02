@@ -16,6 +16,8 @@ it("renders the RoboRally brand link with prominent styling", () => {
   const link = screen.getByRole("link", { name: "RoboRally" });
   expect(link).toBeDefined();
   expect(link.getAttribute("href")).toBe("/");
-  expect(link.className).toContain("font-black");
+  expect(link.className).toContain("font-extrabold");
+  expect(screen.getByText("Robo")).toBeDefined();
+  expect(screen.getByText("Rally")).toBeDefined();
 });
 
