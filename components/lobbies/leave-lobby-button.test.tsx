@@ -33,15 +33,6 @@ describe("LeaveLobbyButton", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it("warns the host that closing removes the lobby for everyone", () => {
-    render(<LeaveLobbyButton lobbyId="lobby-1" isHost={true} />);
-
-    expect(screen.getByRole("button", { name: "Close lobby" })).toBeDefined();
-    expect(
-      screen.getByText("Closing removes the lobby for everyone."),
-    ).toBeDefined();
-  });
-
   it.each([
     ["not_in_lobby", "You are not a member of this lobby."],
     ["lobby_not_open", "This game has already started."],

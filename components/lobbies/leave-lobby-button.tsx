@@ -68,8 +68,6 @@ export function LeaveLobbyButton({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      {confirming && <p className="text-sm">Close this lobby for everyone?</p>}
-
       <div className="flex gap-2">
         <Button
           variant={confirming ? "destructive" : "outline"}
@@ -88,10 +86,9 @@ export function LeaveLobbyButton({
           </Button>
         )}
       </div>
-
-      {isHost && !confirming && (
-        <p className="text-xs text-foreground/50">
-          Closing removes the lobby for everyone.
+      {confirming && (
+        <p className="text-sm text-foreground/70">
+          Close this lobby for everyone?
         </p>
       )}
       {error && (

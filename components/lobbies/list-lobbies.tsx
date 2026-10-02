@@ -74,8 +74,8 @@ export default async function LobbyList({
               ? "Finish it before joining another lobby."
               : "Leave it before joining another one."}
           </p>
-          <div className="flex items-center gap-3">
-            <Button asChild size="sm">
+          <div className="items-begin mt-3 flex gap-3">
+            <Button asChild>
               <Link href={`/lobbies/${current.id}`}>Open</Link>
             </Button>
             {!started && (
