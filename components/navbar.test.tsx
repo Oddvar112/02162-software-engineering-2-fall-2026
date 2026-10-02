@@ -10,10 +10,12 @@ vi.mock("@/components/theme-switcher", () => ({
   ThemeSwitcher: () => <div>Mocked Theme</div>,
 }));
 
-it("renders the RoboRally brand link", () => {
+it("renders the RoboRally brand link with prominent styling", () => {
   render(<Navbar />);
 
   const link = screen.getByRole("link", { name: "RoboRally" });
   expect(link).toBeDefined();
   expect(link.getAttribute("href")).toBe("/");
+  expect(link.className).toContain("font-black");
 });
+

@@ -3,9 +3,18 @@
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { User, LogOut } from "lucide-react";
+import { useState } from "react";
 
-export function LogoutButton() {
+export function LogoutButton({
+  email,
+  className,
+}: {
+  email?: string;
+  className?: string;
+}) {
   const router = useRouter();
+  const [hovered, setHovered] = useState(false);
 
   const logout = async () => {
     const supabase = createClient();
@@ -14,5 +23,24 @@ export function LogoutButton() {
     router.refresh();
   };
 
-  return <Button onClick={logout}>Logout</Button>;
+  const title = email ? `Log out (${email})` : "Log out";
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={logout}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title={title}
+      aria-label={title}
+      className={`relative h-9 w-9 rounded-full border border-foreground/20 bg-muted/40 hover:bg-destructive/15 hover:border-destructive/40 hover:text-destructive transition-all ${className ?? ""}`}
+    >
+      {hovered ? (
+        <LogOut className="h-4 w-4 text-destructive animate-in fade-in zoom-in-75 duration-150" />
+      ) : (
+        <User className="h-4 w-4" />
+      )}
+    </Button>
+  );
 }
