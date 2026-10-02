@@ -59,7 +59,7 @@ export default async function LobbyContent({
   const winnerName = game?.winner_id ? names.get(game.winner_id) : null;
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center">
+    <main className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center">
       <OtherRobots
         players={players
           .filter((p) => p.user_id !== userId && p.robot_model)
@@ -70,13 +70,6 @@ export default async function LobbyContent({
           }))}
       />
       <div className="flex w-full flex-1 flex-col items-center">
-        <nav className="flex h-16 w-full justify-center border-b border-b-foreground/10">
-          <div className="flex w-full max-w-5xl items-center justify-between p-3 px-5 text-sm">
-            <div className="flex items-center gap-5 font-semibold">
-              <Link href="/">RoboRally</Link>
-            </div>
-          </div>
-        </nav>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
           <h1 className="text-4xl font-bold tracking-tight">Lobby</h1>
           <p className="text-lg text-foreground/70">
