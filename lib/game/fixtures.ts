@@ -86,7 +86,6 @@ export function buildGameState(board: Board = staticBoard): GameState {
       name,
       robotId,
       damage: 0,
-      lives: 3,
       checkpointsReached: 0,
       programmedCardCount: 0,
       programLocked: false,

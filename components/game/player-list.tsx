@@ -83,10 +83,6 @@ export function PlayerList({
                   {player.damage}
                 </span>
                 <span>
-                  <Heart aria-label="Lives" />
-                  {player.lives}
-                </span>
-                <span>
                   <Flag aria-label="Checkpoints" />
                   {player.checkpointsReached}
                 </span>
