@@ -10,16 +10,12 @@ export function Navbar() {
         <div className="flex items-center gap-5">
           <Link
             href="/"
-            className="text-2xl sm:text-3xl font-extrabold tracking-tight select-none hover:opacity-90 transition-opacity"
-            style={{
-              WebkitTextStroke: "1.5px #000",
-              paintOrder: "stroke fill",
-              textShadow:
-                "-1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000, 0 2px 4px rgba(0, 0, 0, 0.4)",
-            }}
+            className="group flex items-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            <span className="text-white">Robo</span>
-            <span className="text-orange-500">Rally</span>
+            <div className="flex items-center rounded-lg bg-neutral-950 px-3.5 py-1.5 border border-neutral-800 shadow-sm text-xl sm:text-2xl font-bold tracking-tight">
+              <span className="text-white">Robo</span>
+              <span className="text-orange-500">Rally</span>
+            </div>
           </Link>
         </div>
         <div className="flex items-center gap-3">
