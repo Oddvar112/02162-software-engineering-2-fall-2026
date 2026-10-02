@@ -19,4 +19,3 @@ it("renders the RoboRally brand link and logo image", () => {
   const image = screen.getByAltText("RoboRally");
   expect(image).toBeDefined();
 });
-

@@ -34,10 +34,10 @@ export function LogoutButton({
       onMouseLeave={() => setHovered(false)}
       title={title}
       aria-label={title}
-      className={`relative h-9 w-9 rounded-full border border-foreground/20 bg-muted/40 hover:bg-destructive/15 hover:border-destructive/40 hover:text-destructive transition-all ${className ?? ""}`}
+      className={`relative h-9 w-9 rounded-full border border-foreground/20 bg-muted/40 transition-all hover:border-destructive/40 hover:bg-destructive/15 hover:text-destructive ${className ?? ""}`}
     >
       {hovered ? (
-        <LogOut className="h-4 w-4 text-destructive animate-in fade-in zoom-in-75 duration-150" />
+        <LogOut className="h-4 w-4 text-destructive duration-150 animate-in fade-in zoom-in-75" />
       ) : (
         <User className="h-4 w-4" />
       )}
