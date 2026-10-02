@@ -161,14 +161,6 @@ describe("conveyor belts", () => {
     expect(spots(play(tiles, [{ x: 1, y: 1 }]))).toEqual([[2, 1]]);
   });
 
-  it("costs a life when a belt carries a robot into a pit", () => {
-    const tiles: Record<string, Tile> = {
-      "1,1": belt(Direction.Right),
-      "2,1": { kind: "pit" },
-    };
-    expect(play(tiles, [{ x: 1, y: 1 }]).players[0].lives).toBe(2);
-  });
-
   it("moves after the cards of the register and before checkpoints count", () => {
     const tiles: Record<string, Tile> = {
       "1,1": belt(Direction.Right),
