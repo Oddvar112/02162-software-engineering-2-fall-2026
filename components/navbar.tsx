@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuthButton } from "@/components/auth/auth-button";
@@ -10,9 +11,16 @@ export function Navbar() {
         <div className="flex items-center gap-5">
           <Link
             href="/"
-            className="flex items-center transition-opacity hover:opacity-90"
+            className="flex items-center transition-opacity hover:opacity-90 active:scale-[0.98]"
           >
-            <image href="../public/logo/RoboRallyLogo.png"/>
+            <Image
+              src="/images/logo.png"
+              alt="RoboRally"
+              width={166}
+              height={44}
+              priority
+              className="h-10 sm:h-11 w-auto object-contain"
+            />
           </Link>
         </div>
         <div className="flex items-center gap-3">
