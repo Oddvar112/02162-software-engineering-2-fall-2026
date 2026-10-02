@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import roster from "@/lib/robots.json";
 import { RobotPreview, usePreloadRobots } from "./robot-preview";
 
@@ -28,13 +28,25 @@ export function RobotPicker({
   usePreloadRobots();
   const [isChoosing, setIsChoosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState(chosen);
   const [previewed, setPreviewed] = useState(chosen);
   const shown = roster.find((robot) => robot.id === previewed);
 
+  useEffect(() => {
+    setSelected(chosen);
+    setPreviewed(chosen);
+  }, [chosen]);
+
   const choose = async (model: string) => {
-    setPreviewed(model);
+    // Draw the selection border on the newly selected robot first
+    setSelected(model);
     setIsChoosing(true);
     setError(null);
+
+    // Defer the heavy 3D model preview rendering so the border draws immediately
+    startTransition(() => {
+      setPreviewed(model);
+    });
 
     try {
       const supabase = createClient();
@@ -45,6 +57,7 @@ export function RobotPicker({
 
       if (rpcError) {
         setError(MESSAGES[rpcError.message] ?? "Could not choose that robot.");
+        setSelected(chosen);
         setPreviewed(chosen);
         return;
       }
@@ -52,6 +65,7 @@ export function RobotPicker({
       router.refresh();
     } catch {
       setError("Could not choose that robot. Try again.");
+      setSelected(chosen);
       setPreviewed(chosen);
     } finally {
       setIsChoosing(false);
@@ -82,7 +96,7 @@ export function RobotPicker({
         >
           {roster.map((robot) => {
             const isTaken = taken.includes(robot.id);
-            const isMine = robot.id === chosen;
+            const isMine = robot.id === selected;
             return (
               <button
                 key={robot.id}

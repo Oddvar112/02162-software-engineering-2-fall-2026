@@ -93,5 +93,29 @@ describe("RobotPicker", () => {
     fireEvent.click(robot("Pixel"));
     await screen.findByRole("alert");
     expect(screen.getByText("Preview of bolt")).toBeDefined();
+    expect(robot("Bolt").getAttribute("aria-pressed")).toBe("true");
+    expect(robot("Pixel").getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("draws the selection border immediately upon click before server response", async () => {
+    let resolveRpc: (value: { error: null }) => void;
+    rpc.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRpc = resolve;
+        }),
+    );
+    render(<RobotPicker lobbyId="lobby-1" chosen="bolt" taken={[]} />);
+    expect(robot("Bolt").getAttribute("aria-pressed")).toBe("true");
+    expect(robot("Pixel").getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.click(robot("Pixel"));
+
+    // Selection border and aria-pressed update immediately on the clicked robot
+    expect(robot("Pixel").getAttribute("aria-pressed")).toBe("true");
+    expect(robot("Pixel").className).toContain("border-foreground");
+    expect(robot("Bolt").getAttribute("aria-pressed")).toBe("false");
+
+    resolveRpc!({ error: null });
   });
 });
