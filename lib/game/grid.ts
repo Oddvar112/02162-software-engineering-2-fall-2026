@@ -67,8 +67,4 @@ export function place(
   const tile = tileAt(state.board, to);
   if (tile && tile.kind !== "pit") return;
   fallen.add(robot.id);
-  const player = state.players.find(
-    (candidate) => candidate.id === robot.playerId,
-  )!;
-  player.lives = Math.max(0, player.lives - 1);
 }

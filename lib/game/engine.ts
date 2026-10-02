@@ -27,10 +27,6 @@ function rebootFallen(
   for (const robot of state.robots.filter((candidate) =>
     fallen.has(candidate.id),
   )) {
-    const player = state.players.find(
-      (candidate) => candidate.id === robot.playerId,
-    )!;
-    if (player.lives === 0) continue;
     const start = starts.find((candidate) => candidate.id === robot.id)!;
     const tiles = Array.from(
       { length: state.board.width * state.board.height },
@@ -79,7 +75,7 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
 
   for (let register = 0; register < state.registerCount; register++) {
     const actions = state.players
-      .filter((player) => player.lives > 0 && programs[player.id]?.[register])
+      .filter((player) => programs[player.id]?.[register])
       .map((player) => ({ player, card: programs[player.id][register] }))
       .sort((a, b) => b.card.priority - a.card.priority);
 
@@ -129,7 +125,7 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
       const robot = state.robots.find(
         (candidate) => candidate.id === player.robotId,
       );
-      if (!robot || player.lives === 0 || fallen.has(robot.id)) continue;
+      if (!robot || fallen.has(robot.id)) continue;
       const tile = state.board.tiles[robot.z][robot.x];
       if (
         tile.kind === "checkpoint" &&
@@ -142,9 +138,7 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
 
   rebootFallen(state, starts, fallen);
   state.robots = state.robots.filter((robot) =>
-    state.players.some(
-      (player) => player.robotId === robot.id && player.lives > 0,
-    ),
+    state.players.some((player) => player.robotId === robot.id),
   );
   recordFrame(0, null, "Round complete");
   state.phase = "end-of-round";

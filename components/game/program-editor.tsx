@@ -25,10 +25,7 @@ export function ProgramEditor({
   )!;
   const locked = player.programLocked;
   const editable =
-    !locked &&
-    !isSubmitting &&
-    player.lives > 0 &&
-    gameState.phase === "programming";
+    !locked && !isSubmitting && gameState.phase === "programming";
   const cards = locked
     ? gameState.currentPlayerProgram
     : selectedIds.flatMap((id) =>
@@ -44,15 +41,13 @@ export function ProgramEditor({
         <span role="status">
           {executionMessage
             ? executionMessage
-            : player.lives === 0
-              ? "Robot eliminated"
-              : gameState.phase === "end-of-round"
-                ? locked
-                  ? "Program executed · locked"
-                  : "Round complete. Start the next round."
-                : locked
-                  ? "Program locked"
-                  : "Click cards in execution order. Click again to remove."}
+            : gameState.phase === "end-of-round"
+              ? locked
+                ? "Program executed · locked"
+                : "Round complete. Start the next round."
+              : locked
+                ? "Program locked"
+                : "Click cards in execution order. Click again to remove."}
         </span>
       </div>
       <div className={styles.programRow}>

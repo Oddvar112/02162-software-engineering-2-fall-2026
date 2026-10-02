@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Flag, Heart, LockKeyhole, Shield } from "lucide-react";
+import { ChevronDown, Flag, LockKeyhole, Shield } from "lucide-react";
 import styles from "@/components/game/game-state.module.css";
 import type { GameState, RobotState } from "@/lib/game/types";
 import { DIRECTION_LABELS } from "@/lib/game/types";
@@ -81,10 +81,6 @@ export function PlayerList({
                 <span>
                   <Shield aria-label="Damage" />
                   {player.damage}
-                </span>
-                <span>
-                  <Heart aria-label="Lives" />
-                  {player.lives}
                 </span>
                 <span>
                   <Flag aria-label="Checkpoints" />

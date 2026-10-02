@@ -191,14 +191,13 @@ describe("resolveRound", () => {
     }
   });
 
-  it("costs one life in a pit, skips the rest of the program and reboots near the start", () => {
+  it("in a pit, skips the rest of the program and reboots near the start", () => {
     const state = makeState();
     state.board.tiles[7][1] = { kind: "pit" };
     Object.assign(
       state,
       resolveRound(state, { p1: fill([move(1), move(1), move(1)]) }),
     );
-    expect(state.players[0].lives).toBe(2);
     expect(state.executionLog).toHaveLength(1);
     expect(state.robots[0]).toMatchObject({
       x: 1,
@@ -207,12 +206,11 @@ describe("resolveRound", () => {
     });
   });
 
-  it("costs one life for driving off the board and reboots where the robot started", () => {
+  it("driving off the board reboots where the robot started", () => {
     const state = makeState();
     state.registerCount = 1;
     Object.assign(state.robots[0], { x: 1, z: 0 });
     Object.assign(state, resolveRound(state, { p1: [move(1)] }));
-    expect(state.players[0].lives).toBe(2);
     expect(state.robots[0]).toMatchObject({
       x: 1,
       z: 0,
@@ -220,7 +218,7 @@ describe("resolveRound", () => {
     });
   });
 
-  it("costs a life for a robot pushed off the board and skips the rest of its program", () => {
+  it("a robot pushed off the board skips the rest of its program", () => {
     const state = makeState(2);
     state.registerCount = 2;
     Object.assign(state.robots[0], { x: 1, z: 1 });
@@ -236,7 +234,6 @@ describe("resolveRound", () => {
       "p1",
       "p1",
     ]);
-    expect(state.players[1].lives).toBe(2);
     expect(state.robots[0]).toMatchObject({ x: 1, z: 0 });
     const pushed = state.robots[1];
     expect(Math.abs(pushed.x - 1) + Math.abs(pushed.z - 0)).toBe(1);
@@ -266,15 +263,6 @@ describe("resolveRound", () => {
     expect(state).toEqual(before);
     expect(after.robots[0].z).not.toBe(before.robots[0].z);
     expect(after.executionLog).not.toHaveLength(0);
-  });
-
-  it("removes a robot with no lives left", () => {
-    const state = makeState();
-    state.players[0].lives = 1;
-    state.board.tiles[7][1] = { kind: "pit" };
-    Object.assign(state, resolveRound(state, { p1: fill([move(1)]) }));
-    expect(state.players[0].lives).toBe(0);
-    expect(state.robots).toEqual([]);
   });
 
   it("skips players without a program", () => {

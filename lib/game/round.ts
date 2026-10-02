@@ -15,9 +15,8 @@ import { createServiceClient } from "@/lib/supabase/service";
 function isReadyToResolve(loaded: LoadedGame): boolean {
   const { game, players } = loaded;
   if (game.phase !== "programming") return false;
-  const alive = players.filter((player) => player.lives > 0);
-  if (alive.length === 0) return false;
-  if (alive.every((player) => loaded.programs.has(player.user_id))) return true;
+  if (players.every((player) => loaded.programs.has(player.user_id)))
+    return true;
   if (!game.timer_started_at) return false;
   return (
     Date.now() >=
@@ -29,7 +28,6 @@ function fillMissingPrograms(loaded: LoadedGame): Programs {
   const { players, hands, programs } = loaded;
   const result: Programs = {};
   for (const player of players) {
-    if (player.lives === 0) continue;
     const chosen = programs.get(player.user_id);
     if (chosen) {
       result[player.user_id] = chosen;
@@ -50,15 +48,13 @@ export function decideOutcome(state: GameState): {
   winnerId: string | null;
 } {
   const total = countCheckpoints(state.board);
-  const alive = state.players.filter((player) => player.lives > 0);
   const champion = state.players.find(
     (player) => total > 0 && player.checkpointsReached >= total,
   );
-  const survivor =
-    alive.length === 1 && state.players.length > 1 ? alive[0] : undefined;
-  const winner = champion ?? survivor ?? null;
+
+  const winner = champion ?? null;
   return {
-    finished: winner !== null || alive.length === 0,
+    finished: winner !== null,
     winnerId: winner?.id ?? null,
   };
 }
@@ -97,7 +93,6 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
           x: robot?.x ?? 0,
           z: robot?.z ?? 0,
           direction: robot?.direction ?? Direction.Up,
-          lives: player.lives,
           checkpoints_reached: player.checkpointsReached,
         };
       }),
@@ -123,9 +118,8 @@ function isReadyToAdvance(loaded: LoadedGame): boolean {
 
 export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
   if (!isReadyToAdvance(loaded)) return false;
-  const { game, players } = loaded;
-  const alive = players.filter((player) => player.lives > 0);
-  const hands = dealHands(alive.map((player) => player.user_id));
+  const { game } = loaded;
+  const hands = dealHands(loaded.players.map((player) => player.user_id));
 
   const { data: advanced, error } = await createServiceClient().rpc(
     "begin_next_round",

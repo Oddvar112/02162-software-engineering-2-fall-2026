@@ -4,7 +4,6 @@ import {
   Bot,
   ChevronDown,
   Flag,
-  Heart,
   Radio,
   RefreshCw,
   Shield,
@@ -103,10 +102,6 @@ export function GameHeader({
               <span>
                 <Shield aria-hidden="true" />
                 {currentPlayer?.damage ?? 0} damage
-              </span>
-              <span>
-                <Heart aria-hidden="true" />
-                {currentPlayer?.lives ?? 0} lives
               </span>
               <span>
                 <Flag aria-hidden="true" />
