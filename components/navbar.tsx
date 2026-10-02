@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AuthButton } from "@/components/auth/auth-button";
@@ -10,19 +11,16 @@ export function Navbar() {
         <div className="flex items-center gap-5">
           <Link
             href="/"
-            className="flex items-center transition-opacity hover:opacity-90"
+            className="flex items-center transition-opacity hover:opacity-90 active:scale-[0.98]"
           >
-            <span
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight select-none"
-              style={{
-                WebkitTextStroke: "1px #000",
-                paintOrder: "stroke fill",
-                textShadow: "0 1px 2px rgba(0, 0, 0, 0.6), 0 0 1px #000",
-              }}
-            >
-              <span className="text-white">Robo</span>
-              <span className="text-orange-500">Rally</span>
-            </span>
+            <Image
+              src="/images/logo.png"
+              alt="RoboRally"
+              width={166}
+              height={44}
+              priority
+              className="h-10 sm:h-11 w-auto object-contain"
+            />
           </Link>
         </div>
         <div className="flex items-center gap-3">
