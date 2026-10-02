@@ -16,10 +16,10 @@ export function Navbar() {
           </Link>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeSwitcher />
           <Suspense>
             <AuthButton />
           </Suspense>
-          <ThemeSwitcher />
         </div>
       </div>
     </nav>
