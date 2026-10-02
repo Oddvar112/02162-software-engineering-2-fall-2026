@@ -4,7 +4,6 @@ import {
   Bot,
   ChevronDown,
   Flag,
-  Heart,
   Radio,
   RefreshCw,
   Shield,

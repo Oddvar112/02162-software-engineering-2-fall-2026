@@ -25,9 +25,7 @@ export function ProgramEditor({
   )!;
   const locked = player.programLocked;
   const editable =
-    !locked &&
-    !isSubmitting &&
-    gameState.phase === "programming";
+    !locked && !isSubmitting && gameState.phase === "programming";
   const cards = locked
     ? gameState.currentPlayerProgram
     : selectedIds.flatMap((id) =>

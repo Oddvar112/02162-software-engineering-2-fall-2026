@@ -15,7 +15,8 @@ import { createServiceClient } from "@/lib/supabase/service";
 function isReadyToResolve(loaded: LoadedGame): boolean {
   const { game, players } = loaded;
   if (game.phase !== "programming") return false;
-  if (players.every((player) => loaded.programs.has(player.user_id))) return true;
+  if (players.every((player) => loaded.programs.has(player.user_id)))
+    return true;
   if (!game.timer_started_at) return false;
   return (
     Date.now() >=
@@ -117,7 +118,7 @@ function isReadyToAdvance(loaded: LoadedGame): boolean {
 
 export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
   if (!isReadyToAdvance(loaded)) return false;
-  const { game, players } = loaded;
+  const { game } = loaded;
   const hands = dealHands(loaded.players.map((player) => player.user_id));
 
   const { data: advanced, error } = await createServiceClient().rpc(

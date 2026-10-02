@@ -27,9 +27,6 @@ function rebootFallen(
   for (const robot of state.robots.filter((candidate) =>
     fallen.has(candidate.id),
   )) {
-    const player = state.players.find(
-      (candidate) => candidate.id === robot.playerId,
-    )!;
     const start = starts.find((candidate) => candidate.id === robot.id)!;
     const tiles = Array.from(
       { length: state.board.width * state.board.height },
@@ -141,9 +138,7 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
 
   rebootFallen(state, starts, fallen);
   state.robots = state.robots.filter((robot) =>
-    state.players.some(
-      (player) => player.robotId === robot.id,
-    ),
+    state.players.some((player) => player.robotId === robot.id),
   );
   recordFrame(0, null, "Round complete");
   state.phase = "end-of-round";

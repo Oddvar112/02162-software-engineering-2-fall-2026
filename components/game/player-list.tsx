@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Flag, Heart, LockKeyhole, Shield } from "lucide-react";
+import { ChevronDown, Flag, LockKeyhole, Shield } from "lucide-react";
 import styles from "@/components/game/game-state.module.css";
 import type { GameState, RobotState } from "@/lib/game/types";
 import { DIRECTION_LABELS } from "@/lib/game/types";
