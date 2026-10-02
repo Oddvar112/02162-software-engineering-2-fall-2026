@@ -20,7 +20,6 @@ export type PlayerState = {
   name: string;
   robotId: string;
   damage: number;
-  lives: number;
   checkpointsReached: number;
   programmedCardCount: number;
   programLocked: boolean;
