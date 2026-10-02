@@ -27,11 +27,6 @@ export default async function LobbyContent({
     notFound();
   }
 
-  const { data: authData } = await supabase.auth.getUser();
-  const currentUserId = authData?.user?.id;
-
-  const isCreator = currentUserId === lobby.created_by;
-
   const players = [...lobby.lobby_players].sort((a, b) =>
     a.joined_at.localeCompare(b.joined_at),
   );
@@ -95,10 +90,6 @@ export default async function LobbyContent({
               Back to lobbies
             </Link>
           )}
-
-          <div className="mt-6">
-            <LeaveLobbyButton lobbyId={lobbyId} isHost={isCreator} />
-          </div>
         </div>
       </div>
     </main>
