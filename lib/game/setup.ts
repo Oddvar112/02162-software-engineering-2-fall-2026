@@ -2,7 +2,6 @@ import { Direction } from "@/lib/direction";
 import { dealHands } from "@/lib/game/deck";
 import { staticBoard } from "@/lib/game/game-model";
 import { GameError } from "@/lib/game/store";
-import roster from "@/lib/robots.json";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export async function initialiseGame(gameId: string): Promise<void> {
@@ -18,7 +17,7 @@ export async function initialiseGame(gameId: string): Promise<void> {
 
   const { data: lobby } = await service
     .from("lobbies")
-    .select("id, status, lobby_players(user_id, joined_at)")
+    .select("id, status, lobby_players(user_id, joined_at, robot_model)")
     .eq("game", gameId)
     .maybeSingle();
   if (!lobby) throw new GameError("This game has no lobby.", 404);
@@ -33,11 +32,11 @@ export async function initialiseGame(gameId: string): Promise<void> {
     throw new GameError("The board has too few start positions.", 409);
   }
 
-  const players = members.map(({ user_id }, seat) => ({
+  const players = members.map(({ user_id, robot_model }, seat) => ({
     game_id: gameId,
     user_id,
     seat,
-    robot_model: roster[seat % roster.length].id,
+    robot_model,
     x: staticBoard.startpositions[seat].x,
     z: staticBoard.startpositions[seat].y,
     direction: Direction.Up,

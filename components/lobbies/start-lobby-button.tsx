@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 const MESSAGES: Record<string, string> = {
   not_creator: "Only the host can start the game.",
   not_enough_players: "At least two players are needed to start.",
+  robot_not_chosen: "Every player must choose a robot first.",
   already_started: "This game has already started.",
   lobby_not_found: "This lobby no longer exists.",
   not_authenticated: "Sign in to start the game.",
@@ -15,13 +16,20 @@ const MESSAGES: Record<string, string> = {
 export function StartLobbyButton({
   lobbyId,
   playerCount,
+  robotsChosen,
 }: {
   lobbyId: string;
   playerCount: number;
+  robotsChosen: boolean;
 }) {
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const ready = playerCount >= 2;
+  const waitingFor =
+    playerCount < 2
+      ? "Waiting for at least one more player."
+      : robotsChosen
+        ? null
+        : "Waiting for every player to choose a robot.";
 
   const start = async () => {
     setIsStarting(true);
@@ -51,14 +59,10 @@ export function StartLobbyButton({
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <Button onClick={start} disabled={!ready || isStarting}>
+      <Button onClick={start} disabled={waitingFor !== null || isStarting}>
         {isStarting ? "Starting..." : "Start game"}
       </Button>
-      {!ready && (
-        <p className="text-xs text-foreground/50">
-          Waiting for at least one more player.
-        </p>
-      )}
+      {waitingFor && <p className="text-xs text-foreground/50">{waitingFor}</p>}
       {error && (
         <p role="alert" className="text-sm text-red-600">
           {error}

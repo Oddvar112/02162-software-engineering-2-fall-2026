@@ -12,6 +12,8 @@ import { useMotionPreferences } from "@/lib/hooks/use-motion-preferences";
 
 export const ROBOT_ROSTER = roster;
 
+export const robotModelPath = (id: string) => `/models/robots/${id}.glb`;
+
 /** Grounded at local Y=0, facing -Z; sized for one board tile. */
 export function RobotModel({
   id,
@@ -26,7 +28,7 @@ export function RobotModel({
   playbackRate?: number;
   phase?: number;
 }) {
-  const { scene, animations } = useGLTF(`/models/robots/${id}.glb`);
+  const { scene, animations } = useGLTF(robotModelPath(id));
   const animator = useMemo(
     () => createRobotAnimator(scene, animations),
     [scene, animations],
