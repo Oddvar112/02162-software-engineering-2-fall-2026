@@ -70,5 +70,4 @@ export function place(
   const player = state.players.find(
     (candidate) => candidate.id === robot.playerId,
   )!;
-  player.lives = Math.max(0, player.lives - 1);
 }
