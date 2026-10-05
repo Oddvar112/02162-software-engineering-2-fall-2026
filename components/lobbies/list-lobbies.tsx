@@ -53,7 +53,7 @@ export default async function LobbyList({
   const started = current?.status === "started";
 
   return (
-    <main className="flex min-h-screen flex-col items-center gap-6 p-12">
+    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center gap-6 p-12">
       <h1 className="text-3xl font-bold tracking-tight">Available lobbies</h1>
 
       {closed === "1" && !current && (
