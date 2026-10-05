@@ -1,6 +1,7 @@
 import type { ActionCard } from "@/lib/game/types";
 
 export const HAND_SIZE = 9;
+export const PILE_SIZE = 20;
 
 type PileTemplate = Omit<ActionCard, "id" | "priority"> & { count: number };
 
@@ -13,7 +14,7 @@ const TEMPLATES: PileTemplate[] = [ //Extra 2x Move 2, 1x U-turn
   { name: "Move 2", type: "move", value: 2, count: 5 },
   { name: "Move 3", type: "move", value: 3, count: 1 },
 ];
-
+// -- OLD IMPLEMENT
 export function buildDeck(): ActionCard[] {
   const deck: ActionCard[] = [];
   let priority = 10;
@@ -59,7 +60,7 @@ export function createDecksForPlayers(
   );
 }
 
-
+// -- OLD IMPLEMENT
 export function dealHands(
   playerIds: string[],
   random = Math.random,
