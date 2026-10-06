@@ -17,7 +17,7 @@ export default async function LobbyList({
 
   const { data: lobbies, error } = await supabase
     .from("lobbies")
-    .select("id, max_players, created_by, lobby_players(count)")
+    .select("id, min_players, max_players, created_by, lobby_players(count)")
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
@@ -104,7 +104,7 @@ export default async function LobbyList({
                 <div>
                   <p className="font-medium">{host}&apos;s lobby</p>
                   <p className="text-sm text-foreground/70">
-                    {players} / {lobby.max_players} players
+                    {players} / {lobby.max_players} players (min. {lobby.min_players})
                   </p>
                 </div>
                 {current ? (

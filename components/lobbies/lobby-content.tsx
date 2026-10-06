@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import roster from "@/lib/robots.json";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 import { LobbyRealtime } from "./lobby-realtime";
+import { LobbySettings } from "./lobby-settings";
 import { OtherRobots } from "./other-robots";
 import { RobotPicker } from "./robot-picker";
 import { StartLobbyButton } from "./start-lobby-button";
@@ -22,7 +23,7 @@ export default async function LobbyContent({
   const { data: lobby } = await supabase
     .from("lobbies")
     .select(
-      "id, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
+      "id, min_players, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
@@ -71,9 +72,19 @@ export default async function LobbyContent({
       />
       <div className="flex w-full flex-1 flex-col items-center">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Lobby</h1>
+          <div className="flex items-center justify-center gap-2">
+            <h1 className="text-4xl font-bold tracking-tight">Lobby</h1>
+            <LobbySettings
+              lobbyId={lobby.id}
+              minPlayers={lobby.min_players}
+              maxPlayers={lobby.max_players}
+              playerCount={players.length}
+              isHost={lobby.created_by === userId}
+              status={lobby.status}
+            />
+          </div>
           <p className="text-lg text-foreground/70">
-            {players.length} / {lobby.max_players} players
+            {players.length} / {lobby.max_players} players (min. {lobby.min_players})
           </p>
           {lobby.status === "started" && (
             <p className="text-sm text-foreground/50">
@@ -132,6 +143,7 @@ export default async function LobbyContent({
               <StartLobbyButton
                 lobbyId={lobby.id}
                 playerCount={players.length}
+                minPlayers={lobby.min_players}
                 robotsChosen={players.every((p) => p.robot_model)}
               />
             )}
