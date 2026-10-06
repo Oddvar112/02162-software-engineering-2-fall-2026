@@ -173,6 +173,52 @@ describe("resolveRound", () => {
     expect(state.robots[1]).toMatchObject({ x: 6, z: 8 });
   });
 
+  it("finishes each register before board effects and the next register", () => {
+    const state = makeState(2);
+    state.registerCount = 2;
+    state.board.tiles[7][1] = {
+      kind: "conveyor",
+      direction: Direction.Right,
+      express: false,
+    };
+    state.board.tiles[7][2] = { kind: "gear", clockwise: true };
+
+    Object.assign(
+      state,
+      resolveRound(state, {
+        p1: [move(1, 100), move(1, 100)],
+        p2: [rotate(1, 900), rotate(-1, 900)],
+      }),
+    );
+
+    expect(
+      state.executionLog.map(({ register, playerId }) => [register, playerId]),
+    ).toEqual([
+      [1, "p2"],
+      [1, "p1"],
+      [2, "p2"],
+      [2, "p1"],
+    ]);
+    expect(state.executionFrames.map(({ message }) => message)).toEqual([
+      "Executing programs…",
+      "Register 1: Player 2 · Rotate right",
+      "Register 1: Player 1 · Move 1 · Step 1/1",
+      "Register 1: Conveyors move",
+      "Register 1: Gears turn",
+      "Register 2: Player 2 · Rotate left",
+      "Register 2: Player 1 · Move 1 · Step 1/1",
+      "Round complete",
+    ]);
+    expect(state.executionFrames[2].robots[0]).toMatchObject({ x: 1, z: 7 });
+    expect(state.executionFrames[3].robots[0]).toMatchObject({ x: 2, z: 7 });
+    expect(state.executionFrames[4].robots[0]).toMatchObject({
+      x: 2,
+      z: 7,
+      direction: Direction.Right,
+    });
+    expect(state.robots[0]).toMatchObject({ x: 3, z: 7 });
+  });
+
   it("counts checkpoints only in order at the end of a register", () => {
     for (const reversed of [false, true]) {
       const state = makeState();
