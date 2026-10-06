@@ -182,7 +182,7 @@ function ResponsiveCameraControls({
   const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
   const fitDistance = (sceneRadius / Math.sin(limitingHalfFov)) * 1.08;
 
-    // Keep the orbit target inside the board so the view can't be panned away
+  // Keep the orbit target inside the board so the view can't be panned away
   const maxPanX = (width + 0.7) / 2;
   const maxPanZ = (height + 0.7) / 2;
 
