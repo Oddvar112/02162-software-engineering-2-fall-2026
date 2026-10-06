@@ -60,6 +60,32 @@ export function createDecksForPlayers(
   );
 }
 
+export function drawHand(
+  drawPile: ActionCard[],
+  discardPile: ActionCard[],
+  random = Math.random,
+): {hand: ActionCard[];
+  drawPile: ActionCard[]; 
+  discardPile: ActionCard[]} {
+  let draw = [...drawPile];
+  let discard = [...discardPile];
+  const hand: ActionCard[] = [];
+
+  while (hand.length < HAND_SIZE) {
+    if (draw.length == 0)
+        if (discard.length === 0) {
+        throw new Error("No cards left to draw: draw pile and discard pile are both empty.");
+      }
+      draw = shuffle(discard, random)
+      discard = [];
+
+    const [next, ...rest] = draw;
+    hand.push(next);
+    draw = rest;
+  }
+  return {hand, drawPile: draw, discardPile: discard}
+  }
+
 // -- OLD IMPLEMENT
 export function dealHands(
   playerIds: string[],
