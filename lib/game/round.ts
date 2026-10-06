@@ -1,7 +1,6 @@
-import type { Board } from "@/lib/board";
 import { Direction } from "@/lib/direction";
 import { dealHands, shuffle } from "@/lib/game/deck";
-import { resolveRound, type Programs } from "@/lib/game/engine";
+import { findWinner, resolveRound, type Programs } from "@/lib/game/engine";
 import type { GameState } from "@/lib/game/types";
 import {
   NEXT_ROUND_SECONDS,
@@ -39,20 +38,11 @@ function fillMissingPrograms(loaded: LoadedGame): Programs {
   return result;
 }
 
-function countCheckpoints(board: Board): number {
-  return board.tiles.flat().filter((tile) => tile.kind === "checkpoint").length;
-}
-
 export function decideOutcome(state: GameState): {
   finished: boolean;
   winnerId: string | null;
 } {
-  const total = countCheckpoints(state.board);
-  const champion = state.players.find(
-    (player) => total > 0 && player.checkpointsReached >= total,
-  );
-
-  const winner = champion ?? null;
+  const winner = findWinner(state) ?? null;
   return {
     finished: winner !== null,
     winnerId: winner?.id ?? null,
