@@ -91,9 +91,18 @@ export function LobbySettings({
       });
 
       if (rpcError) {
-        setError(
-          MESSAGES[rpcError.message] ?? "Could not update lobby settings.",
-        );
+        if (
+          rpcError.code === "PGRST202" ||
+          rpcError.message.includes("update_lobby_settings")
+        ) {
+          setError(
+            "Database migration not applied yet. Run 'npx supabase db push' in your terminal.",
+          );
+        } else {
+          setError(
+            MESSAGES[rpcError.message] ?? "Could not update lobby settings.",
+          );
+        }
         return;
       }
 

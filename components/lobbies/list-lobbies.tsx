@@ -15,11 +15,27 @@ export default async function LobbyList({
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub as string | undefined;
 
-  const { data: lobbies, error } = await supabase
+  let { data: lobbies, error } = await supabase
     .from("lobbies")
     .select("id, min_players, max_players, created_by, lobby_players(count)")
     .eq("status", "open")
     .order("created_at", { ascending: false });
+
+  if (error || !lobbies) {
+    const fallback = await supabase
+      .from("lobbies")
+      .select("id, max_players, created_by, lobby_players(count)")
+      .eq("status", "open")
+      .order("created_at", { ascending: false });
+
+    if (fallback.data) {
+      lobbies = fallback.data.map((l) => ({
+        ...l,
+        min_players: 2,
+      }));
+      error = null;
+    }
+  }
 
   if (error) {
     return (

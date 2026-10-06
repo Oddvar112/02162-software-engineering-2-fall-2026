@@ -20,13 +20,30 @@ export default async function LobbyContent({
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub as string | undefined;
 
-  const { data: lobby } = await supabase
+  let { data: lobby, error } = await supabase
     .from("lobbies")
     .select(
       "id, min_players, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
+
+  if (error || !lobby) {
+    const fallback = await supabase
+      .from("lobbies")
+      .select(
+        "id, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
+      )
+      .eq("id", lobbyId)
+      .maybeSingle();
+
+    if (fallback.data) {
+      lobby = {
+        ...fallback.data,
+        min_players: 2,
+      };
+    }
+  }
 
   if (!lobby) {
     notFound();

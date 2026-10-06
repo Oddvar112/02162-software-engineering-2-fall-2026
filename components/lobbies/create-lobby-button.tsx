@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -47,7 +48,18 @@ export function CreateLobbyButton() {
       <Button onClick={handleCreateLobby} disabled={isLoading}>
         {isLoading ? "Creating..." : "Create Lobby"}
       </Button>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="mt-2 text-sm text-red-600">
+          <p>{error}</p>
+          {error === MESSAGES.already_in_a_lobby && (
+            <p className="mt-1">
+              <Link href="/lobbies" className="underline font-medium text-foreground">
+                View or leave your current lobby &rarr;
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
