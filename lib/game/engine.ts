@@ -132,6 +132,11 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
         tile.number === player.checkpointsReached + 1
       ) {
         player.checkpointsReached++;
+        recordFrame(
+          register + 1,
+          null,
+          `Register ${register + 1}: ${player.name} reached checkpoint ${tile.number}`,
+        );
       }
     }
   }

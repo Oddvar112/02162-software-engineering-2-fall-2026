@@ -191,6 +191,49 @@ describe("resolveRound", () => {
     }
   });
 
+  it("does not count a checkpoint the robot only drives across", () => {
+    const state = makeState();
+    state.registerCount = 1;
+    Object.assign(state.robots[0], { x: 1, z: 3 });
+    state.board.tiles[2][1] = { kind: "checkpoint", number: 1 };
+    const result = resolveRound(state, { p1: [move(2)] });
+    expect(result.robots[0]).toMatchObject({ x: 1, z: 1 });
+    expect(result.players[0].checkpointsReached).toBe(0);
+  });
+
+  it("shows checkpoint progress only once a register has ended on it", () => {
+    const state = makeState();
+    state.registerCount = 2;
+    Object.assign(state.robots[0], { x: 1, z: 3 });
+    state.board.tiles[2][1] = { kind: "checkpoint", number: 1 };
+    const { executionFrames } = resolveRound(state, {
+      p1: [move(2), backup()],
+    });
+    expect(
+      executionFrames.map((frame) => frame.players[0].checkpointsReached),
+    ).toEqual([0, 0, 0, 0, 1, 1]);
+    expect(executionFrames[4].message).toBe(
+      "Register 2: Player 1 reached checkpoint 1",
+    );
+  });
+
+  it("gives the checkpoint to the robot standing on it when the register ends", () => {
+    const state = makeState(2);
+    state.registerCount = 1;
+    Object.assign(state.robots[0], { x: 1, z: 3 });
+    Object.assign(state.robots[1], { x: 0, z: 2, direction: Direction.Right });
+    state.board.tiles[2][1] = { kind: "checkpoint", number: 1 };
+    const result = resolveRound(state, {
+      p1: [move(1, 900)],
+      p2: [move(1, 100)],
+    });
+    expect(result.robots[0]).toMatchObject({ x: 2, z: 2 });
+    expect(result.robots[1]).toMatchObject({ x: 1, z: 2 });
+    expect(result.players.map((player) => player.checkpointsReached)).toEqual([
+      0, 1,
+    ]);
+  });
+
   it("in a pit, skips the rest of the program and reboots near the start", () => {
     const state = makeState();
     state.board.tiles[7][1] = { kind: "pit" };
