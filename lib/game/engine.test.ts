@@ -182,12 +182,13 @@ describe("resolveRound", () => {
       express: false,
     };
     state.board.tiles[7][2] = { kind: "gear", clockwise: true };
+    state.board.tiles[7][3] = { kind: "gear", clockwise: false };
 
     Object.assign(
       state,
       resolveRound(state, {
-        p1: [move(1, 100), move(1, 100)],
-        p2: [rotate(1, 900), rotate(-1, 900)],
+        p1: [move(1, 100), move(1, 900)],
+        p2: [rotate(1, 900), rotate(-1, 100)],
       }),
     );
 
@@ -196,8 +197,8 @@ describe("resolveRound", () => {
     ).toEqual([
       [1, "p2"],
       [1, "p1"],
-      [2, "p2"],
       [2, "p1"],
+      [2, "p2"],
     ]);
     expect(state.executionFrames.map(({ message }) => message)).toEqual([
       "Executing programs…",
@@ -205,8 +206,9 @@ describe("resolveRound", () => {
       "Register 1: Player 1 · Move 1 · Step 1/1",
       "Register 1: Conveyors move",
       "Register 1: Gears turn",
-      "Register 2: Player 2 · Rotate left",
       "Register 2: Player 1 · Move 1 · Step 1/1",
+      "Register 2: Player 2 · Rotate left",
+      "Register 2: Gears turn",
       "Round complete",
     ]);
     expect(state.executionFrames[2].robots[0]).toMatchObject({ x: 1, z: 7 });
@@ -216,7 +218,21 @@ describe("resolveRound", () => {
       z: 7,
       direction: Direction.Right,
     });
-    expect(state.robots[0]).toMatchObject({ x: 3, z: 7 });
+    expect(state.executionFrames[6].robots[0]).toMatchObject({
+      x: 3,
+      z: 7,
+      direction: Direction.Right,
+    });
+    expect(state.executionFrames[8].robots[0]).toMatchObject({
+      x: 3,
+      z: 7,
+      direction: Direction.Up,
+    });
+    expect(state.robots[0]).toMatchObject({
+      x: 3,
+      z: 7,
+      direction: Direction.Up,
+    });
   });
 
   it("counts checkpoints only in order at the end of a register", () => {
