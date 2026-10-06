@@ -11,11 +11,10 @@ alter table public.lobbies
     and max_players <= 8
   );
 
--- Update create_lobby_with_game to accept min and max players
-create or replace function public.create_lobby_with_game(
-  p_min_players integer default 2,
-  p_max_players integer default 8
-)
+-- Update create_lobby_with_game to initialize with min 2 and max 8
+drop function if exists public.create_lobby_with_game(integer, integer);
+
+create or replace function public.create_lobby_with_game()
 returns uuid
 language plpgsql
 security definer
@@ -28,14 +27,6 @@ declare
 begin
   if v_user_id is null then
     raise exception 'create_lobby_with_game: not authenticated';
-  end if;
-
-  if p_min_players is null or p_max_players is null then
-    raise exception 'invalid_player_limits';
-  end if;
-
-  if p_min_players < 2 or p_max_players > 8 or p_min_players > p_max_players then
-    raise exception 'invalid_player_limits';
   end if;
 
   perform 1 from users where id = auth.uid() for update;
@@ -53,7 +44,7 @@ begin
   returning id into v_game_id;
 
   insert into lobbies (created_by, min_players, max_players, game)
-  values (v_user_id, p_min_players, p_max_players, v_game_id)
+  values (v_user_id, 2, 8, v_game_id)
   returning id into v_lobby_id;
 
   insert into lobby_players (lobby_id, user_id)
