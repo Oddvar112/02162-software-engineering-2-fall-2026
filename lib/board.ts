@@ -1,6 +1,10 @@
 import type { Tile } from "@/lib/tile";
 
 export type Position = { x: number; y: number };
+export type RebootToken = {
+  id: string;
+  position: Position;
+};
 export type PosPair = {
   One: Position;
   Two: Position;
@@ -15,6 +19,7 @@ export type Board = {
   // Row-major grid: tiles[y][x]. Board y maps to z in the 3D scene.
   tiles: Tile[][];
   startpositions: Position[];
+  rebootToken: RebootToken;
 };
 
 export function validateBoard(board: Board): void {
@@ -48,5 +53,10 @@ export function validateBoard(board: Board): void {
       throw new Error(`Duplicate start position: (${pos.x}, ${pos.y})`);
     }
     seenStarts.add(key);
+  }
+
+  // --- Valid reboot token ---
+  if (!board.rebootToken.id) {
+    throw new Error("A reboot token needs an ID.");
   }
 }

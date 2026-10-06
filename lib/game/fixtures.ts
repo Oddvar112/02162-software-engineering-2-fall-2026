@@ -80,6 +80,7 @@ export function buildGameState(board: Board = staticBoard): GameState {
       x: position.x,
       z: position.y,
       direction: Direction.Up,
+      rebootTokenId: null,
     })),
     players: seats.map(({ playerId, robotId, name }) => ({
       id: playerId,

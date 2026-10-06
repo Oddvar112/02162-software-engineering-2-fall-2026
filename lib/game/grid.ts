@@ -52,7 +52,11 @@ export function robotAt(
   fallen: Set<string>,
 ): RobotState | undefined {
   return state.robots.find(
-    (robot) => !fallen.has(robot.id) && robot.x === at.x && robot.z === at.z,
+    (robot) =>
+      robot.rebootTokenId === null &&
+      !fallen.has(robot.id) &&
+      robot.x === at.x &&
+      robot.z === at.z,
   );
 }
 
@@ -66,5 +70,6 @@ export function place(
   robot.z = to.z;
   const tile = tileAt(state.board, to);
   if (tile && tile.kind !== "pit") return;
+  robot.rebootTokenId = state.board.rebootToken.id;
   fallen.add(robot.id);
 }

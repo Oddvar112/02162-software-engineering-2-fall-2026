@@ -14,6 +14,7 @@ const flatBoard = (): Board => ({
   ),
   walls: [],
   startpositions: [1, 3, 6, 8].map((x) => ({ x, y: 8 })),
+  rebootToken: { id: "reboot-1", position: { x: 1, y: 8 } },
 });
 
 function makeState(playerCount = 1, board = flatBoard()): GameState {
@@ -36,6 +37,7 @@ function makeState(playerCount = 1, board = flatBoard()): GameState {
       x: position.x,
       z: position.y,
       direction: Direction.Up,
+      rebootTokenId: null,
     })),
     players: seats.map((_, index) => ({
       id: `p${index + 1}`,
@@ -191,7 +193,7 @@ describe("resolveRound", () => {
     }
   });
 
-  it("in a pit, skips the rest of the program and reboots near the start", () => {
+  it("in a pit, skips the rest of the program and waits for the next round", () => {
     const state = makeState();
     state.board.tiles[7][1] = { kind: "pit" };
     Object.assign(
@@ -201,20 +203,96 @@ describe("resolveRound", () => {
     expect(state.executionLog).toHaveLength(1);
     expect(state.robots[0]).toMatchObject({
       x: 1,
-      z: 8,
+      z: 7,
       direction: Direction.Up,
+      rebootTokenId: "reboot-1",
+    });
+
+    Object.assign(state, resolveRound(state, { p1: [rotate(1)] }));
+    expect(state.robots[0]).toMatchObject({
+      x: 1,
+      z: 8,
+      direction: Direction.Right,
+      rebootTokenId: null,
     });
   });
 
-  it("driving off the board reboots where the robot started", () => {
+  it("driving off the board waits for the next round's Reboot Token", () => {
     const state = makeState();
     state.registerCount = 1;
     Object.assign(state.robots[0], { x: 1, z: 0 });
     Object.assign(state, resolveRound(state, { p1: [move(1)] }));
     expect(state.robots[0]).toMatchObject({
       x: 1,
-      z: 0,
+      z: -1,
       direction: Direction.Up,
+      rebootTokenId: "reboot-1",
+    });
+
+    Object.assign(state, resolveRound(state, { p1: [rotate(1)] }));
+    expect(state.robots[0]).toMatchObject({
+      x: 1,
+      z: 8,
+      direction: Direction.Right,
+      rebootTokenId: null,
+    });
+  });
+
+  it("pushes the robot occupying the Reboot Token in its facing direction", () => {
+    const state = makeState(2);
+    state.registerCount = 1;
+    state.board.tiles[7][1] = { kind: "pit" };
+    state.robots[1].direction = Direction.Left;
+    Object.assign(
+      state,
+      resolveRound(state, {
+        p1: [move(1, 900)],
+        p2: [move(2, 800)],
+      }),
+    );
+
+    expect(state.robots[0].rebootTokenId).toBe("reboot-1");
+    expect(state.robots[1]).toMatchObject({ x: 1, z: 8 });
+
+    Object.assign(
+      state,
+      resolveRound(state, {
+        p1: [rotate(1, 900)],
+        p2: [rotate(0, 800)],
+      }),
+    );
+    expect(state.robots[0]).toMatchObject({
+      x: 1,
+      z: 8,
+      rebootTokenId: null,
+    });
+    expect(state.robots[1]).toMatchObject({ x: 0, z: 8 });
+  });
+
+  it("re-enters multiple robots on the same token in priority order", () => {
+    const state = makeState(2);
+    state.robots[0].rebootTokenId = "reboot-1";
+    state.robots[0].direction = Direction.Right;
+    state.robots[1].rebootTokenId = "reboot-1";
+    state.robots[1].direction = Direction.Up;
+
+    Object.assign(
+      state,
+      resolveRound(state, {
+        p1: [rotate(0, 900)],
+        p2: [rotate(0, 800)],
+      }),
+    );
+
+    expect(state.robots[0]).toMatchObject({
+      x: 2,
+      z: 8,
+      rebootTokenId: null,
+    });
+    expect(state.robots[1]).toMatchObject({
+      x: 1,
+      z: 8,
+      rebootTokenId: null,
     });
   });
 

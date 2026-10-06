@@ -7,7 +7,7 @@ insert into auth.users (id, email) values
   ('40000000-0000-4000-8000-000000000002', 'game-bob@example.test'),
   ('40000000-0000-4000-8000-000000000003', 'game-outsider@example.test');
 insert into public.games (id, board) values
-  ('50000000-0000-4000-8000-000000000001', '{"id":"t","width":2,"height":2,"tiles":[[{"kind":"floor"},{"kind":"floor"}],[{"kind":"floor"},{"kind":"floor"}]],"walls":[],"startpositions":[{"x":0,"y":1},{"x":1,"y":1}]}');
+  ('50000000-0000-4000-8000-000000000001', '{"id":"t","width":2,"height":2,"tiles":[[{"kind":"floor"},{"kind":"floor"}],[{"kind":"floor"},{"kind":"floor"}]],"walls":[],"startpositions":[{"x":0,"y":1},{"x":1,"y":1}],"rebootToken":{"id":"reboot-token","position":{"x":0,"y":1}}}');
 insert into public.lobbies (id, created_by, game, max_players, status) values
   ('60000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', '50000000-0000-4000-8000-000000000001', 4, 'started');
 insert into public.lobby_players (lobby_id, user_id) values

@@ -38,4 +38,5 @@ export const staticBoard: Board = {
     { One: { x: 1, y: 7 }, Two: { x: 2, y: 7 } },
   ],
   startpositions: Array.from({ length: 8 }, (_, x) => ({ x: x + 1, y: 9 })),
+  rebootToken: { id: "reboot-token", position: { x: 0, y: 9 } },
 };

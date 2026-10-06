@@ -19,43 +19,38 @@ function moveRobot(
   return true;
 }
 
-function rebootFallen(
+function reenterRobots(
   state: GameState,
-  starts: RobotState[],
+  programs: Programs,
   fallen: Set<string>,
+  record: (message: string) => void,
 ) {
-  for (const robot of state.robots.filter((candidate) =>
-    fallen.has(candidate.id),
-  )) {
-    const start = starts.find((candidate) => candidate.id === robot.id)!;
-    const tiles = Array.from(
-      { length: state.board.width * state.board.height },
-      (_, index) => ({
-        x: index % state.board.width,
-        z: Math.floor(index / state.board.width),
-      }),
-    ).sort(
-      (a, b) =>
-        Math.abs(a.x - start.x) +
-        Math.abs(a.z - start.z) -
-        (Math.abs(b.x - start.x) + Math.abs(b.z - start.z)),
-    );
-    const tile = tiles.find(
-      ({ x, z }) =>
-        state.board.tiles[z][x].kind !== "pit" &&
-        !state.robots.some(
-          (other) => !fallen.has(other.id) && other.x === x && other.z === z,
-        ),
-    );
-    if (tile) Object.assign(robot, tile, { direction: start.direction });
-    fallen.delete(robot.id);
+  const waiting = state.robots
+    .filter((robot) => robot.rebootTokenId !== null)
+    .sort((a, b) => {
+      const aPriority = programs[a.playerId]?.[0]?.priority ?? -Infinity;
+      const bPriority = programs[b.playerId]?.[0]?.priority ?? -Infinity;
+      return bPriority - aPriority;
+    });
+  const token = state.board.rebootToken.position;
+  const tokenPoint = { x: token.x, z: token.y };
+
+  for (const robot of waiting) {
+    const occupant = robotAt(state, tokenPoint, fallen);
+    if (occupant && !moveRobot(state, occupant, occupant.direction, fallen)) {
+      record(`${robot.name} could not reboot: token is blocked`);
+      continue;
+    }
+    robot.x = token.x;
+    robot.z = token.y;
+    robot.rebootTokenId = null;
+    record(`${robot.name} reboots on the Reboot Token`);
   }
 }
 
 export function resolveRound(input: GameState, programs: Programs): GameState {
   const state = structuredClone(input);
   const fallen = new Set<string>();
-  const starts = structuredClone(state.robots);
   state.executionLog = [];
   state.executionFrames = [];
   const recordFrame = (
@@ -72,6 +67,9 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
     });
   };
   recordFrame(0, null, "Executing programs…");
+  reenterRobots(state, programs, fallen, (message) =>
+    recordFrame(1, null, `Register 1: ${message}`),
+  );
 
   for (let register = 0; register < state.registerCount; register++) {
     const actions = state.players
@@ -83,7 +81,7 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
       const robot = state.robots.find(
         (candidate) => candidate.id === player.robotId,
       )!;
-      if (fallen.has(robot.id)) continue;
+      if (robot.rebootTokenId !== null || fallen.has(robot.id)) continue;
       state.executionLog.push({
         register: register + 1,
         playerId: player.id,
@@ -125,8 +123,10 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
       const robot = state.robots.find(
         (candidate) => candidate.id === player.robotId,
       );
-      if (!robot || fallen.has(robot.id)) continue;
-      const tile = state.board.tiles[robot.z][robot.x];
+      if (!robot || robot.rebootTokenId !== null || fallen.has(robot.id)) {
+        continue;
+      }
+      const tile = state.board.tiles[robot.z]?.[robot.x];
       if (
         tile.kind === "checkpoint" &&
         tile.number === player.checkpointsReached + 1
@@ -136,10 +136,6 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
     }
   }
 
-  rebootFallen(state, starts, fallen);
-  state.robots = state.robots.filter((robot) =>
-    state.players.some((player) => player.robotId === robot.id),
-  );
   recordFrame(0, null, "Round complete");
   state.phase = "end-of-round";
   return state;

@@ -93,6 +93,7 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
           x: robot?.x ?? 0,
           z: robot?.z ?? 0,
           direction: robot?.direction ?? Direction.Up,
+          reboot_token_id: robot?.rebootTokenId ?? null,
           checkpoints_reached: player.checkpointsReached,
         };
       }),

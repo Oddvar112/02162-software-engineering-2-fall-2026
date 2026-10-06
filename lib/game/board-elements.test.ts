@@ -33,6 +33,7 @@ function play(
     ),
     walls,
     startpositions: starts,
+    rebootToken: { id: "reboot-1", position: { x: 0, y: 0 } },
   });
   state.registerCount = registers;
   return resolveRound(state, programs);

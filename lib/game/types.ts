@@ -13,6 +13,7 @@ export type RobotState = {
   x: number;
   z: number;
   direction: Direction;
+  rebootTokenId: string | null;
 };
 
 export type PlayerState = {

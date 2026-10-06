@@ -40,6 +40,42 @@ function Wall({
   );
 }
 
+function RebootToken({
+  token,
+  width,
+  height,
+}: {
+  token: GameState["board"]["rebootToken"];
+  width: number;
+  height: number;
+}) {
+  return (
+    <group
+      name={token.id}
+      position={[
+        tilePosition(token.position.x, width),
+        0.16,
+        tilePosition(token.position.y, height),
+      ]}
+    >
+      <mesh castShadow>
+        <cylinderGeometry args={[0.31, 0.31, 0.08, 24]} />
+        <meshStandardMaterial
+          color="#27e6d0"
+          emissive="#0a766d"
+          emissiveIntensity={0.8}
+          metalness={0.25}
+          roughness={0.3}
+        />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+        <torusGeometry args={[0.35, 0.035, 8, 24]} />
+        <meshBasicMaterial color="#eafffb" />
+      </mesh>
+    </group>
+  );
+}
+
 function Board({ gameState }: { gameState: GameState }) {
   const { width, height, tiles, walls } = gameState.board;
 
@@ -82,6 +118,11 @@ function Board({ gameState }: { gameState: GameState }) {
       {walls.map((wall, index) => (
         <Wall key={index} wall={wall} width={width} height={height} />
       ))}
+      <RebootToken
+        token={gameState.board.rebootToken}
+        width={width}
+        height={height}
+      />
     </group>
   );
 }
@@ -227,14 +268,16 @@ function Scene({ gameState }: { gameState: GameState }) {
         shadow-camera-bottom={-8}
       />
       <Board gameState={gameState} />
-      {gameState.robots.map((robot) => (
-        <Robot
-          key={robot.id}
-          robot={robot}
-          board={gameState.board}
-          isCurrent={robot.playerId === gameState.currentPlayerId}
-        />
-      ))}
+      {gameState.robots
+        .filter((robot) => robot.rebootTokenId === null)
+        .map((robot) => (
+          <Robot
+            key={robot.id}
+            robot={robot}
+            board={gameState.board}
+            isCurrent={robot.playerId === gameState.currentPlayerId}
+          />
+        ))}
       <ContactShadows
         frames={gameState.phase === "execution" ? Infinity : 1}
         position={[0, -0.47, 0]}

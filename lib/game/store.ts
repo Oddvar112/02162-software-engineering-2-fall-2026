@@ -37,8 +37,8 @@ type PlayerRow = {
   z: number;
   direction: Direction;
   damage: number;
-  lives: number;
   checkpoints_reached: number;
+  reboot_token_id: string | null;
 };
 
 export type LoadedGame = {
@@ -73,7 +73,7 @@ export async function loadGame(gameId: string): Promise<LoadedGame> {
       service
         .from("game_players")
         .select(
-          "user_id, seat, robot_model, x, z, direction, damage, lives, checkpoints_reached",
+          "user_id, seat, robot_model, x, z, direction, damage, checkpoints_reached, reboot_token_id",
         )
         .eq("game_id", gameId)
         .order("seat"),
@@ -131,27 +131,25 @@ export function toGameState(loaded: LoadedGame, viewerId: string): GameState {
     currentPlayerId: viewerId,
     board: game.board,
     registerCount: REGISTER_COUNT,
-    robots: players
-      .filter((player) => player.lives > 0)
-      .map((player) => {
-        const robot = {
-          id: player.user_id,
-          playerId: player.user_id,
-          modelId: player.robot_model,
-          name: names.get(player.user_id) ?? "Unknown player",
-          color: "",
-          x: player.x,
-          z: player.z,
-          direction: player.direction,
-        };
-        return { ...robot, ...getRobotAppearance(robot) };
-      }),
+    robots: players.map((player) => {
+      const robot = {
+        id: player.user_id,
+        playerId: player.user_id,
+        modelId: player.robot_model,
+        name: names.get(player.user_id) ?? "Unknown player",
+        color: "",
+        x: player.x,
+        z: player.z,
+        direction: player.direction,
+        rebootTokenId: player.reboot_token_id,
+      };
+      return { ...robot, ...getRobotAppearance(robot) };
+    }),
     players: players.map((player) => ({
       id: player.user_id,
       name: names.get(player.user_id) ?? "Unknown player",
       robotId: player.user_id,
       damage: player.damage,
-      lives: player.lives,
       checkpointsReached: player.checkpoints_reached,
       programmedCardCount: programs.has(player.user_id) ? REGISTER_COUNT : 0,
       programLocked: programs.has(player.user_id),
