@@ -94,12 +94,32 @@ describe("initialiseGame", () => {
     ]);
     const [players, hands, board] = db.writes;
 
-    expect(players.values).toEqual(
+    const playerRows = players.values as {
+      game_id: string;
+      user_id: string;
+      seat: number;
+      robot_model: string;
+      x: number;
+      z: number;
+      direction: number;
+      draw_pile: ActionCard[];
+      discard_pile: ActionCard[];
+    }[];
+
+    expect(
+      playerRows.map(({ user_id, seat, robot_model, x, z, direction }) => ({
+        user_id,
+        seat,
+        robot_model,
+        x,
+        z,
+        direction,
+      })),
+    ).toEqual(
       [
         ["host", "glitch"],
         ["guest", "pixel"],
       ].map(([user_id, robot_model], seat) => ({
-        game_id: "game-1",
         user_id,
         seat,
         robot_model,
@@ -108,10 +128,20 @@ describe("initialiseGame", () => {
         direction: Direction.Up,
       })),
     );
+    expect(playerRows.every((row) => row.game_id === "game-1")).toBe(true);
     expect(players.options).toEqual({
       onConflict: "game_id,user_id",
       ignoreDuplicates: true,
     });
+
+    // round 1: nothing has been discarded yet
+    expect(playerRows.every((row) => row.discard_pile.length === 0)).toBe(
+      true,
+    );
+    // each player started with a 20-card deck; 9 went to their hand
+    expect(
+      playerRows.every((row) => row.draw_pile.length === 20 - HAND_SIZE),
+    ).toBe(true);
 
     const dealt = hands.values as {
       user_id: string;
@@ -123,12 +153,31 @@ describe("initialiseGame", () => {
       ["guest", 1],
     ]);
     expect(dealt.every(({ cards }) => cards.length === HAND_SIZE)).toBe(true);
-    const ids = dealt.flatMap(({ cards }) => cards.map((card) => card.id));
-    expect(new Set(ids).size).toBe(ids.length);
     expect(hands.options).toEqual({
       onConflict: "game_id,user_id",
       ignoreDuplicates: true,
     });
+
+    // within one player's hand, no duplicate cards
+    for (const { cards } of dealt) {
+      const ids = cards.map((card) => card.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+
+    // each player's hand + their own remaining draw pile = their full starting 20-card deck,
+    // with no overlap and no card lost
+    for (const { user_id, cards: hand } of dealt) {
+      const row = playerRows.find((r) => r.user_id === user_id)!;
+      const handIds = hand.map((c) => c.id);
+      const drawIds = row.draw_pile.map((c) => c.id);
+      expect(handIds.length + drawIds.length).toBe(20);
+      expect(new Set([...handIds, ...drawIds]).size).toBe(20);
+    }
+
+    // host and guest piles are independently shuffled, not slices of one shared deck:
+    // it's fine (and expected) for their hands to contain cards with the same ids
+    expect(dealt[0].cards.length).toBe(HAND_SIZE);
+    expect(dealt[1].cards.length).toBe(HAND_SIZE);
 
     expect(board.values).toMatchObject({ board: staticBoard });
     expect(board.filters).toEqual([
@@ -180,5 +229,15 @@ describe("initialiseGame", () => {
     db.failingTable = "hands";
     await expect(initialiseGame("game-1")).rejects.toThrow("hands failed");
     expect(db.writes.some(({ table }) => table === "games")).toBe(false);
+  });
+
+  it("fails before writing anything if the player-row write itself fails", async () => {
+    db.failingTable = "game_players";
+    await expect(initialiseGame("game-1")).rejects.toThrow(
+      "game_players failed",
+    );
+    expect(
+      db.writes.some(({ table }) => table === "hands" || table === "games"),
+    ).toBe(false);
   });
 });
