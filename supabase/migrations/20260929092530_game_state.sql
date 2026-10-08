@@ -182,6 +182,7 @@ create function public.apply_round_result(
   p_execution_frames jsonb,
   p_players jsonb,
   p_programs jsonb,
+  p_discarded jsonb,
   p_winner_id uuid
 )
 returns boolean
@@ -193,6 +194,7 @@ declare
   v_game games;
   v_player jsonb;
   v_program jsonb;
+  v_discardpile jsonb;
 begin
   select * into v_game from games where id = p_game_id for update;
 
@@ -220,6 +222,12 @@ begin
       set round = excluded.round, cards = excluded.cards;
   end loop;
 
+  for v_discardpile in select * from jsonb_array_elements(p_discarded) loop
+    update game_players
+    set discard_pile = discard_pile || v_discardpile -> 'cards'
+    where game_id = p_game_id and user_id = (v_discardpile ->> 'user_id')::uuid;
+  end loop;
+
   if p_phase = 'finished' then
     update lobbies set status = 'finished' where game = p_game_id;
   end if;
@@ -236,10 +244,11 @@ begin
 end;
 $$;
 
-create function public.begin_next_round(
+create or replace function public.begin_next_round(
   p_game_id uuid,
   p_round integer,
-  p_hands jsonb
+  p_hands jsonb,
+  p_piles jsonb
 )
 returns boolean
 language plpgsql
@@ -249,6 +258,7 @@ as $$
 declare
   v_game games;
   v_hand jsonb;
+  v_pile jsonb;
 begin
   select * into v_game from games where id = p_game_id for update;
 
@@ -261,6 +271,13 @@ begin
     values (p_game_id, (v_hand ->> 'user_id')::uuid, p_round + 1, v_hand -> 'cards')
     on conflict (game_id, user_id) do update
       set round = excluded.round, cards = excluded.cards;
+  end loop;
+
+  for v_pile in select * from jsonb_array_elements(p_piles) loop
+    update game_players
+    set draw_pile = v_pile -> 'draw_pile',
+        discard_pile = v_pile -> 'discard_pile'
+    where game_id = p_game_id and user_id = (v_pile ->> 'user_id')::uuid;
   end loop;
 
   delete from programs where game_id = p_game_id;
@@ -278,8 +295,8 @@ begin
 end;
 $$;
 
-revoke all on function public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, uuid) from public, anon, authenticated;
-revoke all on function public.begin_next_round(uuid, integer, jsonb) from public, anon, authenticated;
+revoke all on function public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, jsonb, uuid) from public, anon, authenticated;
+revoke all on function public.begin_next_round(uuid, integer, jsonb, jsonb) from public, anon, authenticated;
 
 alter table public.games replica identity default;
 alter table public.game_players replica identity default;

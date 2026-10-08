@@ -39,6 +39,8 @@ type PlayerRow = {
   damage: number;
   lives: number;
   checkpoints_reached: number;
+  draw_pile: ActionCard[];
+  discard_pile: ActionCard[];
 };
 
 export type LoadedGame = {
@@ -73,7 +75,7 @@ export async function loadGame(gameId: string): Promise<LoadedGame> {
       service
         .from("game_players")
         .select(
-          "user_id, seat, robot_model, x, z, direction, damage, lives, checkpoints_reached",
+          "user_id, seat, robot_model, x, z, direction, damage, lives, checkpoints_reached, draw_pile, discard_pile",
         )
         .eq("game_id", gameId)
         .order("seat"),

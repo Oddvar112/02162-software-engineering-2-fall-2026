@@ -124,7 +124,7 @@ select is(
     (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
     'end-of-round', '[]', '[]',
     '[{"user_id":"40000000-0000-4000-8000-000000000001","x":0,"z":0,"direction":1,"checkpoints_reached":0}]',
-    '[]',
+    '[]', '[]'
     null
   ),
   true, 'the server applies a round result once'
@@ -133,7 +133,7 @@ select is(
   public.apply_round_result(
     '50000000-0000-4000-8000-000000000001', 1,
     (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
-    'end-of-round', '[]', '[]', '[]', '[]', null
+    'end-of-round', '[]', '[]', '[]', '[]', '[]', null
   ),
   false, 'the same round cannot be applied twice'
 );
@@ -182,14 +182,14 @@ select ok(
   'games are published to Realtime'
 );
 select ok(
-  not has_function_privilege('authenticated', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, uuid)', 'EXECUTE')
-  and not has_function_privilege('authenticated', 'public.begin_next_round(uuid, integer, jsonb)', 'EXECUTE'),
+  not has_function_privilege('authenticated', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, jsonb, uuid)', 'EXECUTE')
+  and not has_function_privilege('authenticated', 'public.begin_next_round(uuid, integer, jsonb, jsonb)', 'EXECUTE'),
   'only the server can write a round result or start the next round'
 );
 
 update public.games set phase = 'programming' where id = '50000000-0000-4000-8000-000000000001';
 select is(
-  public.apply_round_result('50000000-0000-4000-8000-000000000001', 1, now() - interval '1 minute', 'end-of-round', '[]', '[]', '[]', '[]', null),
+  public.apply_round_result('50000000-0000-4000-8000-000000000001', 1, now() - interval '1 minute', 'end-of-round', '[]', '[]', '[]', '[]', '[]', null),
   false, 'a round result read before a later lock in is refused'
 );
 select is(
@@ -200,7 +200,7 @@ select is(
   public.apply_round_result(
     '50000000-0000-4000-8000-000000000001', 1,
     (select updated_at from public.games where id = '50000000-0000-4000-8000-000000000001'),
-    'finished', '[]', '[]', '[]', '[]', '40000000-0000-4000-8000-000000000001'
+    'finished', '[]', '[]', '[]', '[]', '[]', '40000000-0000-4000-8000-000000000001'
   ),
   true, 'the same call with the current timestamp is accepted'
 );
@@ -215,18 +215,19 @@ select is(
 
 -- begin_next_round: refused in the wrong phase, then applied once.
 select is(
-  public.begin_next_round('50000000-0000-4000-8000-000000000001', 1, '[]'),
+  public.begin_next_round('50000000-0000-4000-8000-000000000001', 1, '[]', '[]'),
   false, 'a finished game cannot start another round'
 );
 update public.games set phase = 'end-of-round' where id = '50000000-0000-4000-8000-000000000001';
 select is(
-  public.begin_next_round('50000000-0000-4000-8000-000000000001', 2, '[]'),
+  public.begin_next_round('50000000-0000-4000-8000-000000000001', 2, '[]', '[]'),
   false, 'the wrong round number is refused'
 );
 select is(
   public.begin_next_round(
     '50000000-0000-4000-8000-000000000001', 1,
-    '[{"user_id":"40000000-0000-4000-8000-000000000001","cards":[{"id":"n1","name":"Move 1","type":"move","value":1,"priority":500}]}]'
+    '[{"user_id":"40000000-0000-4000-8000-000000000001","cards":[{"id":"n1","name":"Move 1","type":"move","value":1,"priority":500}]}]', 
+    '[]'
   ),
   true, 'the next round starts once'
 );
@@ -243,7 +244,7 @@ select is(
   2, 'the new hand belongs to round 2'
 );
 select is(
-  public.begin_next_round('50000000-0000-4000-8000-000000000001', 1, '[]'),
+  public.begin_next_round('50000000-0000-4000-8000-000000000001', 1, '[]', '[]'),
   false, 'the same round cannot be started twice'
 );
 
@@ -258,8 +259,8 @@ select ok(
   and has_table_privilege('service_role', 'public.lobbies', 'SELECT')
   and has_table_privilege('service_role', 'public.lobby_players', 'SELECT')
   and has_table_privilege('service_role', 'public.users', 'SELECT')
-  and has_function_privilege('service_role', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, uuid)', 'EXECUTE')
-  and has_function_privilege('service_role', 'public.begin_next_round(uuid, integer, jsonb)', 'EXECUTE'),
+  and has_function_privilege('service_role', 'public.apply_round_result(uuid, integer, timestamptz, text, jsonb, jsonb, jsonb, jsonb, jsonb, uuid)', 'EXECUTE')
+  and has_function_privilege('service_role', 'public.begin_next_round(uuid, integer, jsonb, jsonb)', 'EXECUTE'),
   'the server role can read and write everything the game needs'
 );
 
