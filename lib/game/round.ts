@@ -1,6 +1,6 @@
 import type { Board } from "@/lib/board";
 import { Direction } from "@/lib/direction";
-import { dealHands, shuffle } from "@/lib/game/deck";
+import { drawHand, shuffle } from "@/lib/game/deck";
 import { resolveRound, type Programs } from "@/lib/game/engine";
 import type { GameState } from "@/lib/game/types";
 import {
@@ -100,6 +100,13 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
         user_id,
         cards,
       })),
+      p_discarded: Array.from(loaded.hands.entries()).map(
+        ([user_id, hand]) => ({
+          user_id,
+          cards: hand,
+        }),
+      ),
+
       p_winner_id: outcome.winnerId,
     },
   );
@@ -119,7 +126,12 @@ function isReadyToAdvance(loaded: LoadedGame): boolean {
 export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
   if (!isReadyToAdvance(loaded)) return false;
   const { game } = loaded;
-  const hands = dealHands(loaded.players.map((player) => player.user_id));
+  const hands = Object.fromEntries(
+    loaded.players.map((player) => [
+      player.user_id,
+      drawHand(player.draw_pile, player.discard_pile),
+    ]),
+  );
 
   const { data: advanced, error } = await createServiceClient().rpc(
     "begin_next_round",
@@ -130,6 +142,13 @@ export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
         user_id,
         cards,
       })),
+      p_piles: Object.entries(hands).map(
+        ([user_id, { drawPile, discardPile }]) => ({
+          user_id,
+          draw_pile: drawPile,
+          discard_pile: discardPile,
+        }),
+      ),
     },
   );
   if (error) throw error;

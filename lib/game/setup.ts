@@ -1,5 +1,5 @@
 import { Direction } from "@/lib/direction";
-import { dealHands } from "@/lib/game/deck";
+import { createDecksForPlayers, drawHand } from "@/lib/game/deck";
 import { staticBoard } from "@/lib/game/game-model";
 import { GameError } from "@/lib/game/store";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -32,6 +32,12 @@ export async function initialiseGame(gameId: string): Promise<void> {
     throw new GameError("The board has too few start positions.", 409);
   }
 
+  const userIds = members.map((member) => member.user_id);
+
+  const decks = createDecksForPlayers(userIds);
+  const drawResults = Object.fromEntries(
+    Object.entries(decks).map(([userId, pile]) => [userId, drawHand(pile, [])]),
+  );
   const players = members.map(({ user_id, robot_model }, seat) => ({
     game_id: gameId,
     user_id,
@@ -40,19 +46,20 @@ export async function initialiseGame(gameId: string): Promise<void> {
     x: staticBoard.startpositions[seat].x,
     z: staticBoard.startpositions[seat].y,
     direction: Direction.Up,
+    draw_pile: drawResults[user_id].drawPile,
+    discard_pile: drawResults[user_id].discardPile,
   }));
   const { error: playersError } = await service
     .from("game_players")
     .upsert(players, { onConflict: "game_id,user_id", ignoreDuplicates: true });
   if (playersError) throw playersError;
 
-  const hands = dealHands(players.map((player) => player.user_id));
   const { error: handsError } = await service.from("hands").upsert(
-    Object.entries(hands).map(([user_id, cards]) => ({
+    Object.entries(drawResults).map(([user_id, { hand }]) => ({
       game_id: gameId,
       user_id,
       round: 1,
-      cards,
+      cards: hand,
     })),
     { onConflict: "game_id,user_id", ignoreDuplicates: true },
   );
