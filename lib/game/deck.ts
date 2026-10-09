@@ -5,7 +5,8 @@ export const PILE_SIZE = 20;
 
 type PileTemplate = Omit<ActionCard, "id" | "priority"> & { count: number };
 
-const TEMPLATES: PileTemplate[] = [ //Extra 2x Move 2, 1x U-turn
+const TEMPLATES: PileTemplate[] = [
+  //Extra 2x Move 2, 1x U-turn
   { name: "U-turn", type: "rotate", value: 2, count: 2 },
   { name: "Rotate left", type: "rotate", value: -1, count: 3 },
   { name: "Rotate right", type: "rotate", value: 1, count: 3 },
@@ -53,10 +54,7 @@ export function createDecksForPlayers(
   random = Math.random,
 ): Record<string, ActionCard[]> {
   return Object.fromEntries(
-    playerIds.map((playerId) => [
-      playerId,
-      shuffle(buildPile(), random)
-    ]),
+    playerIds.map((playerId) => [playerId, shuffle(buildPile(), random)]),
   );
 }
 
@@ -64,28 +62,27 @@ export function drawHand(
   drawPile: ActionCard[],
   discardPile: ActionCard[],
   random = Math.random,
-): {hand: ActionCard[];
-  drawPile: ActionCard[]; 
-  discardPile: ActionCard[]} {
-  
-    let draw = [...drawPile];
+): { hand: ActionCard[]; drawPile: ActionCard[]; discardPile: ActionCard[] } {
+  let draw = [...drawPile];
   let discard = [...discardPile];
   const hand: ActionCard[] = [];
 
   while (hand.length < HAND_SIZE) {
     if (draw.length == 0) {
-              if (discard.length === 0) {
-        throw new Error("No cards left to draw: draw pile and discard pile are both empty.");
+      if (discard.length === 0) {
+        throw new Error(
+          "No cards left to draw: draw pile and discard pile are both empty.",
+        );
       }
-      draw = shuffle(discard, random)
+      draw = shuffle(discard, random);
       discard = [];
     }
     const [next, ...rest] = draw;
     hand.push(next);
     draw = rest;
-    }
-    return {hand, drawPile: draw, discardPile: discard}
   }
+  return { hand, drawPile: draw, discardPile: discard };
+}
 
 // -- OLD IMPLEMENT
 export function dealHands(

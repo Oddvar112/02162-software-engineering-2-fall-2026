@@ -47,7 +47,9 @@ describe("createDecksForPlayers", () => {
     const piles = createDecksForPlayers(["a", "b", "c"], () => 0.5);
 
     // every player has an entry, each with exactly 20 cards
-    expect(Object.values(piles).every((pile) => pile.length === PILE_SIZE)).toBe(true);
+    expect(
+      Object.values(piles).every((pile) => pile.length === PILE_SIZE),
+    ).toBe(true);
 
     // within each player's own pile, ids are unique (duplicates across players are fine)
     for (const pile of Object.values(piles)) {

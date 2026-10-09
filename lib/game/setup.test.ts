@@ -135,9 +135,7 @@ describe("initialiseGame", () => {
     });
 
     // round 1: nothing has been discarded yet
-    expect(playerRows.every((row) => row.discard_pile.length === 0)).toBe(
-      true,
-    );
+    expect(playerRows.every((row) => row.discard_pile.length === 0)).toBe(true);
     // each player started with a 20-card deck; 9 went to their hand
     expect(
       playerRows.every((row) => row.draw_pile.length === 20 - HAND_SIZE),

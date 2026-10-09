@@ -25,7 +25,7 @@ export async function initialiseGame(gameId: string): Promise<void> {
     throw new GameError("This game has not been started.", 409);
   }
 
-    const members = [...lobby.lobby_players].sort((a, b) =>
+  const members = [...lobby.lobby_players].sort((a, b) =>
     a.joined_at.localeCompare(b.joined_at),
   );
   if (members.length > staticBoard.startpositions.length) {

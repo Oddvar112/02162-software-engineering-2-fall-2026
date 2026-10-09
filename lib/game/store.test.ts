@@ -49,6 +49,8 @@ function loadedGame({
       direction: Direction.Up,
       damage: 0,
       lives: lives[user_id],
+      draw_pile: [],
+      discard_pile: [],
       checkpoints_reached: 0,
     })),
     names: new Map(),

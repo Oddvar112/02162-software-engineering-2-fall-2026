@@ -100,10 +100,12 @@ export async function resolveIfReady(loaded: LoadedGame): Promise<boolean> {
         user_id,
         cards,
       })),
-      p_discarded: Array.from(loaded.hands.entries()).map(([user_id, hand]) => ({
-        user_id,
-        cards: hand,
-      })),
+      p_discarded: Array.from(loaded.hands.entries()).map(
+        ([user_id, hand]) => ({
+          user_id,
+          cards: hand,
+        }),
+      ),
 
       p_winner_id: outcome.winnerId,
     },
@@ -145,7 +147,7 @@ export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
           user_id,
           draw_pile: drawPile,
           discard_pile: discardPile,
-        })
+        }),
       ),
     },
   );
