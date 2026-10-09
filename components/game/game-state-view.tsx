@@ -1,12 +1,7 @@
 "use client";
 
 import { AlertTriangle, LoaderCircle, RefreshCw } from "lucide-react";
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import styles from "@/components/game/game-state.module.css";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -69,14 +64,8 @@ export function GameStateView({ gameId }: { gameId: string }) {
   } = useGamePlayback();
   const [playersCollapsed, setPlayersCollapsed] = useState(false);
   const playerListId = useId();
-  const {
-    error,
-    isSyncing,
-    isSubmitting,
-    submitError,
-    reload,
-    submitProgram,
-  } = useGameStateSync(gameId, setGameState);
+  const { error, isSyncing, isSubmitting, submitError, reload, submitProgram } =
+    useGameStateSync(gameId, setGameState);
 
   const secondsLeft = useCountdown(gameState?.timerEndsAt ?? null);
   const router = useRouter();

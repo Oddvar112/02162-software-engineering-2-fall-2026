@@ -59,10 +59,7 @@ describe("RoundService", () => {
       })),
       names: new Map(),
       hands: new Map(
-        state.players.map((player) => [
-          player.id,
-          state.currentPlayerCards,
-        ]),
+        state.players.map((player) => [player.id, state.currentPlayerCards]),
       ),
       programs: new Map(),
     };
@@ -93,7 +90,10 @@ describe("RoundService", () => {
         gameId: state.gameId,
         round: state.round,
         programs: state.players.map((player) =>
-          expect.objectContaining({ userId: player.id, cards: state.currentPlayerCards.slice(0, 5) }),
+          expect.objectContaining({
+            userId: player.id,
+            cards: state.currentPlayerCards.slice(0, 5),
+          }),
         ),
       }),
     );

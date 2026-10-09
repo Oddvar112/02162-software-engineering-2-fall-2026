@@ -129,7 +129,8 @@ export function useGameStateSync(
         const result = await response.json();
         if (!response.ok) {
           throw new Error(
-            result.error ?? "Your program could not be submitted. Please try again.",
+            result.error ??
+              "Your program could not be submitted. Please try again.",
           );
         }
         receiveState(result as GameState);
