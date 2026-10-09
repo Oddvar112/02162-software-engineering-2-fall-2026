@@ -120,7 +120,8 @@ export default async function LobbyList({
                 <div>
                   <p className="font-medium">{host}&apos;s lobby</p>
                   <p className="text-sm text-foreground/70">
-                    {players} / {lobby.max_players} players (min. {lobby.min_players})
+                    {players} / {lobby.max_players} players (min.{" "}
+                    {lobby.min_players})
                   </p>
                 </div>
                 {current ? (

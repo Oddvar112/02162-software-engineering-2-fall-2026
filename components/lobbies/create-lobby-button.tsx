@@ -53,7 +53,10 @@ export function CreateLobbyButton() {
           <p>{error}</p>
           {error === MESSAGES.already_in_a_lobby && (
             <p className="mt-1">
-              <Link href="/lobbies" className="underline font-medium text-foreground">
+              <Link
+                href="/lobbies"
+                className="font-medium text-foreground underline"
+              >
                 View or leave your current lobby &rarr;
               </Link>
             </p>

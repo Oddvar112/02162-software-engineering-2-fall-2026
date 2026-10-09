@@ -72,7 +72,9 @@ describe("LobbySettings", () => {
     // Set min > max
     fireEvent.change(minInput, { target: { value: "5" } });
     expect(
-      screen.getByText(/minimum players cannot be greater than maximum players/i),
+      screen.getByText(
+        /minimum players cannot be greater than maximum players/i,
+      ),
     ).toBeDefined();
     expect((saveBtn as HTMLButtonElement).disabled).toBe(true);
   });
@@ -175,7 +177,9 @@ describe("LobbySettings", () => {
 
     expect(screen.queryByLabelText(/minimum players/i)).toBeNull();
     expect(screen.queryByRole("button", { name: /save settings/i })).toBeNull();
-    expect(screen.getByText(/only the host can modify the game settings/i)).toBeDefined();
+    expect(
+      screen.getByText(/only the host can modify the game settings/i),
+    ).toBeDefined();
     expect(screen.getByText("3")).toBeDefined();
     expect(screen.getByText("6")).toBeDefined();
   });

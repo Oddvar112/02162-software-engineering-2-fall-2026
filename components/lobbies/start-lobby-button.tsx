@@ -49,7 +49,7 @@ export function StartLobbyButton({
         setError(
           errorKey === "not_enough_players"
             ? `At least ${minPlayers} players are needed to start.`
-            : MESSAGES[errorKey] ?? "Could not start the game.",
+            : (MESSAGES[errorKey] ?? "Could not start the game."),
         );
         setIsStarting(false);
         return;

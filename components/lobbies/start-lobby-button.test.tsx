@@ -32,7 +32,9 @@ describe("StartLobbyButton", () => {
     const button = screen.getByRole("button", { name: /start game/i });
     expect((button as HTMLButtonElement).disabled).toBe(true);
     expect(
-      screen.getByText(/waiting for at least 2 more players to reach minimum \(4\)/i),
+      screen.getByText(
+        /waiting for at least 2 more players to reach minimum \(4\)/i,
+      ),
     ).toBeDefined();
   });
 

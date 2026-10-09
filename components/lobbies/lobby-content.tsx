@@ -101,7 +101,8 @@ export default async function LobbyContent({
             />
           </div>
           <p className="text-lg text-foreground/70">
-            {players.length} / {lobby.max_players} players (min. {lobby.min_players})
+            {players.length} / {lobby.max_players} players (min.{" "}
+            {lobby.min_players})
           </p>
           {lobby.status === "started" && (
             <p className="text-sm text-foreground/50">
