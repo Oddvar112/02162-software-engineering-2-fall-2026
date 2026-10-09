@@ -16,17 +16,19 @@ const MESSAGES: Record<string, string> = {
 export function StartLobbyButton({
   lobbyId,
   playerCount,
+  minPlayers = 2,
   robotsChosen,
 }: {
   lobbyId: string;
   playerCount: number;
+  minPlayers?: number;
   robotsChosen: boolean;
 }) {
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const waitingFor =
-    playerCount < 2
-      ? "Waiting for at least one more player."
+    playerCount < minPlayers
+      ? `Waiting for at least ${minPlayers - playerCount} more player${minPlayers - playerCount > 1 ? "s" : ""} to reach minimum (${minPlayers}).`
       : robotsChosen
         ? null
         : "Waiting for every player to choose a robot.";
@@ -43,8 +45,11 @@ export function StartLobbyButton({
       );
 
       if (rpcError || typeof gameId !== "string") {
+        const errorKey = rpcError?.message ?? "";
         setError(
-          MESSAGES[rpcError?.message ?? ""] ?? "Could not start the game.",
+          errorKey === "not_enough_players"
+            ? `At least ${minPlayers} players are needed to start.`
+            : (MESSAGES[errorKey] ?? "Could not start the game."),
         );
         setIsStarting(false);
         return;

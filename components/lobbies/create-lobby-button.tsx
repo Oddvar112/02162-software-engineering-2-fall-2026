@@ -2,11 +2,13 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const MESSAGES: Record<string, string> = {
   already_in_a_lobby: "You are already in a lobby. Leave it first.",
+  not_authenticated: "Please sign in to create a lobby.",
 };
 
 export function CreateLobbyButton() {
@@ -31,7 +33,7 @@ export function CreateLobbyButton() {
         return;
       }
 
-      // Redirect
+      // Redirect to newly created lobby
       router.push(`/lobbies/${lobbyId}`);
     } catch (err) {
       console.error("Unexpected error:", err);
@@ -46,7 +48,21 @@ export function CreateLobbyButton() {
       <Button onClick={handleCreateLobby} disabled={isLoading}>
         {isLoading ? "Creating..." : "Create Lobby"}
       </Button>
-      {error && <p className="mt-2 text-red-600">{error}</p>}
+      {error && (
+        <div className="mt-2 text-sm text-red-600">
+          <p>{error}</p>
+          {error === MESSAGES.already_in_a_lobby && (
+            <p className="mt-1">
+              <Link
+                href="/lobbies"
+                className="font-medium text-foreground underline"
+              >
+                View or leave your current lobby &rarr;
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
