@@ -2,7 +2,7 @@
 
 import { ContactShadows, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Suspense, useLayoutEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { RobotModel } from "./robot-model";
 import { TileMesh } from "./tile-mesh";
 import { DIRECTION_ROTATION, tilePosition } from "./board-coordinates";
@@ -163,6 +163,8 @@ function Robot({
   );
 }
 
+const BOARD_CENTER: [number, number, number] = [0, 0, 0];
+
 function ResponsiveCameraControls({
   width,
   height,
@@ -170,7 +172,8 @@ function ResponsiveCameraControls({
   width: number;
   height: number;
 }) {
-  const { camera, size, invalidate } = useThree();
+  const { camera, size, invalidate, gl } = useThree();
+  const controlsRef = useRef<React.ComponentRef<typeof OrbitControls>>(null);
   const perspectiveCamera = camera as THREE.PerspectiveCamera;
   const aspect = Math.max(size.width, 1) / Math.max(size.height, 1);
   const sceneRadius = Math.hypot((width + 0.7) / 2, (height + 0.7) / 2, 1.25);
@@ -178,6 +181,26 @@ function ResponsiveCameraControls({
   const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
   const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
   const fitDistance = (sceneRadius / Math.sin(limitingHalfFov)) * 1.08;
+
+  // Keep the orbit target inside the board so the view can't be panned away
+  const maxPanX = (width + 0.7) / 2;
+  const maxPanZ = (height + 0.7) / 2;
+
+  const clampPan = () => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    const t = controls.target;
+    const clamped = new THREE.Vector3(
+      THREE.MathUtils.clamp(t.x, -maxPanX, maxPanX),
+      0, // no vertical drift: the target stays on the board plane
+      THREE.MathUtils.clamp(t.z, -maxPanZ, maxPanZ),
+    );
+    const correction = clamped.clone().sub(t);
+    if (correction.lengthSq() === 0) return;
+    // move camera and target together so the view angle doesn't change
+    perspectiveCamera.position.add(correction);
+    t.copy(clamped);
+  };
 
   useLayoutEffect(() => {
     perspectiveCamera.position
@@ -188,20 +211,74 @@ function ResponsiveCameraControls({
     perspectiveCamera.aspect = aspect;
     perspectiveCamera.lookAt(0, 0, 0);
     perspectiveCamera.updateProjectionMatrix();
+    // new: recenter the orbit target too, so the camera and target agree
+    controlsRef.current?.target.set(0, 0, 0);
+    controlsRef.current?.update();
     const frame = requestAnimationFrame(invalidate);
 
     return () => cancelAnimationFrame(frame);
   }, [aspect, fitDistance, invalidate, perspectiveCamera]);
 
+  // Trackpad: two-finger scroll pans, pinch zooms
+  useEffect(() => {
+    const el = gl.domElement;
+
+    const onWheel = (e: WheelEvent) => {
+      const controls = controlsRef.current;
+      if (!controls) return;
+      e.preventDefault();
+
+      if (e.ctrlKey) {
+        // pinch: dolly toward/away from the target, within your min/max limits
+        const factor = Math.exp(e.deltaY * 0.01);
+        const offset = perspectiveCamera.position.clone().sub(controls.target);
+        perspectiveCamera.position
+          .copy(controls.target)
+          .add(offset.multiplyScalar(factor));
+      } else {
+        // two-finger scroll: pan in screen space
+        const distance = perspectiveCamera.position.distanceTo(controls.target);
+        const scale = distance * 0.001;
+        const right = new THREE.Vector3().setFromMatrixColumn(
+          perspectiveCamera.matrix,
+          0,
+        );
+        const up = new THREE.Vector3().setFromMatrixColumn(
+          perspectiveCamera.matrix,
+          1,
+        );
+        const move = right
+          .multiplyScalar(e.deltaX * scale)
+          .add(up.multiplyScalar(-e.deltaY * scale));
+        perspectiveCamera.position.add(move);
+        controls.target.add(move);
+      }
+      controls.update();
+      invalidate();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [gl, perspectiveCamera, invalidate]);
+
   return (
     <OrbitControls
+      ref={controlsRef}
       makeDefault
-      enablePan={false}
-      minDistance={fitDistance * 0.6}
+      enablePan
+      onChange={clampPan}
+      enableZoom={false}
+      screenSpacePanning
+      mouseButtons={{
+        LEFT: THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.PAN,
+      }}
+      minDistance={fitDistance * 0.4}
       maxDistance={fitDistance * 1.5}
       minPolarAngle={0.48}
       maxPolarAngle={1.2}
-      target={[0, 0, 0]}
+      target={BOARD_CENTER}
     />
   );
 }
