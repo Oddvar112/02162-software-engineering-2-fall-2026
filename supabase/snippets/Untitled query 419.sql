@@ -1,1 +1,0 @@
-select pg_get_functiondef('public.apply_round_result'::regprocedure);

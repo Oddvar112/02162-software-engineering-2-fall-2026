@@ -138,10 +138,10 @@ export async function advanceIfReady(loaded: LoadedGame): Promise<boolean> {
     {
       p_game_id: game.id,
       p_round: game.round,
-      p_hands: Object.entries(hands).map(([user_id, cards]) => ({
-        user_id,
-        cards,
-      })),
+      p_hands: Object.entries(hands).map(([user_id, { hand }]) => (
+        { user_id, 
+          cards: hand 
+        })),
       p_piles: Object.entries(hands).map(
         ([user_id, { drawPile, discardPile }]) => ({
           user_id,

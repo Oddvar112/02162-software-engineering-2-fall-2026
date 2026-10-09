@@ -15,18 +15,6 @@ const TEMPLATES: PileTemplate[] = [
   { name: "Move 2", type: "move", value: 2, count: 5 },
   { name: "Move 3", type: "move", value: 3, count: 1 },
 ];
-// -- OLD IMPLEMENT
-export function buildDeck(): ActionCard[] {
-  const deck: ActionCard[] = [];
-  let priority = 10;
-  for (const { count, ...card } of TEMPLATES) {
-    for (let index = 0; index < count; index++) {
-      deck.push({ ...card, id: `${card.type}-${priority}`, priority });
-      priority += 10;
-    }
-  }
-  return deck;
-}
 
 export function buildPile(): ActionCard[] {
   const deck: ActionCard[] = [];
@@ -84,19 +72,3 @@ export function drawHand(
   return { hand, drawPile: draw, discardPile: discard };
 }
 
-// -- OLD IMPLEMENT
-export function dealHands(
-  playerIds: string[],
-  random = Math.random,
-): Record<string, ActionCard[]> {
-  const deck = shuffle(buildDeck(), random);
-  if (deck.length < playerIds.length * HAND_SIZE) {
-    throw new Error("The deck is too small for this many players.");
-  }
-  return Object.fromEntries(
-    playerIds.map((playerId, index) => [
-      playerId,
-      deck.slice(index * HAND_SIZE, (index + 1) * HAND_SIZE),
-    ]),
-  );
-}
