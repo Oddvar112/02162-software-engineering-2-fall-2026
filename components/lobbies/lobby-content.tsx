@@ -9,6 +9,20 @@ import { OtherRobots } from "./other-robots";
 import { RobotPicker } from "./robot-picker";
 import { StartLobbyButton } from "./start-lobby-button";
 
+type LobbyDetails = {
+  id: string;
+  min_players: number;
+  max_players: number;
+  status: string;
+  created_by: string;
+  game: string;
+  lobby_players: {
+    user_id: string;
+    joined_at: string;
+    robot_model: string | null;
+  }[];
+};
+
 export default async function LobbyContent({
   params,
 }: {
@@ -20,7 +34,9 @@ export default async function LobbyContent({
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub as string | undefined;
 
-  let { data: lobby, error } = await supabase
+  let lobby: LobbyDetails | null = null;
+
+  const { data: primary } = await supabase
     .from("lobbies")
     .select(
       "id, min_players, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
@@ -28,8 +44,10 @@ export default async function LobbyContent({
     .eq("id", lobbyId)
     .maybeSingle();
 
-  if (error || !lobby) {
-    const fallback = await supabase
+  if (primary) {
+    lobby = primary as LobbyDetails;
+  } else {
+    const { data: fallback } = await supabase
       .from("lobbies")
       .select(
         "id, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
@@ -37,11 +55,11 @@ export default async function LobbyContent({
       .eq("id", lobbyId)
       .maybeSingle();
 
-    if (fallback.data) {
+    if (fallback) {
       lobby = {
-        ...fallback.data,
+        ...fallback,
         min_players: 2,
-      };
+      } as LobbyDetails;
     }
   }
 
