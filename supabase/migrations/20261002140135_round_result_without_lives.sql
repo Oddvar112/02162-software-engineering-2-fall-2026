@@ -48,7 +48,7 @@ begin
   
   for v_discardpile in select * from jsonb_array_elements(p_discarded) loop
     update game_players
-    set discard_pile = discard_pile || v_discardpile -> 'cards'
+    set discard_pile = discard_pile || (v_discardpile -> 'cards')
     where game_id = p_game_id and user_id = (v_discardpile ->> 'user_id')::uuid;
   end loop;
 
