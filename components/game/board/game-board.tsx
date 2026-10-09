@@ -48,9 +48,9 @@ function Board({ gameState }: { gameState: GameState }) {
       <mesh position={[0, -0.28, 0]} receiveShadow>
         <boxGeometry args={[width + 0.7, 0.42, height + 0.7]} />
         <meshStandardMaterial
-          color="#272d2e"
-          metalness={0.48}
-          roughness={0.52}
+          color="#363531"
+          metalness={0.6}
+          roughness={0.4}
         />
       </mesh>
 
@@ -69,10 +69,10 @@ function Board({ gameState }: { gameState: GameState }) {
               <boxGeometry args={[0.94, 0.2, 0.94]} />
               <meshStandardMaterial
                 color={
-                  isPit ? "#141819" : (x + z) % 2 === 0 ? "#606766" : "#4d5554"
+                  isPit ? "#10110f" : (x + z) % 2 === 0 ? "#c3bfae" : "#aaa796"
                 }
-                metalness={isPit ? 0.18 : 0.42}
-                roughness={isPit ? 0.82 : 0.56}
+                metalness={isPit ? 0.18 : 0.52}
+                roughness={isPit ? 0.82 : 0.46}
               />
             </mesh>
             <TileMesh tile={tile} />
@@ -209,15 +209,15 @@ function ResponsiveCameraControls({
 function Scene({ gameState }: { gameState: GameState }) {
   return (
     <>
-      <color attach="background" args={["#0d1112"]} />
-      <fog attach="fog" args={["#0d1112", 32, 78]} />
-      <ambientLight intensity={1.12} />
-      <hemisphereLight args={["#d6f7ff", "#344550", 1.55]} />
+      <color attach="background" args={["#171918"]} />
+      <fog attach="fog" args={["#171918", 32, 78]} />
+      <ambientLight intensity={1.26} />
+      <hemisphereLight args={["#fff5ca", "#4a5045", 1.7]} />
       <directionalLight
         castShadow
         position={[-6, 10, 6]}
-        intensity={3.1}
-        color="#f1fbff"
+        intensity={3.45}
+        color="#fff4cf"
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-camera-far={28}

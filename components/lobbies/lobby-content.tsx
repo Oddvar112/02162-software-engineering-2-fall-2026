@@ -95,7 +95,7 @@ export default async function LobbyContent({
   const winnerName = game?.winner_id ? names.get(game.winner_id) : null;
 
   return (
-    <main className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center">
+    <main className="rr-page relative flex flex-col items-center">
       <OtherRobots
         players={players
           .filter((p) => p.user_id !== userId && p.robot_model)
@@ -106,9 +106,10 @@ export default async function LobbyContent({
           }))}
       />
       <div className="flex w-full flex-1 flex-col items-center">
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
+        <div className="rr-reveal flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-4 text-center">
+          <p className="rr-kicker">Assembly bay / lobby status</p>
           <div className="flex items-center justify-center gap-2">
-            <h1 className="text-4xl font-bold tracking-tight">Lobby</h1>
+            <h1 className="text-4xl font-black uppercase tracking-normal sm:text-5xl">Lobby</h1>
             <LobbySettings
               lobbyId={lobby.id}
               minPlayers={lobby.min_players}
@@ -118,22 +119,22 @@ export default async function LobbyContent({
               status={lobby.status}
             />
           </div>
-          <p className="text-lg text-foreground/70">
+          <p className="font-mono text-lg text-muted-foreground">
             {players.length} / {lobby.max_players} players (min.{" "}
             {lobby.min_players})
           </p>
           {lobby.status === "started" && (
-            <p className="text-sm text-foreground/50">
+            <p className="text-sm text-muted-foreground">
               This game has already started.
             </p>
           )}
           {lobby.status === "finished" && (
-            <p className="text-lg font-semibold">
+            <p className="border border-primary/40 bg-primary/10 px-4 py-2 text-lg font-bold">
               {winnerName ? `${winnerName} won the race.` : "The game is over."}
             </p>
           )}
           {lobby.status === "started" && isMember && (
-            <Link href={`/games/${lobby.game}`} className="underline">
+            <Link href={`/games/${lobby.game}`} className="font-bold uppercase text-primary underline underline-offset-4">
               Go to the game
             </Link>
           )}
@@ -144,19 +145,19 @@ export default async function LobbyContent({
                 : "mt-4"
             }
           >
-            <div className="rounded border p-4 md:justify-self-end">
-              <h2 className="mb-2 text-xl font-semibold">Players</h2>
+            <div className="rr-panel w-full p-5 text-left md:w-72 md:justify-self-end">
+              <h2 className="rr-panel-title mb-3">Players</h2>
               <ul className="text-left">
                 {players.map((player) => (
-                  <li key={player.user_id} className="py-1">
+                  <li key={player.user_id} className="border-t border-border py-2 first:border-t-0">
                     {names.get(player.user_id) ?? "Unknown player"}
-                    <span className="ml-2 text-sm text-foreground/70">
+                    <span className="ml-2 text-sm text-muted-foreground">
                       {(player.robot_model &&
                         robotNames.get(player.robot_model)) ??
                         "No robot yet"}
                     </span>
                     {player.user_id === lobby.created_by && (
-                      <span className="ml-2 text-xs text-foreground/50">
+                      <span className="ml-2 font-mono text-xs uppercase text-primary">
                         host
                       </span>
                     )}
@@ -191,7 +192,7 @@ export default async function LobbyContent({
               isHost={lobby.created_by === userId}
             />
           ) : (
-            <Link href="/lobbies" className="underline">
+            <Link href="/lobbies" className="font-bold uppercase text-primary underline underline-offset-4">
               Back to lobbies
             </Link>
           )}

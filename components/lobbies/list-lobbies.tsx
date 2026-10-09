@@ -42,9 +42,9 @@ export default async function LobbyList({
 
     if (fallbackError || !fallback) {
       return (
-        <main className="flex min-h-screen flex-col items-center gap-3 p-12 text-center">
-          <h1 className="text-3xl font-bold">Could not load the lobbies</h1>
-          <p className="text-foreground/70">Try again in a moment.</p>
+        <main className="rr-page flex flex-col items-center justify-center gap-3 text-center">
+          <h1 className="text-3xl font-black uppercase">Could not load the lobbies</h1>
+          <p className="text-muted-foreground">Try again in a moment.</p>
         </main>
       );
     }
@@ -78,23 +78,32 @@ export default async function LobbyList({
   const started = current?.status === "started";
 
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center gap-6 p-12">
-      <h1 className="text-3xl font-bold tracking-tight">Available lobbies</h1>
+    <main className="rr-page flex flex-col items-center gap-6">
+      <header className="rr-reveal w-full max-w-3xl pt-5 text-center">
+        <p className="rr-kicker">Matchmaking terminal</p>
+        <h1 className="mt-2 text-4xl font-black uppercase tracking-normal sm:text-5xl">
+          Available lobbies
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          Select an open production line and enter the race.
+        </p>
+      </header>
 
       {closed === "1" && !current && (
-        <p role="status" className="text-sm text-foreground/70">
+        <p role="status" className="border border-accent/40 bg-accent/10 px-4 py-2 text-sm text-accent">
           The host closed that lobby.
         </p>
       )}
 
       {current && (
-        <div className="flex w-full max-w-xl flex-col items-center gap-3 rounded-lg border p-4 text-center">
-          <p className="font-medium">
+        <div className="rr-panel flex w-full max-w-xl flex-col items-center gap-3 p-5 text-center">
+          <p className="rr-panel-title">Active connection</p>
+          <p className="font-bold uppercase">
             {started
               ? "Your game is in progress"
               : "You are already in a lobby"}
           </p>
-          <p className="text-sm text-foreground/70">
+          <p className="text-sm text-muted-foreground">
             {started
               ? "Finish it before joining another lobby."
               : "Leave it before joining another one."}
@@ -114,9 +123,11 @@ export default async function LobbyList({
       )}
 
       {lobbies.length === 0 ? (
-        <p className="text-foreground/70">No lobbies are open right now.</p>
+        <div className="rr-panel w-full max-w-xl p-8 text-center text-muted-foreground">
+          No lobbies are open right now.
+        </div>
       ) : (
-        <ul className="flex w-full max-w-xl flex-col gap-3">
+        <ul className="flex w-full max-w-3xl flex-col gap-3">
           {lobbies.map((lobby) => {
             const players = lobby.lobby_players[0]?.count ?? 0;
             const host = hostNames.get(lobby.created_by) ?? "Unknown player";
@@ -124,11 +135,11 @@ export default async function LobbyList({
             return (
               <li
                 key={lobby.id}
-                className="flex items-center justify-between gap-4 rounded-lg border p-4"
+                className="rr-panel rr-reveal flex items-center justify-between gap-4 p-4 sm:p-5"
               >
                 <div>
-                  <p className="font-medium">{host}&apos;s lobby</p>
-                  <p className="text-sm text-foreground/70">
+                  <p className="font-bold uppercase">{host}&apos;s lobby</p>
+                  <p className="mt-1 font-mono text-sm text-muted-foreground">
                     {players} / {lobby.max_players} players (min.{" "}
                     {lobby.min_players})
                   </p>

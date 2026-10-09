@@ -19,11 +19,9 @@ const hands = {
 
 function loadedGame({
   game = {},
-  lives = { p1: 3, p2: 3 },
   programs = {},
 }: {
   game?: Partial<LoadedGame["game"]>;
-  lives?: Record<"p1" | "p2", number>;
   programs?: Record<string, ActionCard[]>;
 } = {}): LoadedGame {
   return {
@@ -48,7 +46,6 @@ function loadedGame({
       z: 9,
       direction: Direction.Up,
       damage: 0,
-      lives: lives[user_id],
       checkpoints_reached: 0,
     })),
     names: new Map(),
@@ -77,9 +74,9 @@ describe("toGameState", () => {
     }
   });
 
-  it("removes the robot of a player with no lives but keeps the player", () => {
-    const state = toGameState(loadedGame({ lives: { p1: 3, p2: 0 } }), "p1");
-    expect(state.robots.map((robot) => robot.playerId)).toEqual(["p1"]);
+  it("includes every player and robot from persisted game state", () => {
+    const state = toGameState(loadedGame(), "p1");
+    expect(state.robots.map((robot) => robot.playerId)).toEqual(["p1", "p2"]);
     expect(state.players.map((player) => player.id)).toEqual(["p1", "p2"]);
   });
 

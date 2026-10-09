@@ -74,21 +74,21 @@ export function RobotPicker({
 
   return (
     <>
-      <div className="flex min-h-72 w-64 flex-col items-center">
+      <div className="rr-panel flex min-h-72 w-full max-w-xs flex-col items-center p-4">
         <RobotPreview id={shown?.id ?? null} />
         {shown ? (
           <>
             <p aria-live="polite">
               <strong>{shown.name}</strong> · {shown.role}
             </p>
-            <p className="text-sm text-foreground/70">{shown.personality}</p>
+            <p className="text-sm text-muted-foreground">{shown.personality}</p>
           </>
         ) : (
-          <p className="text-sm text-foreground/50">Click a robot to see it.</p>
+          <p className="text-sm text-muted-foreground">Click a robot to see it.</p>
         )}
       </div>
       <div className="flex flex-col items-center gap-2 md:justify-self-start">
-        <h2 className="text-xl font-semibold">Choose your robot</h2>
+        <h2 className="rr-panel-title">Choose your robot</h2>
         <div
           className="grid grid-cols-2 gap-2"
           role="group"
@@ -104,7 +104,7 @@ export function RobotPicker({
                 aria-pressed={isMine}
                 disabled={isTaken || isChoosing}
                 onClick={() => choose(robot.id)}
-                className={`flex items-center gap-2 rounded border px-3 py-2 text-sm ${isMine ? "border-foreground font-semibold" : ""} ${isTaken ? "opacity-40" : ""}`}
+                className={`flex items-center gap-2 rounded-sm border border-border bg-card px-3 py-2 text-sm font-bold uppercase transition-colors hover:border-primary disabled:cursor-not-allowed ${isMine ? "border-foreground border-primary bg-primary/10 text-primary" : ""} ${isTaken ? "opacity-40" : ""}`}
               >
                 <span
                   className="h-3 w-3 rounded-full"
