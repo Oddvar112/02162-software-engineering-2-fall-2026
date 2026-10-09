@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { JoinLobbyButton } from "./join-lobby-button";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 
+type LobbyItem = {
+  id: string;
+  min_players: number;
+  max_players: number;
+  created_by: string;
+  lobby_players: { count: number }[];
+};
+
 export default async function LobbyList({
   searchParams,
 }: {
@@ -15,19 +23,36 @@ export default async function LobbyList({
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub as string | undefined;
 
-  const { data: lobbies, error } = await supabase
+  let lobbies: LobbyItem[];
+
+  const { data: primary } = await supabase
     .from("lobbies")
-    .select("id, max_players, created_by, lobby_players(count)")
+    .select("id, min_players, max_players, created_by, lobby_players(count)")
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    return (
-      <main className="flex min-h-screen flex-col items-center gap-3 p-12 text-center">
-        <h1 className="text-3xl font-bold">Could not load the lobbies</h1>
-        <p className="text-foreground/70">Try again in a moment.</p>
-      </main>
-    );
+  if (primary) {
+    lobbies = primary as LobbyItem[];
+  } else {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from("lobbies")
+      .select("id, max_players, created_by, lobby_players(count)")
+      .eq("status", "open")
+      .order("created_at", { ascending: false });
+
+    if (fallbackError || !fallback) {
+      return (
+        <main className="flex min-h-screen flex-col items-center gap-3 p-12 text-center">
+          <h1 className="text-3xl font-bold">Could not load the lobbies</h1>
+          <p className="text-foreground/70">Try again in a moment.</p>
+        </main>
+      );
+    }
+
+    lobbies = fallback.map((l) => ({
+      ...l,
+      min_players: 2,
+    })) as LobbyItem[];
   }
 
   const { data: hosts } = lobbies.length
@@ -104,7 +129,8 @@ export default async function LobbyList({
                 <div>
                   <p className="font-medium">{host}&apos;s lobby</p>
                   <p className="text-sm text-foreground/70">
-                    {players} / {lobby.max_players} players
+                    {players} / {lobby.max_players} players (min.{" "}
+                    {lobby.min_players})
                   </p>
                 </div>
                 {current ? (

@@ -1,9 +1,21 @@
+import type { Board } from "@/lib/board";
 import type { Direction } from "@/lib/direction";
 import { activateBoard } from "@/lib/game/board-elements";
 import { neighbour, place, robotAt, turn, wallBetween } from "@/lib/game/grid";
 import type { ActionCard, GameState, RobotState } from "@/lib/game/types";
 
 export type Programs = Record<string, ActionCard[]>;
+
+function countCheckpoints(board: Board): number {
+  return board.tiles.flat().filter((tile) => tile.kind === "checkpoint").length;
+}
+
+export function findWinner(state: GameState) {
+  const total = countCheckpoints(state.board);
+  return state.players.find(
+    (player) => total > 0 && player.checkpointsReached >= total,
+  );
+}
 
 function moveRobot(
   state: GameState,
@@ -132,8 +144,15 @@ export function resolveRound(input: GameState, programs: Programs): GameState {
         tile.number === player.checkpointsReached + 1
       ) {
         player.checkpointsReached++;
+        recordFrame(
+          register + 1,
+          null,
+          `Register ${register + 1}: ${player.name} reached checkpoint ${tile.number}`,
+        );
       }
     }
+
+    if (findWinner(state)) break;
   }
 
   rebootFallen(state, starts, fallen);

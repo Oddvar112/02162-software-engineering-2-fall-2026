@@ -167,6 +167,6 @@ Each round works like this:
 3. The server runs every program register by register in card priority order. After each register the board acts: every conveyor moves the robot standing on it one tile, and a turning conveyor first rotates the robot to the belt's direction. Then gears turn the robot standing on them. The server records the movement frames and each client animates them. **Replay movement** plays the sequence again.
 4. The next round starts by itself 15 seconds after the round resolves, which leaves time to watch the animation. The countdown is shown next to the phase.
 
-The first robot to reach the last checkpoint wins. A robot that falls off the board or into a pit reboots near where it started the round.
+The first robot to reach the last checkpoint wins, and the round stops at the end of that register. A checkpoint counts only when the robot stands on it at the end of a register, after the board has acted, and checkpoints must be taken in order. Driving across one does not count. A robot that falls off the board or into a pit reboots near where it started the round.
 
 The board comes from `staticBoard` in `lib/game/game-model.ts`. The rules live in `lib/game/engine.ts` and `lib/game/board-elements.ts`, the deck in `lib/game/deck.ts`, and the database side in `lib/game/store.ts`. Hands are readable only by their owner, and programs only by their owner until the round resolves. The pgTAP suite in `supabase/tests/game_state_test.sql` proves both.

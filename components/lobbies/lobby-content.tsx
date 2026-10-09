@@ -4,9 +4,24 @@ import { notFound } from "next/navigation";
 import roster from "@/lib/robots.json";
 import { LeaveLobbyButton } from "./leave-lobby-button";
 import { LobbyRealtime } from "./lobby-realtime";
+import { LobbySettings } from "./lobby-settings";
 import { OtherRobots } from "./other-robots";
 import { RobotPicker } from "./robot-picker";
 import { StartLobbyButton } from "./start-lobby-button";
+
+type LobbyDetails = {
+  id: string;
+  min_players: number;
+  max_players: number;
+  status: string;
+  created_by: string;
+  game: string;
+  lobby_players: {
+    user_id: string;
+    joined_at: string;
+    robot_model: string | null;
+  }[];
+};
 
 export default async function LobbyContent({
   params,
@@ -19,13 +34,34 @@ export default async function LobbyContent({
   const { data: auth } = await supabase.auth.getClaims();
   const userId = auth?.claims?.sub as string | undefined;
 
-  const { data: lobby } = await supabase
+  let lobby: LobbyDetails | null = null;
+
+  const { data: primary } = await supabase
     .from("lobbies")
     .select(
-      "id, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
+      "id, min_players, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
     )
     .eq("id", lobbyId)
     .maybeSingle();
+
+  if (primary) {
+    lobby = primary as LobbyDetails;
+  } else {
+    const { data: fallback } = await supabase
+      .from("lobbies")
+      .select(
+        "id, max_players, status, created_by, game, lobby_players(user_id, joined_at, robot_model)",
+      )
+      .eq("id", lobbyId)
+      .maybeSingle();
+
+    if (fallback) {
+      lobby = {
+        ...fallback,
+        min_players: 2,
+      } as LobbyDetails;
+    }
+  }
 
   if (!lobby) {
     notFound();
@@ -66,14 +102,25 @@ export default async function LobbyContent({
           .map((p) => ({
             id: p.user_id,
             name: names.get(p.user_id) ?? "Unknown player",
-            robot: p.robot_model,
+            robot: p.robot_model!,
           }))}
       />
       <div className="flex w-full flex-1 flex-col items-center">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Lobby</h1>
+          <div className="flex items-center justify-center gap-2">
+            <h1 className="text-4xl font-bold tracking-tight">Lobby</h1>
+            <LobbySettings
+              lobbyId={lobby.id}
+              minPlayers={lobby.min_players}
+              maxPlayers={lobby.max_players}
+              playerCount={players.length}
+              isHost={lobby.created_by === userId}
+              status={lobby.status}
+            />
+          </div>
           <p className="text-lg text-foreground/70">
-            {players.length} / {lobby.max_players} players
+            {players.length} / {lobby.max_players} players (min.{" "}
+            {lobby.min_players})
           </p>
           {lobby.status === "started" && (
             <p className="text-sm text-foreground/50">
@@ -104,7 +151,9 @@ export default async function LobbyContent({
                   <li key={player.user_id} className="py-1">
                     {names.get(player.user_id) ?? "Unknown player"}
                     <span className="ml-2 text-sm text-foreground/70">
-                      {robotNames.get(player.robot_model) ?? "No robot yet"}
+                      {(player.robot_model &&
+                        robotNames.get(player.robot_model)) ??
+                        "No robot yet"}
                     </span>
                     {player.user_id === lobby.created_by && (
                       <span className="ml-2 text-xs text-foreground/50">
@@ -121,7 +170,7 @@ export default async function LobbyContent({
                 chosen={me.robot_model}
                 taken={players
                   .filter((p) => p.user_id !== userId && p.robot_model)
-                  .map((p) => p.robot_model)}
+                  .map((p) => p.robot_model!)}
               />
             )}
           </div>
@@ -132,6 +181,7 @@ export default async function LobbyContent({
               <StartLobbyButton
                 lobbyId={lobby.id}
                 playerCount={players.length}
+                minPlayers={lobby.min_players}
                 robotsChosen={players.every((p) => p.robot_model)}
               />
             )}
