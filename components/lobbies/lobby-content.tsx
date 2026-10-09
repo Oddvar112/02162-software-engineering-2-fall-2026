@@ -102,7 +102,7 @@ export default async function LobbyContent({
           .map((p) => ({
             id: p.user_id,
             name: names.get(p.user_id) ?? "Unknown player",
-            robot: p.robot_model,
+            robot: p.robot_model!,
           }))}
       />
       <div className="flex w-full flex-1 flex-col items-center">
@@ -150,7 +150,7 @@ export default async function LobbyContent({
                   <li key={player.user_id} className="py-1">
                     {names.get(player.user_id) ?? "Unknown player"}
                     <span className="ml-2 text-sm text-foreground/70">
-                      {robotNames.get(player.robot_model) ?? "No robot yet"}
+                      {(player.robot_model && robotNames.get(player.robot_model)) ?? "No robot yet"}
                     </span>
                     {player.user_id === lobby.created_by && (
                       <span className="ml-2 text-xs text-foreground/50">
@@ -167,7 +167,7 @@ export default async function LobbyContent({
                 chosen={me.robot_model}
                 taken={players
                   .filter((p) => p.user_id !== userId && p.robot_model)
-                  .map((p) => p.robot_model)}
+                  .map((p) => p.robot_model!)}
               />
             )}
           </div>
