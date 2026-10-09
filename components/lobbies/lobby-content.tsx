@@ -151,7 +151,9 @@ export default async function LobbyContent({
                   <li key={player.user_id} className="py-1">
                     {names.get(player.user_id) ?? "Unknown player"}
                     <span className="ml-2 text-sm text-foreground/70">
-                      {(player.robot_model && robotNames.get(player.robot_model)) ?? "No robot yet"}
+                      {(player.robot_model &&
+                        robotNames.get(player.robot_model)) ??
+                        "No robot yet"}
                     </span>
                     {player.user_id === lobby.created_by && (
                       <span className="ml-2 text-xs text-foreground/50">
