@@ -234,6 +234,24 @@ describe("resolveRound", () => {
     ]);
   });
 
+  it("ends the round as soon as a robot ends a register on the last checkpoint", () => {
+    const state = makeState(2);
+    Object.assign(state.robots[0], { x: 1, z: 5 });
+    Object.assign(state.robots[1], { x: 1, z: 3 });
+    state.board.tiles[2][1] = { kind: "checkpoint", number: 1 };
+    const result = resolveRound(state, {
+      p1: [rotate(1), rotate(-1), move(3), rotate(1), rotate(1)],
+      p2: [move(1), move(1), rotate(1), rotate(1), rotate(1)],
+    });
+    expect(result.robots[1]).toMatchObject({ x: 1, z: 2 });
+    expect(result.players.map((player) => player.checkpointsReached)).toEqual([
+      0, 1,
+    ]);
+    expect(result.executionLog.every((entry) => entry.register === 1)).toBe(
+      true,
+    );
+  });
+
   it("in a pit, skips the rest of the program and reboots near the start", () => {
     const state = makeState();
     state.board.tiles[7][1] = { kind: "pit" };
