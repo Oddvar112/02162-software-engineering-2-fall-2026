@@ -42,7 +42,6 @@ function makeState(playerCount = 1, board = flatBoard()): GameState {
       name: `Player ${index + 1}`,
       robotId: `p${index + 1}`,
       damage: 0,
-      lives: 3,
       checkpointsReached: 0,
       programmedCardCount: 5,
       programLocked: true,

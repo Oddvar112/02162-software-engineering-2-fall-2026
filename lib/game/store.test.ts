@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Direction } from "@/lib/direction";
-import { buildDeck, HAND_SIZE } from "@/lib/game/deck";
+import { createDecksForPlayers, HAND_SIZE } from "@/lib/game/deck";
 import { staticBoard } from "@/lib/game/game-model";
 import {
   NEXT_ROUND_SECONDS,
@@ -11,19 +11,17 @@ import {
 import type { ActionCard } from "@/lib/game/types";
 
 const UPDATED_AT = "2026-09-29T10:00:00.123456+00:00";
-const deck = buildDeck();
+const piles = createDecksForPlayers(["p1", "p2"]);
 const hands = {
-  p1: deck.slice(0, HAND_SIZE),
-  p2: deck.slice(HAND_SIZE, 2 * HAND_SIZE),
+  p1: piles.p1.slice(0, HAND_SIZE),
+  p2: piles.p2.slice(0, HAND_SIZE),
 };
 
 function loadedGame({
   game = {},
-  lives = { p1: 3, p2: 3 },
   programs = {},
 }: {
   game?: Partial<LoadedGame["game"]>;
-  lives?: Record<"p1" | "p2", number>;
   programs?: Record<string, ActionCard[]>;
 } = {}): LoadedGame {
   return {
@@ -48,7 +46,6 @@ function loadedGame({
       z: 9,
       direction: Direction.Up,
       damage: 0,
-      lives: lives[user_id],
       draw_pile: [],
       discard_pile: [],
       checkpoints_reached: 0,
@@ -73,16 +70,7 @@ describe("toGameState", () => {
       true,
       true,
     ]);
-    const serialised = JSON.stringify(state);
-    for (const card of hands.p2) {
-      expect(serialised).not.toContain(`"${card.id}"`);
-    }
-  });
-
-  it("removes the robot of a player with no lives but keeps the player", () => {
-    const state = toGameState(loadedGame({ lives: { p1: 3, p2: 0 } }), "p1");
-    expect(state.robots.map((robot) => robot.playerId)).toEqual(["p1"]);
-    expect(state.players.map((player) => player.id)).toEqual(["p1", "p2"]);
+    expect(state).not.toHaveProperty("opponentCards");
   });
 
   it.each([

@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(44);
+select plan(42);
 
 insert into auth.users (id, email) values
   ('40000000-0000-4000-8000-000000000001', 'game-alice@example.test'),
@@ -138,8 +138,8 @@ select is(
   false, 'the same round cannot be applied twice'
 );
 select is(
-  (select row(z, lives)::text from public.game_players where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000001'),
-  '(0,3)', 'the applied result moved the player, and a result without lives is accepted'
+  (select z from public.game_players where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000001'),
+  0, 'the applied result moved the player'
 );
 set local role authenticated;
 set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000002';
@@ -157,19 +157,6 @@ select throws_ok(
 );
 
 reset role;
-insert into public.game_players (game_id, user_id, seat, robot_model, x, z, direction, lives) values
-  ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000003', 2, 'pixel', 0, 0, 1, 0);
-insert into public.lobby_players (lobby_id, user_id) values
-  ('60000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000003');
-update public.games set phase = 'programming' where id = '50000000-0000-4000-8000-000000000001';
-set local role authenticated;
-set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000003';
-select throws_ok(
-  $$select public.submit_program('50000000-0000-4000-8000-000000000001', array['a1','a2','a3','a4','a5'])$$,
-  'P0001', 'no_lives_left', 'a player with no lives cannot program'
-);
-reset role;
-update public.game_players set lives = 3 where game_id = '50000000-0000-4000-8000-000000000001' and user_id = '40000000-0000-4000-8000-000000000003';
 set local role authenticated;
 set local request.jwt.claim.sub = '40000000-0000-4000-8000-000000000003';
 select throws_ok(

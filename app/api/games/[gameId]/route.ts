@@ -15,7 +15,6 @@ const SUBMIT_MESSAGES: Record<string, string> = {
   not_programming_phase: "Programs cannot be submitted in this phase.",
   not_in_game: "You are not a player in this game.",
   already_locked_in: "Your program is already locked in.",
-  no_lives_left: "This robot has no lives remaining.",
   wrong_card_count: "Select exactly 5 cards before locking in.",
   duplicate_card: "Each card can only be used once.",
   no_hand: "You have no hand for this round. Refresh the game.",
