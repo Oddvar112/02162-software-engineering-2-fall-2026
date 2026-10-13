@@ -23,9 +23,27 @@ export function CreateLobbyButton() {
     try {
       const supabase = createClient();
 
-      const { data: lobbyId, error: rpcError } = await supabase.rpc(
+      let { data: lobbyId, error: rpcError } = await supabase.rpc(
         "create_lobby_with_game",
       );
+
+      // If user row is missing in public.users, auto-sync and retry once
+      if (
+        rpcError &&
+        (rpcError.code === "23503" ||
+          rpcError.message?.includes("lobbies_created_by_fkey"))
+      ) {
+        try {
+          const syncRes = await fetch("/api/auth/sync", { method: "POST" });
+          if (syncRes.ok) {
+            const retry = await supabase.rpc("create_lobby_with_game");
+            lobbyId = retry.data;
+            rpcError = retry.error;
+          }
+        } catch {
+          // If sync fails, fall through to normal error display
+        }
+      }
 
       if (rpcError) {
         console.error("Create lobby error:", rpcError);

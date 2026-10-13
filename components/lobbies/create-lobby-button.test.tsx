@@ -51,4 +51,30 @@ describe("CreateLobbyButton", () => {
     ).toBeDefined();
     expect(push).not.toHaveBeenCalled();
   });
+
+  it("attempts to sync user profile and retries when error is 23503", async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: null,
+        error: { code: "23503", message: "lobbies_created_by_fkey" },
+      })
+      .mockResolvedValueOnce({
+        data: "lobby-synced-456",
+        error: null,
+      });
+
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    global.fetch = mockFetch;
+
+    render(<CreateLobbyButton />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Create Lobby" }));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith("/api/auth/sync", {
+        method: "POST",
+      });
+      expect(push).toHaveBeenCalledWith("/lobbies/lobby-synced-456");
+    });
+  });
 });
