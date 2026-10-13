@@ -4,6 +4,10 @@ import { createServiceClient } from "@/lib/supabase/service";
 
 const headers = { "Cache-Control": "no-store, max-age=0" };
 
+export async function GET() {
+  return POST();
+}
+
 export async function POST() {
   try {
     const supabase = await createClient();
