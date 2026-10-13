@@ -193,17 +193,7 @@ export function DemoLobbyControl({
         </div>
 
         {/* Tactile Toggle Switch */}
-        <div className="flex items-center gap-2.5">
-          <span
-            className={`text-xs font-bold uppercase tracking-wider transition-colors ${
-              isDemo
-                ? "font-extrabold text-amber-500 dark:text-amber-400"
-                : "text-foreground/50"
-            }`}
-          >
-            {isSaving ? "Saving…" : isDemo ? "ON" : "OFF"}
-          </span>
-
+        <div className="flex items-center gap-2">
           <button
             type="button"
             role="switch"
@@ -211,23 +201,62 @@ export function DemoLobbyControl({
             aria-label={isDemo ? "Disable Demo Mode" : "Enable Demo Mode"}
             disabled={isSaving || status !== "open"}
             onClick={handleToggle}
-            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-              isDemo
-                ? "bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]"
-                : "bg-slate-700 hover:bg-slate-600"
-            }`}
+            className={`group inline-flex items-center gap-2.5 rounded-full px-2 py-1 text-left transition-all focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
           >
-            <span className="sr-only">
-              {isDemo ? "Disable Demo Mode" : "Enable Demo Mode"}
-            </span>
             <span
-              className={`pointer-events-none inline-flex h-6 w-6 transform items-center justify-center rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                isDemo ? "translate-x-5" : "translate-x-0"
+              className={`text-xs font-bold uppercase tracking-wider select-none ${
+                isDemo
+                  ? "text-amber-600 dark:text-amber-400 font-extrabold"
+                  : "text-slate-600 dark:text-slate-400"
               }`}
             >
-              {isDemo && (
-                <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
-              )}
+              {isSaving ? "Saving…" : isDemo ? "ON" : "OFF"}
+            </span>
+
+            <span
+              className={`relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out shadow-inner ${
+                isDemo
+                  ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                  : "bg-slate-400 dark:bg-slate-600 group-hover:bg-slate-500"
+              }`}
+              style={{
+                width: "48px",
+                height: "26px",
+                backgroundColor: isDemo ? "#f59e0b" : "#94a3b8",
+                borderRadius: "9999px",
+                position: "relative",
+                display: "inline-flex",
+                alignItems: "center",
+                transition: "background-color 0.2s ease-in-out",
+                boxSizing: "border-box",
+              }}
+            >
+              <span
+                className="pointer-events-none inline-flex transform items-center justify-center rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out"
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "9999px",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.25)",
+                  transform: isDemo ? "translateX(24px)" : "translateX(2px)",
+                  transition: "transform 0.2s ease-in-out",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {isDemo && (
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "9999px",
+                      backgroundColor: "#f59e0b",
+                    }}
+                  />
+                )}
+              </span>
             </span>
           </button>
         </div>
