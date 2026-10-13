@@ -40,7 +40,7 @@ export function SignUpForm({
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -48,21 +48,6 @@ export function SignUpForm({
         },
       });
       if (error) throw error;
-
-      if (
-        data.user &&
-        (!data.user.identities || data.user.identities.length === 0)
-      ) {
-        setError("An account with this email already exists. Please log in instead.");
-        return;
-      }
-
-      if (data.session) {
-        await fetch("/api/auth/sync", { method: "POST" }).catch(() => {});
-        router.push("/");
-        return;
-      }
-
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
