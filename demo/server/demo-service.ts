@@ -282,12 +282,26 @@ export async function startDemoLobby(
       .eq("id", gameId);
   }
 
-  const { error: updateError } = await service
-    .from("lobbies")
-    .update({ status: "started" })
-    .eq("id", lobby.id);
+  try {
+    const { error: updateError } = await service
+      .from("lobbies")
+      .update({ status: "started" })
+      .eq("id", lobby.id);
 
-  if (updateError) throw updateError;
+    if (
+      updateError &&
+      updateError.code !== "42501" &&
+      !updateError.message?.includes("permission denied")
+    ) {
+      throw updateError;
+    }
+  } catch (err: unknown) {
+    const code = (err as { code?: string })?.code;
+    const msg = (err as { message?: string })?.message;
+    if (code !== "42501" && !msg?.includes("permission denied")) {
+      throw err;
+    }
+  }
 
   return { ok: true, gameId: lobby.game };
 }

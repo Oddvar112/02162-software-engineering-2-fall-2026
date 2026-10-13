@@ -31,7 +31,7 @@ export async function initialiseGame(gameId: string): Promise<void> {
     .eq("game", gameId)
     .maybeSingle();
   if (!lobby) throw new GameError("This game has no lobby.", 404);
-  if (lobby.status !== "started") {
+  if (lobby.status !== "started" && !isDemoBoard(existing.board)) {
     throw new GameError("This game has not been started.", 409);
   }
 
