@@ -206,13 +206,15 @@ describe("demo-service", () => {
       const hand = db.hand!.cards as { id: string }[];
       await submitDemoProgram("game-123", "host-user", [hand[0].id]);
 
-      expect(db.upserts).toHaveLength(1);
-      expect(db.upserts[0].values).toMatchObject({
-        game_id: "game-123",
-        user_id: "host-user",
-        round: 1,
-        cards: [hand[0]],
-      });
+      const gameUpdate = db.updates.find((u) => u.table === "games");
+      expect(gameUpdate).toBeDefined();
+      expect(
+        (
+          gameUpdate?.values as {
+            board: { demoPrograms: Record<string, unknown[]> };
+          }
+        ).board.demoPrograms["host-user"],
+      ).toEqual([hand[0]]);
     });
 
     it("submits a program with 7 cards (unlimited cards)", async () => {
@@ -220,9 +222,13 @@ describe("demo-service", () => {
       const chosenIds = hand.slice(0, 7).map((c) => c.id);
       await submitDemoProgram("game-123", "host-user", chosenIds);
 
-      expect(db.upserts).toHaveLength(1);
-      const insertedCards = (db.upserts[0].values as { cards: unknown[] })
-        .cards;
+      const gameUpdate = db.updates.find((u) => u.table === "games");
+      expect(gameUpdate).toBeDefined();
+      const insertedCards = (
+        gameUpdate?.values as {
+          board: { demoPrograms: Record<string, unknown[]> };
+        }
+      ).board.demoPrograms["host-user"];
       expect(insertedCards).toHaveLength(7);
     });
 
@@ -233,7 +239,9 @@ describe("demo-service", () => {
     });
 
     it("rejects when player is already locked in with 409", async () => {
-      db.program = { user_id: "host-user" };
+      db.game!.board = {
+        demoPrograms: { "host-user": [] },
+      };
       const hand = db.hand!.cards as { id: string }[];
       await expect(
         submitDemoProgram("game-123", "host-user", [hand[0].id]),

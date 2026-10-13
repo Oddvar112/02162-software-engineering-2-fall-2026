@@ -46,7 +46,8 @@ class SupabaseRoundRepository implements RoundRepository {
   }
 
   async beginNextRound(nextRound: NextRound): Promise<boolean> {
-    const { data, error } = await createServiceClient().rpc(
+    const service = createServiceClient();
+    const { data, error } = await service.rpc(
       "begin_next_round",
       {
         p_game_id: nextRound.gameId,
@@ -58,6 +59,26 @@ class SupabaseRoundRepository implements RoundRepository {
       },
     );
     if (error) throw error;
+
+    // In demo games, clear board.demoPrograms for the next round
+    const { data: game } = await service
+      .from("games")
+      .select("board")
+      .eq("id", nextRound.gameId)
+      .maybeSingle();
+
+    if (
+      game?.board &&
+      (game.board as { demoPrograms?: unknown }).demoPrograms
+    ) {
+      const updatedBoard = { ...(game.board as Record<string, unknown>) };
+      delete updatedBoard.demoPrograms;
+      await service
+        .from("games")
+        .update({ board: updatedBoard })
+        .eq("id", nextRound.gameId);
+    }
+
     return data === true;
   }
 }

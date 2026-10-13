@@ -140,7 +140,7 @@ export async function submitDemoProgram(
 
   const { data: game, error: gameError } = await service
     .from("games")
-    .select("id, phase, round, timer_started_at")
+    .select("id, phase, round, board, timer_started_at")
     .eq("id", gameId)
     .maybeSingle();
 
@@ -166,15 +166,11 @@ export async function submitDemoProgram(
   if (player.lives === 0)
     throw new DemoServiceError("This robot has no lives remaining.", 409);
 
-  const { data: existingProgram } = await service
-    .from("programs")
-    .select("user_id")
-    .eq("game_id", gameId)
-    .eq("user_id", userId)
-    .eq("round", game.round)
-    .maybeSingle();
+  const currentBoard = (game.board ?? {}) as {
+    demoPrograms?: Record<string, ActionCard[]>;
+  };
 
-  if (existingProgram) {
+  if (currentBoard.demoPrograms?.[userId]) {
     throw new DemoServiceError("Your program is already locked in.", 409);
   }
 
@@ -211,21 +207,18 @@ export async function submitDemoProgram(
     programCards.push(card);
   }
 
-  const { error: programError } = await service.from("programs").upsert(
-    {
-      game_id: gameId,
-      user_id: userId,
-      round: game.round,
-      cards: programCards,
+  const updatedBoard = {
+    ...currentBoard,
+    demoPrograms: {
+      ...(currentBoard.demoPrograms ?? {}),
+      [userId]: programCards,
     },
-    { onConflict: "game_id,user_id" },
-  );
-
-  if (programError) throw programError;
+  };
 
   const { error: updateGameError } = await service
     .from("games")
     .update({
+      board: updatedBoard,
       updated_at: new Date().toISOString(),
       timer_started_at: game.timer_started_at ?? new Date().toISOString(),
     })

@@ -111,12 +111,25 @@ export async function loadGame(gameId: string): Promise<LoadedGame> {
     hands: new Map(
       handsResult.data.map((row) => [row.user_id, row.cards as ActionCard[]]),
     ),
-    programs: new Map(
-      programsResult.data.map((row) => [
-        row.user_id,
-        row.cards as ActionCard[],
-      ]),
-    ),
+    programs: (() => {
+      const map = new Map(
+        programsResult.data.map((row) => [
+          row.user_id,
+          row.cards as ActionCard[],
+        ]),
+      );
+      const demoPrograms = (
+        game.board as { demoPrograms?: Record<string, ActionCard[]> } | null
+      )?.demoPrograms;
+      if (demoPrograms) {
+        for (const [uid, cards] of Object.entries(demoPrograms)) {
+          if (!map.has(uid)) {
+            map.set(uid, cards);
+          }
+        }
+      }
+      return map;
+    })(),
   };
 }
 
