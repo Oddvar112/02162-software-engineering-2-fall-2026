@@ -744,6 +744,58 @@
   gap: 0.55rem;
 }
 
+.directionPicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem;
+  border: 1px solid #4d6326;
+  background: #151b13;
+}
+
+.directionPicker strong,
+.directionPicker span {
+  display: block;
+}
+
+.directionPicker strong {
+  color: var(--cyan);
+  font-size: 0.75rem;
+}
+
+.directionPicker span {
+  margin-top: 0.25rem;
+  color: #b8c7bc;
+  font-size: 0.75rem;
+}
+
+.directionButtons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.directionButton {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  color: var(--text);
+  border: 1px solid #52625a;
+  background: #202827;
+}
+
+.directionButton:hover,
+.directionButton[aria-pressed="true"] {
+  color: #0c0f0d;
+  border-color: var(--cyan);
+  background: var(--cyan);
+}
+
+.directionButton svg {
+  width: 1.1rem;
+}
+
 .programHeading {
   display: flex;
   justify-content: space-between;
@@ -823,6 +875,11 @@
 }
 
 @media (max-width: 700px) {
+  .directionPicker {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .programRow {
     gap: 0.4rem;
   }

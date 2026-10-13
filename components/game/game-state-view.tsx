@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { GameState } from "@/lib/game/types";
+import type { Direction } from "@/lib/direction";
 import { GameBoard } from "./board/game-board";
 import { GameHeader } from "./game-header";
 import { PlayerList } from "./player-list";
@@ -173,7 +174,11 @@ export function GameStateView({ gameId }: { gameId: string }) {
     };
   }, [gameId, loadGameState]);
 
-  async function submitAction(action: "lock-in", cardIds?: string[]) {
+  async function submitAction(
+    action: "lock-in" | "choose-reboot-direction",
+    cardIds?: string[],
+    direction?: Direction,
+  ) {
     if (!gameState || submitting.current || isPlaying) return;
     submitting.current = true;
     setIsSubmitting(true);
@@ -186,7 +191,12 @@ export function GameStateView({ gameId }: { gameId: string }) {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, round: gameState.round, cardIds }),
+        body: JSON.stringify({
+          action,
+          round: gameState.round,
+          cardIds,
+          direction,
+        }),
       });
       const result = await response.json();
       if (!response.ok)
@@ -275,6 +285,9 @@ export function GameStateView({ gameId }: { gameId: string }) {
               activeCardId={activeFrame?.cardId}
               executionMessage={activeFrame?.message}
               onSubmit={(cardIds) => submitAction("lock-in", cardIds)}
+              onChooseDirection={(direction) =>
+                submitAction("choose-reboot-direction", undefined, direction)
+              }
             />
             {submitError && (
               <p className={styles.programError} role="alert">

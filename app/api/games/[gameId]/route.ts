@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Direction } from "@/lib/direction";
 import { advanceIfReady, resolveIfReady } from "@/lib/game/round";
 import { initialiseGame } from "@/lib/game/setup";
 import {
@@ -8,6 +9,7 @@ import {
   type LoadedGame,
 } from "@/lib/game/store";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 const headers = { "Cache-Control": "no-store, max-age=0" };
 
@@ -99,11 +101,51 @@ export async function POST(
     const { gameId } = await params;
     const userId = await currentUserId();
 
-    let body: { action?: unknown; round?: unknown; cardIds?: unknown };
+    let body: {
+      action?: unknown;
+      round?: unknown;
+      cardIds?: unknown;
+      direction?: unknown;
+    };
     try {
       body = await request.json();
     } catch {
       throw new GameError("The request is not valid JSON.");
+    }
+
+    if (body.action === "choose-reboot-direction") {
+      const direction = body.direction;
+      if (
+        typeof direction !== "number" ||
+        !Number.isInteger(direction) ||
+        direction < Direction.Up ||
+        direction > Direction.Left
+      ) {
+        throw new GameError("Choose a valid reboot direction.");
+      }
+      const loaded = await loadGame(gameId);
+      requireMember(loaded, userId);
+      const player = loaded.players.find(
+        (candidate) => candidate.user_id === userId,
+      );
+      if (loaded.game.phase !== "programming" || !player) {
+        throw new GameError("Reboot direction cannot be changed now.");
+      }
+      if (loaded.programs.has(userId)) {
+        throw new GameError(
+          "Choose a reboot direction before locking in your program.",
+        );
+      }
+      if (player.reboot_token_id === null) {
+        throw new GameError("Your robot is not waiting to reboot.");
+      }
+      const { error } = await createServiceClient()
+        .from("game_players")
+        .update({ direction })
+        .eq("game_id", gameId)
+        .eq("user_id", userId);
+      if (error) throw error;
+      return await snapshot(gameId, userId);
     }
 
     if (body.action === "lock-in") {

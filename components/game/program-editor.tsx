@@ -1,14 +1,29 @@
 "use client";
 
 import { useId, useState } from "react";
-import { LockKeyhole } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  LockKeyhole,
+} from "lucide-react";
 import styles from "@/components/game/game-state.module.css";
-import type { GameState } from "@/lib/game/types";
+import { Direction } from "@/lib/direction";
+import { DIRECTION_LABELS, type GameState } from "@/lib/game/types";
+
+const DIRECTIONS = [
+  { direction: Direction.Up, Icon: ArrowUp },
+  { direction: Direction.Right, Icon: ArrowRight },
+  { direction: Direction.Down, Icon: ArrowDown },
+  { direction: Direction.Left, Icon: ArrowLeft },
+];
 
 export function ProgramEditor({
   gameState,
   isSubmitting,
   onSubmit,
+  onChooseDirection,
   activeCardId,
   executionMessage,
 }: {
@@ -17,12 +32,17 @@ export function ProgramEditor({
   gameState: GameState;
   isSubmitting: boolean;
   onSubmit: (cardIds: string[]) => Promise<void>;
+  onChooseDirection?: (direction: Direction) => Promise<void>;
 }) {
   const descriptionId = useId();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const player = gameState.players.find(
     (candidate) => candidate.id === gameState.currentPlayerId,
   )!;
+  const robot = gameState.robots.find(
+    (candidate) => candidate.id === player.robotId,
+  );
+  const selectedDirection = robot?.direction ?? Direction.Up;
   const locked = player.programLocked;
   const editable =
     !locked && !isSubmitting && gameState.phase === "programming";
@@ -34,6 +54,34 @@ export function ProgramEditor({
 
   return (
     <section className={styles.programEditor} aria-label="Program your turn">
+      {gameState.phase === "programming" &&
+        robot?.rebootTokenId !== null &&
+        !locked && (
+          <div className={styles.directionPicker}>
+            <div>
+              <strong>REBOOT DIRECTION</strong>
+              <span>
+                Choose the direction your robot will face when it returns.
+                Current: {DIRECTION_LABELS[robot?.direction ?? Direction.Up]}
+              </span>
+            </div>
+            <div className={styles.directionButtons}>
+              {DIRECTIONS.map(({ direction, Icon }) => (
+                <button
+                  key={direction}
+                  type="button"
+                  className={styles.directionButton}
+                  aria-label={`Face ${DIRECTION_LABELS[direction]}`}
+                  aria-pressed={selectedDirection === direction}
+                  disabled={isSubmitting}
+                  onClick={() => void onChooseDirection?.(direction)}
+                >
+                  <Icon aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       <div className={styles.programHeading}>
         <h2>
           YOUR PROGRAM · {cards.length}/{gameState.registerCount}
