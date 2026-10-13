@@ -37,6 +37,7 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
+      await fetch("/api/auth/sync", { method: "POST" }).catch(() => {});
       const next = new URLSearchParams(window.location.search).get("next");
       window.location.assign(safeReturnPath(next));
     } catch (error: unknown) {
