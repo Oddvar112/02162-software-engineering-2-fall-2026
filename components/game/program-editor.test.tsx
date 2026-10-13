@@ -6,6 +6,7 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { Direction } from "@/lib/direction";
 import { buildGameState } from "@/lib/game/fixtures";
 import { ProgramEditor } from "./program-editor";
 
@@ -107,5 +108,45 @@ describe("program editor", () => {
     expect(card.disabled).toBe(false);
     rerender(<ProgramEditor {...props} isSubmitting />);
     expect(card.disabled).toBe(true);
+  });
+
+  it("shows reboot direction controls and reports the selected direction", () => {
+    const gameState = buildGameState();
+    gameState.robots[0].rebootTokenId = "reboot-token";
+    const onChooseDirection = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ProgramEditor
+        gameState={gameState}
+        isSubmitting={false}
+        onSubmit={vi.fn()}
+        onChooseDirection={onChooseDirection}
+      />,
+    );
+
+    expect(screen.getByText("REBOOT DIRECTION")).toBeDefined();
+    const north = screen.getByRole("button", { name: "Face North" });
+    const west = screen.getByRole("button", { name: "Face West" });
+    expect(north.getAttribute("aria-pressed")).toBe("true");
+    expect(west.getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.click(west);
+    expect(onChooseDirection).toHaveBeenCalledWith(Direction.Left);
+  });
+
+  it("hides reboot direction controls for an active or locked robot", () => {
+    const gameState = buildGameState();
+    const props = {
+      gameState,
+      isSubmitting: false,
+      onSubmit: vi.fn(),
+      onChooseDirection: vi.fn(),
+    };
+    const { rerender } = render(<ProgramEditor {...props} />);
+    expect(screen.queryByText("REBOOT DIRECTION")).toBeNull();
+
+    gameState.robots[0].rebootTokenId = "reboot-token";
+    gameState.players[0].programLocked = true;
+    rerender(<ProgramEditor {...props} gameState={gameState} />);
+    expect(screen.queryByText("REBOOT DIRECTION")).toBeNull();
   });
 });
