@@ -78,12 +78,12 @@ describe("toGameState", () => {
   });
 
   it("keeps a rebooting robot synchronized while it waits off the board", () => {
-    const state = toGameState(
-      loadedGame({ rebootTokenIds: { p2: "reboot-token" } }),
-      "p1",
-    );
+    const loaded = loadedGame({ rebootTokenIds: { p2: "reboot-token" } });
+    loaded.players[1].direction = Direction.Left;
+    const state = toGameState(loaded, "p1");
     expect(state.robots.map((robot) => robot.playerId)).toEqual(["p1", "p2"]);
     expect(state.robots[1].rebootTokenId).toBe("reboot-token");
+    expect(state.robots[1].direction).toBe(Direction.Left);
     expect(state.players.map((player) => player.id)).toEqual(["p1", "p2"]);
   });
 
