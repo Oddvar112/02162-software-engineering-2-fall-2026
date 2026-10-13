@@ -17,8 +17,10 @@ function failure(error: unknown) {
     );
   }
   console.error("Demo API error:", error);
+  const message =
+    error instanceof Error ? error.message : "Could not update demo mode settings.";
   return NextResponse.json(
-    { error: "Could not update demo mode settings." },
+    { error: message },
     { status: 500, headers },
   );
 }

@@ -262,6 +262,16 @@ export function DemoLobbyControl({
         </div>
       </CardHeader>
 
+      {error && (
+        <div
+          className="mx-6 mb-3 flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-600 dark:text-red-400"
+          role="alert"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {isDemo && (
         <CardContent className="space-y-4 pt-1">
           <div className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/15 p-2.5 text-xs text-amber-700 dark:text-amber-300">
@@ -342,17 +352,6 @@ export function DemoLobbyControl({
                 {isStarting ? "Starting Demo…" : "Start Demo Game (Solo/Multi)"}
               </Button>
             </div>
-          )}
-
-          {error && (
-            <div
-              className="flex items-center gap-1.5 text-xs text-red-600"
-              role="alert"
-            >
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
         </CardContent>
       )}
     </Card>
