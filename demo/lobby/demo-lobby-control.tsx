@@ -352,6 +352,7 @@ export function DemoLobbyControl({
                 {isStarting ? "Starting Demo…" : "Start Demo Game (Solo/Multi)"}
               </Button>
             </div>
+          )}
         </CardContent>
       )}
     </Card>
