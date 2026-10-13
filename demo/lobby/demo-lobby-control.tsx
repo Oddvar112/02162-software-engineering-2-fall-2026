@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { FlaskConical, CheckCircle2, AlertCircle, Play } from "lucide-react";
+import { FlaskConical, CheckCircle2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import type { Board } from "@/lib/board";
 import {
@@ -45,7 +44,6 @@ export function DemoLobbyControl({
       : DEFAULT_DEMO_MAP_ID,
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const demoMaps = getAllDemoMapsMeta();
@@ -126,28 +124,6 @@ export function DemoLobbyControl({
     setSelectedMapId(mapId);
     if (isDemo) {
       void updateDemoSettings(true, mapId);
-    }
-  };
-
-  const handleStartDemoGame = async () => {
-    setIsStarting(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/games/${gameId}/demo`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "start-game" }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error ?? "Could not start demo game.");
-      }
-      window.location.assign(`/games/${gameId}`);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to start demo game.",
-      );
-      setIsStarting(false);
     }
   };
 
@@ -334,25 +310,6 @@ export function DemoLobbyControl({
               })}
             </div>
           </div>
-
-          {status === "open" && (
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
-              <span className="text-xs text-foreground/70">
-                {playerCount} player(s) in lobby &bull;{" "}
-                {robotsChosen ? "Robots chosen" : "Waiting for robot selection"}
-              </span>
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleStartDemoGame}
-                disabled={isStarting || isSaving || !robotsChosen}
-                className="flex items-center gap-1.5 bg-amber-600 font-bold text-slate-950 transition hover:bg-amber-500"
-              >
-                <Play className="h-3.5 w-3.5 fill-current" />
-                {isStarting ? "Starting Demo…" : "Start Demo Game (Solo/Multi)"}
-              </Button>
-            </div>
-          )}
         </CardContent>
       )}
     </Card>

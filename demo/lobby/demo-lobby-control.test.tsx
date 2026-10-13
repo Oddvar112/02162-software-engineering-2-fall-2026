@@ -92,9 +92,6 @@ describe("DemoLobbyControl", () => {
       expect(screen.getByText("Laser Gauntlet")).toBeDefined();
       expect(screen.getByText("Gearworks & Pits")).toBeDefined();
       expect(screen.getByText(/Solo Play Enabled/)).toBeDefined();
-      expect(
-        screen.getByRole("button", { name: /start demo game/i }),
-      ).toBeDefined();
     });
 
     it("allows choosing a different demo map", async () => {
@@ -143,35 +140,6 @@ describe("DemoLobbyControl", () => {
         name: /disable demo mode/i,
       });
       expect(toggleBtn.hasAttribute("disabled")).toBe(true);
-    });
-
-    it("starts the demo game when host clicks start demo button", async () => {
-      render(
-        <DemoLobbyControl
-          lobbyId="lobby-1"
-          gameId="game-1"
-          isHost={true}
-          initialBoard={conveyorSprintBoard}
-          status="open"
-          playerCount={1}
-          robotsChosen={true}
-        />,
-      );
-
-      const startBtn = screen.getByRole("button", {
-        name: /start demo game/i,
-      });
-      fireEvent.click(startBtn);
-
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          "/api/games/game-1/demo",
-          expect.objectContaining({
-            method: "POST",
-            body: JSON.stringify({ action: "start-game" }),
-          }),
-        );
-      });
     });
   });
 
