@@ -238,6 +238,22 @@ describe("resolveRound", () => {
     });
   });
 
+  it("re-enters using the direction selected during programming", () => {
+    const state = makeState();
+    state.board.tiles[7][1] = { kind: "pit" };
+    Object.assign(state, resolveRound(state, { p1: [move(1)] }));
+    state.robots[0].direction = Direction.Left;
+
+    Object.assign(state, resolveRound(state, { p1: [rotate(0)] }));
+
+    expect(state.robots[0]).toMatchObject({
+      x: 1,
+      z: 8,
+      direction: Direction.Left,
+      rebootTokenId: null,
+    });
+  });
+
   it("pushes the robot occupying the Reboot Token in its facing direction", () => {
     const state = makeState(2);
     state.registerCount = 1;
