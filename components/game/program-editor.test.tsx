@@ -246,5 +246,27 @@ describe("program editor", () => {
       fireEvent.click(lockIn);
       expect(onSubmit).toHaveBeenCalledWith(["card-3"]);
     });
+
+    it("applies scrollable demoActionCards class in demo mode", () => {
+      const gameState = buildGameState();
+      gameState.board = {
+        ...gameState.board,
+        id: "demo-test",
+        isDemo: true as const,
+        name: "Demo",
+        description: "Test",
+      } as unknown as typeof gameState.board;
+
+      const { container } = render(
+        <ProgramEditor
+          gameState={gameState}
+          isSubmitting={false}
+          onSubmit={vi.fn()}
+        />,
+      );
+
+      const cardsContainer = container.querySelector(".demoActionCards");
+      expect(cardsContainer).not.toBeNull();
+    });
   });
 });

@@ -62,7 +62,9 @@ export function ProgramEditor({
         />
       )}
       <div className={styles.programRow}>
-        <div className={styles.actionCards}>
+        <div
+          className={`${styles.actionCards} ${isDemo ? styles.demoActionCards : ""}`}
+        >
           {gameState.currentPlayerCards.map((card) => {
             const order =
               cards.findIndex((chosen) => chosen.id === card.id) + 1;
