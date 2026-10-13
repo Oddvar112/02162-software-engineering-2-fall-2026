@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { FlaskConical, Map, CheckCircle2, AlertCircle } from "lucide-react";
+import { FlaskConical, CheckCircle2, AlertCircle, Play } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +21,8 @@ export interface DemoLobbyControlProps {
   isHost: boolean;
   initialBoard?: Board | null;
   status: string;
+  playerCount?: number;
+  robotsChosen?: boolean;
 }
 
 export function DemoLobbyControl({
@@ -28,6 +30,8 @@ export function DemoLobbyControl({
   isHost,
   initialBoard,
   status,
+  playerCount = 1,
+  robotsChosen = false,
 }: DemoLobbyControlProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -41,6 +45,7 @@ export function DemoLobbyControl({
       : DEFAULT_DEMO_MAP_ID,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const demoMaps = getAllDemoMapsMeta();
@@ -124,6 +129,28 @@ export function DemoLobbyControl({
     }
   };
 
+  const handleStartDemoGame = async () => {
+    setIsStarting(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/games/${gameId}/demo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start-game" }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error ?? "Could not start demo game.");
+      }
+      window.location.assign(`/games/${gameId}`);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to start demo game.",
+      );
+      setIsStarting(false);
+    }
+  };
+
   // Non-host view: only display if Demo Mode is active
   if (!isHost) {
     if (!isDemo) return null;
@@ -145,7 +172,8 @@ export function DemoLobbyControl({
             </span>
           </div>
           <p className="text-xs text-foreground/80">
-            Map: <strong>{activeMap.name}</strong> &bull; All cards unlocked
+            Map: <strong>{activeMap.name}</strong> &bull; 1+ players &bull; All
+            cards unlocked
           </p>
         </div>
       </div>
@@ -158,83 +186,134 @@ export function DemoLobbyControl({
       <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4">
         <div className="flex items-center gap-2">
           <FlaskConical className="h-5 w-5 text-amber-500" />
-          <CardTitle className="text-base font-semibold">
-            Demo Mode Configuration
-          </CardTitle>
+          <CardTitle className="text-base font-semibold">Demo Mode</CardTitle>
           <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
             Dev Only
           </span>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          variant={isDemo ? "default" : "outline"}
-          onClick={handleToggle}
-          disabled={isSaving || status !== "open"}
-          className={
-            isDemo
-              ? "bg-amber-600 text-white hover:bg-amber-700"
-              : "border-foreground/20"
-          }
-        >
-          {isSaving
-            ? "Updating…"
-            : isDemo
-              ? "Demo Mode ON"
-              : "Enable Demo Mode"}
-        </Button>
+
+        {/* Tactile Toggle Switch */}
+        <div className="flex items-center gap-2.5">
+          <span
+            className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+              isDemo
+                ? "font-extrabold text-amber-500 dark:text-amber-400"
+                : "text-foreground/50"
+            }`}
+          >
+            {isSaving ? "Saving…" : isDemo ? "ON" : "OFF"}
+          </span>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isDemo}
+            aria-label={isDemo ? "Disable Demo Mode" : "Enable Demo Mode"}
+            disabled={isSaving || status !== "open"}
+            onClick={handleToggle}
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+              isDemo
+                ? "bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]"
+                : "bg-slate-700 hover:bg-slate-600"
+            }`}
+          >
+            <span className="sr-only">
+              {isDemo ? "Disable Demo Mode" : "Enable Demo Mode"}
+            </span>
+            <span
+              className={`pointer-events-none inline-flex h-6 w-6 transform items-center justify-center rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                isDemo ? "translate-x-5" : "translate-x-0"
+              }`}
+            >
+              {isDemo && (
+                <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+              )}
+            </span>
+          </button>
+        </div>
       </CardHeader>
 
       {isDemo && (
         <CardContent className="space-y-4 pt-1">
-          <p className="text-xs text-foreground/70">
-            Select a specialized demo map for this game. Players will have
-            access to all programming cards with relaxed submission rules.
-          </p>
-
-          <div className="grid gap-2 sm:grid-cols-3">
-            {demoMaps.map((map) => {
-              const isSelected = map.id === selectedMapId;
-              return (
-                <button
-                  key={map.id}
-                  type="button"
-                  onClick={() => handleSelectMap(map.id)}
-                  disabled={isSaving || status !== "open"}
-                  className={`flex flex-col justify-between rounded-md border p-2.5 text-left transition-all ${
-                    isSelected
-                      ? "border-amber-500 bg-amber-500/15 shadow-sm ring-1 ring-amber-500"
-                      : "border-foreground/15 bg-background/60 hover:border-foreground/30 hover:bg-background"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold">{map.name}</span>
-                      {isSelected && (
-                        <CheckCircle2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                      )}
-                    </div>
-                    <span className="mt-0.5 inline-block text-[11px] text-foreground/60">
-                      {map.difficulty} &bull; {map.checkpointCount} checkpoints
-                    </span>
-                    <p className="mt-1.5 line-clamp-2 text-xs text-foreground/70">
-                      {map.description}
-                    </p>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {map.features.slice(0, 2).map((feature) => (
-                      <span
-                        key={feature}
-                        className="rounded bg-foreground/10 px-1 py-0.5 text-[9px] text-foreground/70"
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/15 p-2.5 text-xs text-amber-700 dark:text-amber-300">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-500" />
+            <span>
+              <strong>Solo Play Enabled:</strong> You can start this game with{" "}
+              <strong>1 player</strong>. All 35 programming cards are unlocked
+              with relaxed submission lengths and saved presets.
+            </span>
           </div>
+
+          <div>
+            <span className="mb-2 block text-xs font-semibold text-foreground/80">
+              Select Demo Map:
+            </span>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {demoMaps.map((map) => {
+                const isSelected = map.id === selectedMapId;
+                return (
+                  <button
+                    key={map.id}
+                    type="button"
+                    onClick={() => handleSelectMap(map.id)}
+                    disabled={isSaving || status !== "open"}
+                    className={`flex cursor-pointer flex-col justify-between rounded-md border p-2.5 text-left transition-all ${
+                      isSelected
+                        ? "border-amber-500 bg-amber-500/15 shadow-sm ring-1 ring-amber-500"
+                        : "border-foreground/15 bg-background/60 hover:border-foreground/30 hover:bg-background"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold">
+                          {map.name}
+                        </span>
+                        {isSelected && (
+                          <CheckCircle2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        )}
+                      </div>
+                      <span className="mt-0.5 inline-block text-[11px] text-foreground/60">
+                        {map.difficulty} &bull; {map.checkpointCount}{" "}
+                        checkpoints
+                      </span>
+                      <p className="mt-1.5 line-clamp-2 text-xs text-foreground/70">
+                        {map.description}
+                      </p>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {map.features.slice(0, 2).map((feature) => (
+                        <span
+                          key={feature}
+                          className="rounded bg-foreground/10 px-1 py-0.5 text-[9px] text-foreground/70"
+                        >
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {status === "open" && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/20 pt-3">
+              <span className="text-xs text-foreground/70">
+                {playerCount} player(s) in lobby &bull;{" "}
+                {robotsChosen ? "Robots chosen" : "Waiting for robot selection"}
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleStartDemoGame}
+                disabled={isStarting || isSaving || !robotsChosen}
+                className="flex items-center gap-1.5 bg-amber-600 font-bold text-slate-950 transition hover:bg-amber-500"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                {isStarting ? "Starting Demo…" : "Start Demo Game (Solo/Multi)"}
+              </Button>
+            </div>
+          )}
 
           {error && (
             <div

@@ -4,6 +4,7 @@ import {
   DemoServiceError,
   getGameDemoStatus,
   setGameDemoBoard,
+  startDemoLobby,
 } from "@/demo/server/demo-service";
 
 const headers = { "Cache-Control": "no-store, max-age=0" };
@@ -54,11 +55,16 @@ export async function POST(
     const { gameId } = await params;
     const userId = await currentUserId();
 
-    let body: { enabled?: unknown; mapId?: unknown };
+    let body: { action?: unknown; enabled?: unknown; mapId?: unknown };
     try {
       body = await request.json();
     } catch {
       throw new DemoServiceError("Invalid JSON body.", 400);
+    }
+
+    if (body.action === "start-game") {
+      const result = await startDemoLobby(gameId, userId);
+      return NextResponse.json(result, { headers });
     }
 
     if (typeof body.enabled !== "boolean") {

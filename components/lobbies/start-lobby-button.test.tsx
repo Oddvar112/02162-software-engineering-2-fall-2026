@@ -94,4 +94,55 @@ describe("StartLobbyButton", () => {
       ).toBeDefined();
     });
   });
+
+  describe("demo mode 1-player start", () => {
+    it("is enabled for 1 player when isDemo is true and robot is chosen", () => {
+      render(
+        <StartLobbyButton
+          lobbyId="lobby-1"
+          playerCount={1}
+          minPlayers={2}
+          robotsChosen={true}
+          isDemo={true}
+          gameId="game-1"
+        />,
+      );
+
+      const button = screen.getByRole("button", { name: /start game/i });
+      expect((button as HTMLButtonElement).disabled).toBe(false);
+      expect(screen.queryByText(/waiting/i)).toBeNull();
+    });
+
+    it("starts game through demo endpoint when isDemo is true", async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true, gameId: "game-1" }),
+      });
+      global.fetch = mockFetch;
+
+      render(
+        <StartLobbyButton
+          lobbyId="lobby-1"
+          playerCount={1}
+          minPlayers={2}
+          robotsChosen={true}
+          isDemo={true}
+          gameId="game-1"
+        />,
+      );
+
+      const button = screen.getByRole("button", { name: /start game/i });
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          "/api/games/game-1/demo",
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify({ action: "start-game" }),
+          }),
+        );
+      });
+    });
+  });
 });

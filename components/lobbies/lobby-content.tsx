@@ -8,7 +8,7 @@ import { LobbySettings } from "./lobby-settings";
 import { OtherRobots } from "./other-robots";
 import { RobotPicker } from "./robot-picker";
 import { StartLobbyButton } from "./start-lobby-button";
-import { DemoLobbyControl } from "@/demo";
+import { DemoLobbyControl, isDemoBoard } from "@/demo";
 
 type LobbyDetails = {
   id: string;
@@ -118,7 +118,7 @@ export default async function LobbyContent({
           </div>
           <p className="text-lg text-foreground/70">
             {players.length} / {lobby.max_players} players (min.{" "}
-            {lobby.min_players})
+            {isDemoBoard(game?.board) ? "1 [Demo]" : lobby.min_players})
           </p>
           {lobby.status === "started" && (
             <p className="text-sm text-foreground/50">
@@ -180,6 +180,8 @@ export default async function LobbyContent({
               isHost={lobby.created_by === userId}
               initialBoard={game?.board}
               status={lobby.status}
+              playerCount={players.length}
+              robotsChosen={players.every((p) => p.robot_model)}
             />
           )}
           {isMember &&
@@ -188,8 +190,10 @@ export default async function LobbyContent({
               <StartLobbyButton
                 lobbyId={lobby.id}
                 playerCount={players.length}
-                minPlayers={lobby.min_players}
+                minPlayers={isDemoBoard(game?.board) ? 1 : lobby.min_players}
                 robotsChosen={players.every((p) => p.robot_model)}
+                isDemo={isDemoBoard(game?.board)}
+                gameId={lobby.game}
               />
             )}
           {isMember && lobby.status === "open" ? (

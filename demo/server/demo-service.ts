@@ -233,3 +233,61 @@ export async function submitDemoProgram(
 
   if (updateGameError) throw updateGameError;
 }
+
+export async function startDemoLobby(
+  gameId: string,
+  userId: string,
+): Promise<{ ok: boolean; gameId: string }> {
+  const service = createServiceClient();
+
+  const { data: lobby, error: lobbyError } = await service
+    .from("lobbies")
+    .select("id, created_by, status, game, lobby_players(user_id, robot_model)")
+    .eq("game", gameId)
+    .maybeSingle();
+
+  if (lobbyError) throw lobbyError;
+  if (!lobby) throw new DemoServiceError("Lobby not found for this game.", 404);
+
+  if (lobby.created_by !== userId) {
+    throw new DemoServiceError("Only the host can start the game.", 403);
+  }
+
+  if (lobby.status !== "open") {
+    throw new DemoServiceError("This game has already started.", 409);
+  }
+
+  const players = lobby.lobby_players ?? [];
+  if (players.length < 1) {
+    throw new DemoServiceError("At least 1 player is needed to start.", 400);
+  }
+
+  const allRobotsChosen = players.every((p) => Boolean(p.robot_model));
+  if (!allRobotsChosen) {
+    throw new DemoServiceError("Every player must choose a robot first.", 400);
+  }
+
+  // Ensure game has a demo board configured
+  const { data: game } = await service
+    .from("games")
+    .select("board")
+    .eq("id", gameId)
+    .maybeSingle();
+
+  if (!game || !isDemoBoard(game.board)) {
+    const defaultBoard = getDemoBoard(DEFAULT_DEMO_MAP_ID)!;
+    await service
+      .from("games")
+      .update({ board: defaultBoard, updated_at: new Date().toISOString() })
+      .eq("id", gameId);
+  }
+
+  const { error: updateError } = await service
+    .from("lobbies")
+    .update({ status: "started" })
+    .eq("id", lobby.id);
+
+  if (updateError) throw updateError;
+
+  return { ok: true, gameId: lobby.game };
+}

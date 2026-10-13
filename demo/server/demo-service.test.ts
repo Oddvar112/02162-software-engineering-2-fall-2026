@@ -3,6 +3,7 @@ import {
   DemoServiceError,
   getGameDemoStatus,
   setGameDemoBoard,
+  startDemoLobby,
   submitDemoProgram,
   verifyLobbyHost,
 } from "./demo-service";
@@ -10,7 +11,13 @@ import { conveyorSprintBoard, laserGauntletBoard } from "../maps";
 import { createDemoHand } from "../cards";
 
 type DbState = {
-  lobby: { id: string; created_by: string; status: string } | null;
+  lobby: {
+    id: string;
+    created_by: string;
+    status: string;
+    game?: string;
+    lobby_players?: { user_id: string; robot_model: string | null }[];
+  } | null;
   game: {
     id: string;
     phase?: string;
@@ -237,6 +244,61 @@ describe("demo-service", () => {
       await expect(
         submitDemoProgram("game-123", "host-user", ["not-in-hand-id"]),
       ).rejects.toMatchObject({ status: 409 });
+    });
+  });
+
+  describe("startDemoLobby", () => {
+    beforeEach(() => {
+      db.lobby = {
+        id: "lobby-123",
+        created_by: "host-user",
+        status: "open",
+        game: "game-123",
+        lobby_players: [{ user_id: "host-user", robot_model: "bolt" }],
+      };
+      db.game = {
+        id: "game-123",
+        board: conveyorSprintBoard,
+      };
+    });
+
+    it("allows starting a demo game with 1 player when robot is chosen", async () => {
+      const result = await startDemoLobby("game-123", "host-user");
+      expect(result).toEqual({ ok: true, gameId: "game-123" });
+
+      // Lobby should be updated to started
+      const lobbyUpdate = db.updates.find((u) => u.table === "lobbies");
+      expect(lobbyUpdate).toBeDefined();
+      expect(lobbyUpdate?.values).toEqual({ status: "started" });
+    });
+
+    it("rejects when the caller is not the lobby host", async () => {
+      await expect(
+        startDemoLobby("game-123", "other-user"),
+      ).rejects.toMatchObject({
+        message: "Only the host can start the game.",
+        status: 403,
+      });
+    });
+
+    it("rejects when robot is not chosen yet", async () => {
+      db.lobby!.lobby_players = [{ user_id: "host-user", robot_model: null }];
+      await expect(
+        startDemoLobby("game-123", "host-user"),
+      ).rejects.toMatchObject({
+        message: "Every player must choose a robot first.",
+        status: 400,
+      });
+    });
+
+    it("rejects when the lobby is not open", async () => {
+      db.lobby!.status = "started";
+      await expect(
+        startDemoLobby("game-123", "host-user"),
+      ).rejects.toMatchObject({
+        message: "This game has already started.",
+        status: 409,
+      });
     });
   });
 });

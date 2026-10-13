@@ -37,7 +37,7 @@ afterEach(cleanup);
 
 describe("DemoLobbyControl", () => {
   describe("Host View", () => {
-    it("renders demo toggle button for the lobby host", () => {
+    it("renders demo toggle switch for the lobby host", () => {
       render(
         <DemoLobbyControl
           lobbyId="lobby-1"
@@ -48,27 +48,32 @@ describe("DemoLobbyControl", () => {
         />,
       );
 
-      expect(screen.getByText("Demo Mode Configuration")).toBeDefined();
-      expect(
-        screen.getByRole("button", { name: /enable demo mode/i }),
-      ).toBeDefined();
-    });
-
-    it("toggles demo mode on and displays map choices", async () => {
-      render(
-        <DemoLobbyControl
-          lobbyId="lobby-1"
-          gameId="game-1"
-          isHost={true}
-          initialBoard={null}
-          status="open"
-        />,
-      );
-
-      const toggleBtn = screen.getByRole("button", {
+      expect(screen.getByText("Demo Mode")).toBeDefined();
+      expect(screen.getByText("OFF")).toBeDefined();
+      const toggleSwitch = screen.getByRole("switch", {
         name: /enable demo mode/i,
       });
-      fireEvent.click(toggleBtn);
+      expect(toggleSwitch).toBeDefined();
+      expect(toggleSwitch.getAttribute("aria-checked")).toBe("false");
+    });
+
+    it("toggles demo mode on and displays map choices and solo play notice", async () => {
+      render(
+        <DemoLobbyControl
+          lobbyId="lobby-1"
+          gameId="game-1"
+          isHost={true}
+          initialBoard={null}
+          status="open"
+          playerCount={1}
+          robotsChosen={true}
+        />,
+      );
+
+      const toggleSwitch = screen.getByRole("switch", {
+        name: /enable demo mode/i,
+      });
+      fireEvent.click(toggleSwitch);
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith(
@@ -86,6 +91,10 @@ describe("DemoLobbyControl", () => {
       expect(screen.getByText("Conveyor Sprint")).toBeDefined();
       expect(screen.getByText("Laser Gauntlet")).toBeDefined();
       expect(screen.getByText("Gearworks & Pits")).toBeDefined();
+      expect(screen.getByText(/Solo Play Enabled/)).toBeDefined();
+      expect(
+        screen.getByRole("button", { name: /start demo game/i }),
+      ).toBeDefined();
     });
 
     it("allows choosing a different demo map", async () => {
@@ -130,8 +139,39 @@ describe("DemoLobbyControl", () => {
         />,
       );
 
-      const toggleBtn = screen.getByRole("button", { name: /demo mode on/i });
+      const toggleBtn = screen.getByRole("switch", {
+        name: /disable demo mode/i,
+      });
       expect(toggleBtn.hasAttribute("disabled")).toBe(true);
+    });
+
+    it("starts the demo game when host clicks start demo button", async () => {
+      render(
+        <DemoLobbyControl
+          lobbyId="lobby-1"
+          gameId="game-1"
+          isHost={true}
+          initialBoard={conveyorSprintBoard}
+          status="open"
+          playerCount={1}
+          robotsChosen={true}
+        />,
+      );
+
+      const startBtn = screen.getByRole("button", {
+        name: /start demo game/i,
+      });
+      fireEvent.click(startBtn);
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          "/api/games/game-1/demo",
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify({ action: "start-game" }),
+          }),
+        );
+      });
     });
   });
 
