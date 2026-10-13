@@ -8,6 +8,7 @@ import { LobbySettings } from "./lobby-settings";
 import { OtherRobots } from "./other-robots";
 import { RobotPicker } from "./robot-picker";
 import { StartLobbyButton } from "./start-lobby-button";
+import { DemoLobbyControl } from "@/demo";
 
 type LobbyDetails = {
   id: string;
@@ -84,14 +85,11 @@ export default async function LobbyContent({
   const canChoose = isMember && lobby.status === "open";
   const robotNames = new Map(roster.map((robot) => [robot.id, robot.name]));
 
-  const { data: game } =
-    lobby.status === "finished"
-      ? await supabase
-          .from("games")
-          .select("winner_id")
-          .eq("id", lobby.game)
-          .maybeSingle()
-      : { data: null };
+  const { data: game } = await supabase
+    .from("games")
+    .select("winner_id, board")
+    .eq("id", lobby.game)
+    .maybeSingle();
   const winnerName = game?.winner_id ? names.get(game.winner_id) : null;
 
   return (
@@ -175,6 +173,15 @@ export default async function LobbyContent({
             )}
           </div>
           <LobbyRealtime lobbyId={lobby.id} isMember={isMember} />
+          {isMember && (
+            <DemoLobbyControl
+              lobbyId={lobby.id}
+              gameId={lobby.game}
+              isHost={lobby.created_by === userId}
+              initialBoard={game?.board}
+              status={lobby.status}
+            />
+          )}
           {isMember &&
             lobby.status === "open" &&
             lobby.created_by === userId && (

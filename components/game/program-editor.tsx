@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { LockKeyhole } from "lucide-react";
 import styles from "@/components/game/game-state.module.css";
 import type { GameState } from "@/lib/game/types";
+import { isDemoBoard, DemoPresetBar } from "@/demo";
 
 export function ProgramEditor({
   gameState,
@@ -20,6 +21,7 @@ export function ProgramEditor({
 }) {
   const descriptionId = useId();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const isDemo = isDemoBoard(gameState.board);
   const player = gameState.players.find(
     (candidate) => candidate.id === gameState.currentPlayerId,
   )!;
@@ -50,6 +52,15 @@ export function ProgramEditor({
                 : "Click cards in execution order. Click again to remove."}
         </span>
       </div>
+      {isDemo && (
+        <DemoPresetBar
+          cardsInHand={gameState.currentPlayerCards}
+          selectedIds={selectedIds}
+          onApplyPreset={(ids) => setSelectedIds(ids)}
+          onClear={() => setSelectedIds([])}
+          disabled={!editable}
+        />
+      )}
       <div className={styles.programRow}>
         <div className={styles.actionCards}>
           {gameState.currentPlayerCards.map((card) => {
@@ -67,13 +78,15 @@ export function ProgramEditor({
                 aria-describedby={`${descriptionId}-${card.id}`}
                 disabled={
                   !editable ||
-                  (!selected && cards.length >= gameState.registerCount)
+                  (!isDemo &&
+                    !selected &&
+                    cards.length >= gameState.registerCount)
                 }
                 onClick={() =>
                   setSelectedIds((ids) =>
                     ids.includes(card.id)
                       ? ids.filter((id) => id !== card.id)
-                      : ids.length < gameState.registerCount
+                      : isDemo || ids.length < gameState.registerCount
                         ? [...ids, card.id]
                         : ids,
                   )
@@ -100,7 +113,12 @@ export function ProgramEditor({
         <button
           className={styles.lockInButton}
           type="button"
-          disabled={!editable || cards.length !== gameState.registerCount}
+          disabled={
+            !editable ||
+            (isDemo
+              ? cards.length === 0
+              : cards.length !== gameState.registerCount)
+          }
           onClick={() => void onSubmit(selectedIds)}
         >
           <LockKeyhole aria-hidden="true" />

@@ -2,6 +2,7 @@ import { Direction } from "@/lib/direction";
 import type { ActionCard, GameState } from "@/lib/game/types";
 import type { LoadedGame } from "@/lib/game/store";
 import type { Programs } from "@/lib/game/engine";
+import { createDemoHands, isDemoBoard } from "@/demo";
 
 export type Clock = {
   now(): number;
@@ -91,12 +92,16 @@ export class RoundService {
   async advanceIfReady(loaded: LoadedGame): Promise<boolean> {
     if (!this.isReadyToAdvance(loaded)) return false;
 
+    const hands = isDemoBoard(loaded.game.board)
+      ? createDemoHands(loaded.players.map((player) => player.user_id))
+      : this.dependencies.dealHands(
+          loaded.players.map((player) => player.user_id),
+        );
+
     return this.dependencies.repository.beginNextRound({
       gameId: loaded.game.id,
       round: loaded.game.round,
-      hands: this.dependencies.dealHands(
-        loaded.players.map((player) => player.user_id),
-      ),
+      hands,
     });
   }
 
@@ -152,14 +157,22 @@ export class RoundService {
 
   private programmedState(loaded: LoadedGame, programs: Programs): GameState {
     const state = this.dependencies.toGameState(loaded);
+    const isDemo = isDemoBoard(loaded.game.board);
+    const registerCount = isDemo
+      ? Math.max(...Object.values(programs).map((cards) => cards.length), 1)
+      : this.dependencies.registerCount;
+
     return {
       ...state,
+      registerCount,
       players: state.players.map((player) =>
         programs[player.id]
           ? {
               ...player,
               programLocked: true,
-              programmedCardCount: this.dependencies.registerCount,
+              programmedCardCount: isDemo
+                ? programs[player.id].length
+                : this.dependencies.registerCount,
             }
           : player,
       ),

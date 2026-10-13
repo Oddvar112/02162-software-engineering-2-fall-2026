@@ -3,6 +3,8 @@ import { dealHands } from "@/lib/game/deck";
 import { staticBoard } from "@/lib/game/game-model";
 import { GameError } from "@/lib/game/store";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createDemoHands, isDemoBoard } from "@/demo";
+import type { Board } from "@/lib/board";
 
 export async function initialiseGame(gameId: string): Promise<void> {
   const service = createServiceClient();
@@ -13,7 +15,15 @@ export async function initialiseGame(gameId: string): Promise<void> {
     .eq("id", gameId)
     .maybeSingle();
   if (!existing) throw new GameError("This game does not exist.", 404);
-  if (existing.board) return;
+  if (existing.board) {
+    if (!isDemoBoard(existing.board)) return;
+    const { data: player } = await service
+      .from("game_players")
+      .select("user_id")
+      .eq("game_id", gameId)
+      .maybeSingle();
+    if (player) return;
+  }
 
   const { data: lobby } = await service
     .from("lobbies")
@@ -25,10 +35,12 @@ export async function initialiseGame(gameId: string): Promise<void> {
     throw new GameError("This game has not been started.", 409);
   }
 
+  const board: Board = existing.board ?? staticBoard;
+
   const members = [...lobby.lobby_players].sort((a, b) =>
     a.joined_at.localeCompare(b.joined_at),
   );
-  if (members.length > staticBoard.startpositions.length) {
+  if (members.length > board.startpositions.length) {
     throw new GameError("The board has too few start positions.", 409);
   }
 
@@ -37,8 +49,8 @@ export async function initialiseGame(gameId: string): Promise<void> {
     user_id,
     seat,
     robot_model,
-    x: staticBoard.startpositions[seat].x,
-    z: staticBoard.startpositions[seat].y,
+    x: board.startpositions[seat].x,
+    z: board.startpositions[seat].y,
     direction: Direction.Up,
   }));
   const { error: playersError } = await service
@@ -46,7 +58,11 @@ export async function initialiseGame(gameId: string): Promise<void> {
     .upsert(players, { onConflict: "game_id,user_id", ignoreDuplicates: true });
   if (playersError) throw playersError;
 
-  const hands = dealHands(players.map((player) => player.user_id));
+  const playerIds = players.map((player) => player.user_id);
+  const hands = isDemoBoard(board)
+    ? createDemoHands(playerIds)
+    : dealHands(playerIds);
+
   const { error: handsError } = await service.from("hands").upsert(
     Object.entries(hands).map(([user_id, cards]) => ({
       game_id: gameId,
@@ -60,7 +76,7 @@ export async function initialiseGame(gameId: string): Promise<void> {
 
   const { error: boardError } = await service
     .from("games")
-    .update({ board: staticBoard, updated_at: new Date().toISOString() })
+    .update({ board, updated_at: new Date().toISOString() })
     .eq("id", gameId)
     .is("board", null);
   if (boardError) throw boardError;
