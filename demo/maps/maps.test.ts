@@ -88,20 +88,25 @@ describe("Demo Maps Catalog", () => {
       expect(kinds).not.toContain("repair");
     });
 
-    it("features a showcase line immediately to the left of the player with every implemented field", () => {
-      // Player 1 starts at x=1, y=9; column 0 (x=0) is immediately to the left
-      const col0Kinds = Array.from(
-        { length: 10 },
-        (_, y) => gearWorksBoard.tiles[y][0].kind,
-      );
-      expect(col0Kinds).toContain("floor");
-      expect(col0Kinds).toContain("conveyor");
-      expect(col0Kinds).toContain("gear");
-      expect(col0Kinds).toContain("pit");
-      expect(col0Kinds).toContain("checkpoint");
-      expect(col0Kinds).not.toContain("laser");
-      expect(col0Kinds).not.toContain("pusher");
-      expect(col0Kinds).not.toContain("repair");
+    it("features a showcase track immediately in front of the player with every implemented field", () => {
+      // Player 1 starts at x=1, y=9; the track in front (cols 1 and 2) contains every implemented field
+      const trackKinds = Array.from({ length: 9 }, (_, y) => [
+        gearWorksBoard.tiles[y][1].kind,
+        gearWorksBoard.tiles[y][2].kind,
+      ]).flat();
+      expect(trackKinds).toContain("floor");
+      expect(trackKinds).toContain("conveyor");
+      expect(trackKinds).toContain("gear");
+      expect(trackKinds).toContain("pit");
+      expect(trackKinds).toContain("checkpoint");
+      expect(trackKinds).not.toContain("laser");
+      expect(trackKinds).not.toContain("pusher");
+      expect(trackKinds).not.toContain("repair");
+      // Checkpoint 1 is at (1, 0), directly in line with Player 1's starting position (1, 9)
+      expect(gearWorksBoard.tiles[0][1]).toEqual({
+        kind: "checkpoint",
+        number: 1,
+      });
     });
   });
 
