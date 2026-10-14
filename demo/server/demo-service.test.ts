@@ -7,7 +7,7 @@ import {
   submitDemoProgram,
   verifyLobbyHost,
 } from "./demo-service";
-import { conveyorSprintBoard, laserGauntletBoard } from "../maps";
+import { gearWorksBoard } from "../maps";
 import { createDemoHand } from "../cards";
 
 type DbState = {
@@ -139,11 +139,11 @@ describe("demo-service", () => {
     });
 
     it("reports demo game when board is a demo board", async () => {
-      db.game = { id: "game-123", board: conveyorSprintBoard };
+      db.game = { id: "game-123", board: gearWorksBoard };
       const status = await getGameDemoStatus("game-123");
       expect(status.isDemo).toBe(true);
-      expect(status.mapId).toBe("demo-conveyor-sprint");
-      expect(status.board?.name).toBe("Conveyor Sprint");
+      expect(status.mapId).toBe("demo-gear-works");
+      expect(status.board?.name).toBe("Gearworks & Pits");
     });
   });
 
@@ -151,10 +151,10 @@ describe("demo-service", () => {
     it("enables demo mode with the default map", async () => {
       const res = await setGameDemoBoard("game-123", "host-user", true);
       expect(res.isDemo).toBe(true);
-      expect(res.mapId).toBe("demo-conveyor-sprint");
+      expect(res.mapId).toBe("demo-gear-works");
       expect(db.updates).toHaveLength(1);
       expect(db.updates[0].values).toMatchObject({
-        board: conveyorSprintBoard,
+        board: gearWorksBoard,
       });
     });
 
@@ -163,13 +163,24 @@ describe("demo-service", () => {
         "game-123",
         "host-user",
         true,
-        "demo-laser-gauntlet",
+        "demo-gear-works",
       );
       expect(res.isDemo).toBe(true);
-      expect(res.mapId).toBe("demo-laser-gauntlet");
+      expect(res.mapId).toBe("demo-gear-works");
       expect(db.updates[0].values).toMatchObject({
-        board: laserGauntletBoard,
+        board: gearWorksBoard,
       });
+    });
+
+    it("throws 400 error when an unknown mapId is requested", async () => {
+      await expect(
+        setGameDemoBoard(
+          "game-123",
+          "host-user",
+          true,
+          "non-existent-map",
+        ),
+      ).rejects.toThrow(/not found/i);
     });
 
     it("disables demo mode by resetting board to null", async () => {
@@ -266,7 +277,7 @@ describe("demo-service", () => {
       };
       db.game = {
         id: "game-123",
-        board: conveyorSprintBoard,
+        board: gearWorksBoard,
       };
     });
 

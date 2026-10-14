@@ -2,7 +2,6 @@ import { validateBoard } from "@/lib/board";
 import { staticBoard } from "@/lib/game/game-model";
 import { describe, expect, it } from "vitest";
 import {
-  conveyorSprintBoard,
   DEFAULT_DEMO_MAP_ID,
   DEMO_MAPS,
   gearWorksBoard,
@@ -10,22 +9,17 @@ import {
   getDemoBoard,
   getDemoMapMeta,
   isDemoBoard,
-  laserGauntletBoard,
 } from "./index";
 
 describe("Demo Maps Catalog", () => {
-  it("contains all defined demo maps", () => {
-    expect(DEMO_MAPS).toHaveLength(3);
-    expect(DEMO_MAPS.map((m) => m.id)).toEqual([
-      "demo-conveyor-sprint",
-      "demo-laser-gauntlet",
-      "demo-gear-works",
-    ]);
+  it("contains the active demo map", () => {
+    expect(DEMO_MAPS).toHaveLength(1);
+    expect(DEMO_MAPS.map((m) => m.id)).toEqual(["demo-gear-works"]);
   });
 
-  it("defines default demo map id", () => {
-    expect(DEFAULT_DEMO_MAP_ID).toBe("demo-conveyor-sprint");
-    expect(getDemoBoard(DEFAULT_DEMO_MAP_ID)).toBeDefined();
+  it("defines default demo map id pointing to gearworks", () => {
+    expect(DEFAULT_DEMO_MAP_ID).toBe("demo-gear-works");
+    expect(getDemoBoard(DEFAULT_DEMO_MAP_ID)).toBe(gearWorksBoard);
   });
 
   describe("Board validation for each demo map", () => {
@@ -83,40 +77,24 @@ describe("Demo Maps Catalog", () => {
   });
 
   describe("Specific Map Features", () => {
-    it("conveyorSprintBoard has conveyor belts and express conveyors", () => {
-      const kinds = conveyorSprintBoard.tiles.flat().map((t) => t.kind);
-      expect(kinds).toContain("conveyor");
-      const expressBelts = conveyorSprintBoard.tiles
-        .flat()
-        .filter((t) => t.kind === "conveyor" && t.express);
-      expect(expressBelts.length).toBeGreaterThan(0);
-    });
-
-    it("laserGauntletBoard has laser tiles and pushers", () => {
-      const kinds = laserGauntletBoard.tiles.flat().map((t) => t.kind);
-      expect(kinds).toContain("laser");
-      expect(kinds).toContain("pusher");
-      expect(laserGauntletBoard.walls.length).toBeGreaterThan(0);
-    });
-
-    it("gearWorksBoard has gears and pits", () => {
+    it("gearWorksBoard has gears, pits, and only implemented mechanics", () => {
       const kinds = gearWorksBoard.tiles.flat().map((t) => t.kind);
       expect(kinds).toContain("gear");
       expect(kinds).toContain("pit");
+      expect(kinds).toContain("checkpoint");
+      expect(kinds).not.toContain("laser");
+      expect(kinds).not.toContain("pusher");
+      expect(kinds).not.toContain("repair");
     });
   });
 
   describe("Helper functions", () => {
     it("getDemoBoard returns map by id", () => {
-      expect(getDemoBoard("demo-conveyor-sprint")).toBe(conveyorSprintBoard);
-      expect(getDemoBoard("demo-laser-gauntlet")).toBe(laserGauntletBoard);
       expect(getDemoBoard("demo-gear-works")).toBe(gearWorksBoard);
       expect(getDemoBoard("non-existent-id")).toBeUndefined();
     });
 
     it("isDemoBoard identifies demo boards vs standard boards", () => {
-      expect(isDemoBoard(conveyorSprintBoard)).toBe(true);
-      expect(isDemoBoard(laserGauntletBoard)).toBe(true);
       expect(isDemoBoard(gearWorksBoard)).toBe(true);
       expect(
         isDemoBoard({
@@ -134,19 +112,19 @@ describe("Demo Maps Catalog", () => {
     });
 
     it("getDemoMapMeta returns metadata with features and checkpoints", () => {
-      const meta = getDemoMapMeta(conveyorSprintBoard);
-      expect(meta.id).toBe("demo-conveyor-sprint");
-      expect(meta.name).toBe("Conveyor Sprint");
-      expect(meta.checkpointCount).toBe(3);
-      expect(meta.features).toContain("Conveyors");
+      const meta = getDemoMapMeta(gearWorksBoard);
+      expect(meta.id).toBe("demo-gear-works");
+      expect(meta.name).toBe("Gearworks & Pits");
+      expect(meta.checkpointCount).toBe(4);
+      expect(meta.features).toContain("Gears");
+      expect(meta.features).toContain("Pits");
     });
 
-    it("getAllDemoMapsMeta returns metadata for all maps", () => {
+    it("getAllDemoMapsMeta returns metadata for registered demo maps", () => {
       const allMeta = getAllDemoMapsMeta();
-      expect(allMeta).toHaveLength(3);
-      expect(allMeta[0].id).toBe("demo-conveyor-sprint");
-      expect(allMeta[1].id).toBe("demo-laser-gauntlet");
-      expect(allMeta[2].id).toBe("demo-gear-works");
+      expect(allMeta).toHaveLength(1);
+      expect(allMeta[0].id).toBe("demo-gear-works");
+      expect(allMeta[0].name).toBe("Gearworks & Pits");
     });
   });
 });

@@ -1,20 +1,14 @@
 import type { Board } from "@/lib/board";
 import type { DemoBoard, DemoMapMeta } from "../types";
-import { conveyorSprintBoard } from "./conveyor-sprint";
 import { gearWorksBoard } from "./gear-works";
-import { laserGauntletBoard } from "./laser-gauntlet";
 
-export { conveyorSprintBoard } from "./conveyor-sprint";
 export { gearWorksBoard } from "./gear-works";
-export { laserGauntletBoard } from "./laser-gauntlet";
 
 export const DEMO_MAPS: DemoBoard[] = [
-  conveyorSprintBoard,
-  laserGauntletBoard,
   gearWorksBoard,
 ];
 
-export const DEFAULT_DEMO_MAP_ID = conveyorSprintBoard.id;
+export const DEFAULT_DEMO_MAP_ID = gearWorksBoard.id;
 
 export function getDemoBoard(id: string): DemoBoard | undefined {
   return DEMO_MAPS.find((map) => map.id === id);

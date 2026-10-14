@@ -10,7 +10,6 @@ const LEGEND: Record<string, Tile> = {
   "4": { kind: "checkpoint", number: 4 },
   c: { kind: "gear", clockwise: true },
   a: { kind: "gear", clockwise: false },
-  p: { kind: "repair" },
 };
 
 const LAYOUT = [

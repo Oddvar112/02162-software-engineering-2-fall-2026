@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DemoLobbyControl } from "./demo-lobby-control";
-import { conveyorSprintBoard, laserGauntletBoard } from "../maps";
+import { gearWorksBoard } from "../maps";
 
 const { refresh, channel } = vi.hoisted(() => ({
   refresh: vi.fn(),
@@ -29,7 +29,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockFetch.mockResolvedValue({
     ok: true,
-    json: async () => ({ isDemo: true, mapId: "demo-conveyor-sprint" }),
+    json: async () => ({ isDemo: true, mapId: "demo-gear-works" }),
   });
 });
 
@@ -82,47 +82,14 @@ describe("DemoLobbyControl", () => {
             method: "POST",
             body: JSON.stringify({
               enabled: true,
-              mapId: "demo-conveyor-sprint",
+              mapId: "demo-gear-works",
             }),
           }),
         );
       });
 
-      expect(screen.getByText("Conveyor Sprint")).toBeDefined();
-      expect(screen.getByText("Laser Gauntlet")).toBeDefined();
       expect(screen.getByText("Gearworks & Pits")).toBeDefined();
       expect(screen.getByText(/Solo Play Enabled/)).toBeDefined();
-    });
-
-    it("allows choosing a different demo map", async () => {
-      render(
-        <DemoLobbyControl
-          lobbyId="lobby-1"
-          gameId="game-1"
-          isHost={true}
-          initialBoard={conveyorSprintBoard}
-          status="open"
-        />,
-      );
-
-      expect(screen.getByText("Laser Gauntlet")).toBeDefined();
-      const laserMapCard = screen.getByRole("button", {
-        name: /laser gauntlet/i,
-      });
-      fireEvent.click(laserMapCard);
-
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          "/api/games/game-1/demo",
-          expect.objectContaining({
-            method: "POST",
-            body: JSON.stringify({
-              enabled: true,
-              mapId: "demo-laser-gauntlet",
-            }),
-          }),
-        );
-      });
     });
 
     it("disables buttons when lobby status is not open", () => {
@@ -131,7 +98,7 @@ describe("DemoLobbyControl", () => {
           lobbyId="lobby-1"
           gameId="game-1"
           isHost={true}
-          initialBoard={conveyorSprintBoard}
+          initialBoard={gearWorksBoard}
           status="started"
         />,
       );
@@ -164,13 +131,13 @@ describe("DemoLobbyControl", () => {
           lobbyId="lobby-1"
           gameId="game-1"
           isHost={false}
-          initialBoard={laserGauntletBoard}
+          initialBoard={gearWorksBoard}
           status="open"
         />,
       );
 
       expect(screen.getByText("Demo Mode Active")).toBeDefined();
-      expect(screen.getByText("Laser Gauntlet")).toBeDefined();
+      expect(screen.getByText("Gearworks & Pits")).toBeDefined();
     });
   });
 });

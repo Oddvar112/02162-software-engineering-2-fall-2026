@@ -3,7 +3,7 @@ import { Direction } from "@/lib/direction";
 import { HAND_SIZE } from "@/lib/game/deck";
 import { staticBoard } from "@/lib/game/game-model";
 import type { ActionCard } from "@/lib/game/types";
-import { conveyorSprintBoard } from "@/demo";
+import { gearWorksBoard } from "@/demo";
 
 type Write = {
   table: string;
@@ -151,7 +151,7 @@ describe("initialiseGame", () => {
   });
 
   it("initialises demo games with demo board start positions and full card decks", async () => {
-    db.game = { board: conveyorSprintBoard };
+    db.game = { board: gearWorksBoard };
     await initialiseGame("game-1");
 
     expect(db.writes.map(({ op, table }) => `${op} ${table}`)).toEqual([
@@ -170,8 +170,8 @@ describe("initialiseGame", () => {
         user_id,
         seat,
         robot_model,
-        x: conveyorSprintBoard.startpositions[seat].x,
-        z: conveyorSprintBoard.startpositions[seat].y,
+        x: gearWorksBoard.startpositions[seat].x,
+        z: gearWorksBoard.startpositions[seat].y,
         direction: Direction.Up,
       })),
     );

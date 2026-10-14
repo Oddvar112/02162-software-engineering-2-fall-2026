@@ -261,9 +261,15 @@ export function DemoLobbyControl({
 
           <div>
             <span className="mb-2 block text-xs font-semibold text-foreground/80">
-              Select Demo Map:
+              {demoMaps.length > 1 ? "Select Demo Map:" : "Demo Map:"}
             </span>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div
+              className={`grid gap-2 ${
+                demoMaps.length > 1
+                  ? "sm:grid-cols-3"
+                  : "max-w-sm sm:grid-cols-1"
+              }`}
+            >
               {demoMaps.map((map) => {
                 const isSelected = map.id === selectedMapId;
                 return (
