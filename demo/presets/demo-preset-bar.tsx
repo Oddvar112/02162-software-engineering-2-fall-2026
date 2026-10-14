@@ -7,10 +7,8 @@ import {
   applyPresetToHand,
   deleteCustomPreset,
   getAllPresets,
-  getCustomPresets,
   getPresetCardsSummary,
   saveCustomPreset,
-  DEFAULT_PRESETS,
 } from "./index";
 import type { DemoPreset } from "../types";
 

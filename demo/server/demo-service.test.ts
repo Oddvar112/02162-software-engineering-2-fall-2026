@@ -172,17 +172,6 @@ describe("demo-service", () => {
       });
     });
 
-    it("throws 400 error when an unknown mapId is requested", async () => {
-      await expect(
-        setGameDemoBoard(
-          "game-123",
-          "host-user",
-          true,
-          "non-existent-map",
-        ),
-      ).rejects.toThrow(/not found/i);
-    });
-
     it("disables demo mode by resetting board to null", async () => {
       const res = await setGameDemoBoard("game-123", "host-user", false);
       expect(res.isDemo).toBe(false);

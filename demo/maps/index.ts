@@ -4,9 +4,7 @@ import { gearWorksBoard } from "./gear-works";
 
 export { gearWorksBoard } from "./gear-works";
 
-export const DEMO_MAPS: DemoBoard[] = [
-  gearWorksBoard,
-];
+export const DEMO_MAPS: DemoBoard[] = [gearWorksBoard];
 
 export const DEFAULT_DEMO_MAP_ID = gearWorksBoard.id;
 

@@ -265,7 +265,9 @@ describe("program editor", () => {
         />,
       );
 
-      const cardsContainer = container.querySelector(".demoActionCards");
+      const cardsContainer = container.querySelector(
+        '[class*="demoActionCards"]',
+      );
       expect(cardsContainer).not.toBeNull();
     });
   });

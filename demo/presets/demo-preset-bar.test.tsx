@@ -94,7 +94,7 @@ describe("DemoPresetBar component", () => {
       cardsInHand.find((c) => c.name === "Rotate right")!.id,
     ];
 
-    const { rerender } = render(
+    render(
       <DemoPresetBar
         cardsInHand={cardsInHand}
         selectedIds={selectedIds}

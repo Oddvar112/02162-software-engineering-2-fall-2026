@@ -1,5 +1,4 @@
 import type { Board } from "@/lib/board";
-import type { ActionCard } from "@/lib/game/types";
 
 export interface DemoBoard extends Board {
   isDemo: true;

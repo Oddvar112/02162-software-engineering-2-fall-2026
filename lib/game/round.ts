@@ -47,17 +47,14 @@ class SupabaseRoundRepository implements RoundRepository {
 
   async beginNextRound(nextRound: NextRound): Promise<boolean> {
     const service = createServiceClient();
-    const { data, error } = await service.rpc(
-      "begin_next_round",
-      {
-        p_game_id: nextRound.gameId,
-        p_round: nextRound.round,
-        p_hands: Object.entries(nextRound.hands).map(([userId, cards]) => ({
-          user_id: userId,
-          cards,
-        })),
-      },
-    );
+    const { data, error } = await service.rpc("begin_next_round", {
+      p_game_id: nextRound.gameId,
+      p_round: nextRound.round,
+      p_hands: Object.entries(nextRound.hands).map(([userId, cards]) => ({
+        user_id: userId,
+        cards,
+      })),
+    });
     if (error) throw error;
 
     // In demo games, clear board.demoPrograms for the next round

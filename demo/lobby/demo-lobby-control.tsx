@@ -6,13 +6,7 @@ import { FlaskConical, CheckCircle2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import type { Board } from "@/lib/board";
-import {
-  DEFAULT_DEMO_MAP_ID,
-  getAllDemoMapsMeta,
-  getDemoBoard,
-  isDemoBoard,
-} from "../maps";
-import type { DemoMapMeta } from "../types";
+import { DEFAULT_DEMO_MAP_ID, getAllDemoMapsMeta, isDemoBoard } from "../maps";
 
 export interface DemoLobbyControlProps {
   lobbyId: string;
@@ -29,8 +23,6 @@ export function DemoLobbyControl({
   isHost,
   initialBoard,
   status,
-  playerCount = 1,
-  robotsChosen = false,
 }: DemoLobbyControlProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -180,9 +172,9 @@ export function DemoLobbyControl({
             className={`group inline-flex items-center gap-2.5 rounded-full px-2 py-1 text-left transition-all focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
           >
             <span
-              className={`text-xs font-bold uppercase tracking-wider select-none ${
+              className={`select-none text-xs font-bold uppercase tracking-wider ${
                 isDemo
-                  ? "text-amber-600 dark:text-amber-400 font-extrabold"
+                  ? "font-extrabold text-amber-600 dark:text-amber-400"
                   : "text-slate-600 dark:text-slate-400"
               }`}
             >
@@ -190,10 +182,10 @@ export function DemoLobbyControl({
             </span>
 
             <span
-              className={`relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out shadow-inner ${
+              className={`relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-inner transition-colors duration-200 ease-in-out ${
                 isDemo
                   ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
-                  : "bg-slate-400 dark:bg-slate-600 group-hover:bg-slate-500"
+                  : "bg-slate-400 group-hover:bg-slate-500 dark:bg-slate-600"
               }`}
               style={{
                 width: "48px",

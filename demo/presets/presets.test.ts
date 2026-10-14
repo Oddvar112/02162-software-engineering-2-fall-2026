@@ -7,7 +7,6 @@ import {
   getCustomPresets,
   getPresetCardsSummary,
   saveCustomPreset,
-  DEMO_PRESETS_STORAGE_KEY,
 } from "./index";
 import { createDemoHand } from "../cards";
 import type { ActionCard } from "@/lib/game/types";
