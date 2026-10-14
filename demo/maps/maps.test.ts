@@ -77,14 +77,31 @@ describe("Demo Maps Catalog", () => {
   });
 
   describe("Specific Map Features", () => {
-    it("gearWorksBoard has gears, pits, and only implemented mechanics", () => {
+    it("gearWorksBoard has conveyors, gears, pits, and only implemented mechanics", () => {
       const kinds = gearWorksBoard.tiles.flat().map((t) => t.kind);
+      expect(kinds).toContain("conveyor");
       expect(kinds).toContain("gear");
       expect(kinds).toContain("pit");
       expect(kinds).toContain("checkpoint");
       expect(kinds).not.toContain("laser");
       expect(kinds).not.toContain("pusher");
       expect(kinds).not.toContain("repair");
+    });
+
+    it("features a showcase line immediately to the left of the player with every implemented field", () => {
+      // Player 1 starts at x=1, y=9; column 0 (x=0) is immediately to the left
+      const col0Kinds = Array.from(
+        { length: 10 },
+        (_, y) => gearWorksBoard.tiles[y][0].kind,
+      );
+      expect(col0Kinds).toContain("floor");
+      expect(col0Kinds).toContain("conveyor");
+      expect(col0Kinds).toContain("gear");
+      expect(col0Kinds).toContain("pit");
+      expect(col0Kinds).toContain("checkpoint");
+      expect(col0Kinds).not.toContain("laser");
+      expect(col0Kinds).not.toContain("pusher");
+      expect(col0Kinds).not.toContain("repair");
     });
   });
 
@@ -116,8 +133,10 @@ describe("Demo Maps Catalog", () => {
       expect(meta.id).toBe("demo-gear-works");
       expect(meta.name).toBe("Gearworks & Pits");
       expect(meta.checkpointCount).toBe(4);
+      expect(meta.features).toContain("Conveyors");
       expect(meta.features).toContain("Gears");
       expect(meta.features).toContain("Pits");
+      expect(meta.features).toContain("Walls");
     });
 
     it("getAllDemoMapsMeta returns metadata for registered demo maps", () => {
