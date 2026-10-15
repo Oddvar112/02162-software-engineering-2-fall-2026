@@ -9,6 +9,16 @@ import type { Board } from "@/lib/board";
 export async function initialiseGame(gameId: string): Promise<void> {
   const service = createServiceClient();
 
+  const { data: lobby } = await service
+    .from("lobbies")
+    .select("id, status, lobby_players(user_id, joined_at, robot_model)")
+    .eq("game", gameId)
+    .maybeSingle();
+  if (!lobby) throw new GameError("This game has no lobby.", 404);
+  if (lobby.status !== "started") {
+    throw new GameError("This game has not been started.", 409);
+  }
+
   const { data: existing } = await service
     .from("games")
     .select("board")
@@ -18,23 +28,14 @@ export async function initialiseGame(gameId: string): Promise<void> {
 
   if (existing.board) {
     if (!isDemoBoard(existing.board)) return;
-    const { data: player } = await service
-      .from("game_players")
+    const { data: hand } = await service
+      .from("hands")
       .select("user_id")
       .eq("game_id", gameId)
+      .eq("round", 1)
       .limit(1)
       .maybeSingle();
-    if (player) return;
-  }
-
-  const { data: lobby } = await service
-    .from("lobbies")
-    .select("id, status, lobby_players(user_id, joined_at, robot_model)")
-    .eq("game", gameId)
-    .maybeSingle();
-  if (!lobby) throw new GameError("This game has no lobby.", 404);
-  if (lobby.status !== "started") {
-    throw new GameError("This game has not been started.", 409);
+    if (hand) return;
   }
 
   const board: Board = existing.board ?? staticBoard;

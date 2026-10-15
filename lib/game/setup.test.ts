@@ -17,6 +17,7 @@ const db = vi.hoisted(() => ({
   game: null as { board: unknown } | null,
   lobby: null as unknown,
   player: null as unknown,
+  hand: null as unknown,
   failingTable: null as string | null,
   writes: [] as Write[],
 }));
@@ -43,7 +44,9 @@ vi.mock("@/lib/supabase/service", () => ({
               ? db.game
               : table === "lobbies"
                 ? db.lobby
-                : db.player,
+                : table === "hands"
+                  ? db.hand
+                  : db.player,
           error: null,
         }),
         upsert: (values: unknown, options: unknown) => {
@@ -87,6 +90,7 @@ beforeEach(() => {
     ["guest", "2026-09-29T10:00:05.000000+00:00", "pixel"],
     ["host", "2026-09-29T10:00:01.000000+00:00", "glitch"],
   ]);
+  db.hand = null;
   db.failingTable = null;
   db.writes = [];
 });
@@ -182,6 +186,24 @@ describe("initialiseGame", () => {
       cards: ActionCard[];
     }[];
     expect(dealt.every(({ cards }) => cards.length === 35)).toBe(true);
+  });
+
+  it("does nothing once a demo game has round 1 hands dealt", async () => {
+    db.game = { board: gearWorksBoard };
+    db.hand = { user_id: "host" };
+    await initialiseGame("game-1");
+    expect(db.writes).toEqual([]);
+  });
+
+  it("re-initialises demo game if previous setup was partial (no hands)", async () => {
+    db.game = { board: gearWorksBoard };
+    db.hand = null;
+    await initialiseGame("game-1");
+    expect(db.writes.map(({ op, table }) => `${op} ${table}`)).toEqual([
+      "upsert game_players",
+      "upsert hands",
+      "update games",
+    ]);
   });
 
   it("refuses a game that does not exist", async () => {

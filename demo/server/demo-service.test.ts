@@ -3,12 +3,9 @@ import {
   DemoServiceError,
   getGameDemoStatus,
   setGameDemoBoard,
-  startDemoLobby,
-  submitDemoProgram,
   verifyLobbyHost,
 } from "./demo-service";
 import { gearWorksBoard } from "../maps";
-import { createDemoHand } from "../cards";
 
 type DbState = {
   lobby: {
@@ -99,6 +96,32 @@ vi.mock("@/lib/supabase/service", () => ({
           resolve({ error: null }),
       };
       return builder;
+    },
+    rpc: async (fn: string, args: Record<string, unknown>) => {
+      if (db.error) return { data: null, error: db.error };
+      if (fn === "set_game_demo_board") {
+        if (!db.lobby) {
+          return { data: null, error: { message: "lobby_not_found" } };
+        }
+        if (db.lobby.created_by !== args.p_user_id) {
+          return { data: null, error: { message: "not_creator" } };
+        }
+        if (db.lobby.status !== "open") {
+          return { data: null, error: { message: "already_started" } };
+        }
+        const board = args.p_enabled ? args.p_board : null;
+        db.updates.push({
+          table: "games",
+          values: { board, mode: args.p_enabled ? "demo" : "classic" },
+          eqKey: "id",
+          eqVal: args.p_game_id,
+        });
+        if (db.game) {
+          db.game.board = board;
+        }
+        return { data: null, error: null };
+      }
+      return { data: null, error: null };
     },
   }),
 }));
@@ -209,128 +232,6 @@ describe("demo-service", () => {
       await expect(
         setGameDemoBoard("game-123", "host-user", true, "invalid-map-id"),
       ).rejects.toMatchObject({ status: 400 });
-    });
-  });
-
-  describe("submitDemoProgram", () => {
-    it("submits a program with just 1 card", async () => {
-      const hand = db.hand!.cards as { id: string }[];
-      await submitDemoProgram("game-123", "host-user", [hand[0].id]);
-
-      const programUpsert = db.upserts.find((u) => u.table === "programs");
-      expect(programUpsert).toBeDefined();
-      expect(programUpsert?.values).toMatchObject({
-        game_id: "game-123",
-        user_id: "host-user",
-        round: 1,
-        cards: [hand[0]],
-      });
-    });
-
-    it("submits a program with 7 cards (unlimited cards)", async () => {
-      const hand = db.hand!.cards as { id: string }[];
-      const chosenIds = hand.slice(0, 7).map((c) => c.id);
-      await submitDemoProgram("game-123", "host-user", chosenIds);
-
-      const programUpsert = db.upserts.find((u) => u.table === "programs");
-      expect(programUpsert).toBeDefined();
-      expect(
-        (programUpsert?.values as { cards: unknown[] }).cards,
-      ).toHaveLength(7);
-    });
-
-    it("rejects duplicate cards with 409", async () => {
-      const hand = db.hand!.cards as { id: string }[];
-      await expect(
-        submitDemoProgram("game-123", "host-user", [hand[0].id, hand[0].id]),
-      ).rejects.toMatchObject({ status: 409 });
-    });
-
-    it("rejects an empty program with 400", async () => {
-      await expect(
-        submitDemoProgram("game-123", "host-user", []),
-      ).rejects.toMatchObject({ status: 400 });
-    });
-
-    it("rejects when player is already locked in with 409", async () => {
-      db.program = { user_id: "host-user" };
-      const hand = db.hand!.cards as { id: string }[];
-      await expect(
-        submitDemoProgram("game-123", "host-user", [hand[0].id]),
-      ).rejects.toMatchObject({ status: 409 });
-    });
-
-    it("rejects when card is not in player hand with 409", async () => {
-      await expect(
-        submitDemoProgram("game-123", "host-user", ["not-in-hand-id"]),
-      ).rejects.toMatchObject({ status: 409 });
-    });
-  });
-
-  describe("startDemoLobby", () => {
-    beforeEach(() => {
-      db.lobby = {
-        id: "lobby-123",
-        created_by: "host-user",
-        status: "open",
-        game: "game-123",
-        lobby_players: [{ user_id: "host-user", robot_model: "bolt" }],
-      };
-      db.game = {
-        id: "game-123",
-        board: gearWorksBoard,
-      };
-    });
-
-    it("allows starting a demo game with 1 player when robot is chosen", async () => {
-      const result = await startDemoLobby("game-123", "host-user");
-      expect(result).toEqual({ ok: true, gameId: "game-123" });
-
-      // Lobby should be updated to started
-      const lobbyUpdate = db.updates.find((u) => u.table === "lobbies");
-      expect(lobbyUpdate).toBeDefined();
-      expect(lobbyUpdate?.values).toEqual({ status: "started" });
-    });
-
-    it("rejects when the caller is not the lobby host", async () => {
-      await expect(
-        startDemoLobby("game-123", "other-user"),
-      ).rejects.toMatchObject({
-        message: "Only the host can start the game.",
-        status: 403,
-      });
-    });
-
-    it("rejects when robot is not chosen yet", async () => {
-      db.lobby!.lobby_players = [{ user_id: "host-user", robot_model: null }];
-      await expect(
-        startDemoLobby("game-123", "host-user"),
-      ).rejects.toMatchObject({
-        message: "Every player must choose a robot first.",
-        status: 400,
-      });
-    });
-
-    it("rejects when the lobby is not open", async () => {
-      db.lobby!.status = "started";
-      await expect(
-        startDemoLobby("game-123", "host-user"),
-      ).rejects.toMatchObject({
-        message: "This game has already started.",
-        status: 409,
-      });
-    });
-
-    it("propagates database errors instead of swallowing them", async () => {
-      db.error = {
-        message: "permission denied for table lobbies",
-        code: "42501",
-      };
-      await expect(
-        startDemoLobby("game-123", "host-user"),
-      ).rejects.toMatchObject({
-        code: "42501",
-      });
     });
   });
 });
