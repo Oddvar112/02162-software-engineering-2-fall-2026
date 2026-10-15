@@ -23,7 +23,7 @@ begin
     raise exception 'lobby_not_found';
   end if;
 
-  if v_lobby.created_by is distinct from auth.uid() and auth.role() <> 'service_role' then
+  if v_lobby.created_by is distinct from auth.uid() then
     raise exception 'not_creator';
   end if;
 

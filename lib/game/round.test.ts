@@ -139,12 +139,12 @@ describe("RoundService", () => {
       programs: new Map(),
     };
     const beginNextRound = vi.fn().mockResolvedValue(true);
-    const standardDealHands = vi.fn((_playerIds?: string[]) => ({}));
+    const standardDealHands = vi.fn(() => ({}));
     const dealHandsWrapper = vi.fn(
       (playerIds: string[], game?: LoadedGame["game"]) =>
         isDemoBoard(game?.board)
           ? createDemoHands(playerIds)
-          : standardDealHands(playerIds),
+          : standardDealHands(),
     );
     const service = new RoundService({
       clock: { now: () => Date.parse(updatedAt) + 16_000 },
