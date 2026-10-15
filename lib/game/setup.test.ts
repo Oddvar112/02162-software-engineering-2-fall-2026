@@ -36,6 +36,7 @@ vi.mock("@/lib/supabase/service", () => ({
           write.filters.push(["is", ...args]);
           return builder;
         },
+        limit: () => builder,
         maybeSingle: async () => ({
           data:
             table === "games"

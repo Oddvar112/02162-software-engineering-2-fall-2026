@@ -113,13 +113,7 @@ describe("StartLobbyButton", () => {
       expect(screen.queryByText(/waiting/i)).toBeNull();
     });
 
-    it("starts game through demo endpoint when isDemo is true", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ ok: true, gameId: "game-1" }),
-      });
-      global.fetch = mockFetch;
-
+    it("starts game through start_lobby rpc when isDemo is true", async () => {
       render(
         <StartLobbyButton
           lobbyId="lobby-1"
@@ -135,13 +129,9 @@ describe("StartLobbyButton", () => {
       fireEvent.click(button);
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          "/api/games/game-1/demo",
-          expect.objectContaining({
-            method: "POST",
-            body: JSON.stringify({ action: "start-game" }),
-          }),
-        );
+        expect(rpc).toHaveBeenCalledWith("start_lobby", {
+          p_lobby_id: "lobby-1",
+        });
       });
     });
   });

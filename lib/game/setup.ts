@@ -15,12 +15,14 @@ export async function initialiseGame(gameId: string): Promise<void> {
     .eq("id", gameId)
     .maybeSingle();
   if (!existing) throw new GameError("This game does not exist.", 404);
+
   if (existing.board) {
     if (!isDemoBoard(existing.board)) return;
     const { data: player } = await service
       .from("game_players")
       .select("user_id")
       .eq("game_id", gameId)
+      .limit(1)
       .maybeSingle();
     if (player) return;
   }
@@ -31,7 +33,7 @@ export async function initialiseGame(gameId: string): Promise<void> {
     .eq("game", gameId)
     .maybeSingle();
   if (!lobby) throw new GameError("This game has no lobby.", 404);
-  if (lobby.status !== "started" && !isDemoBoard(existing.board)) {
+  if (lobby.status !== "started") {
     throw new GameError("This game has not been started.", 409);
   }
 

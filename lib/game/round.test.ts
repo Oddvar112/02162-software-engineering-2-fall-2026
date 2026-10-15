@@ -3,6 +3,7 @@ import { buildGameState } from "@/lib/game/fixtures";
 import { RoundService } from "./round-service";
 import { decideOutcome } from "./round";
 import type { LoadedGame } from "./store";
+import { createDemoHands, isDemoBoard } from "@/demo";
 
 const twoPlayers = () => {
   const state = buildGameState();
@@ -138,7 +139,13 @@ describe("RoundService", () => {
       programs: new Map(),
     };
     const beginNextRound = vi.fn().mockResolvedValue(true);
-    const standardDealHands = vi.fn(() => ({}));
+    const standardDealHands = vi.fn((_playerIds?: string[]) => ({}));
+    const dealHandsWrapper = vi.fn(
+      (playerIds: string[], game?: LoadedGame["game"]) =>
+        isDemoBoard(game?.board)
+          ? createDemoHands(playerIds)
+          : standardDealHands(playerIds),
+    );
     const service = new RoundService({
       clock: { now: () => Date.parse(updatedAt) + 16_000 },
       repository: {
@@ -147,7 +154,7 @@ describe("RoundService", () => {
       },
       toGameState: () => state,
       resolveRound: vi.fn(),
-      dealHands: standardDealHands,
+      dealHands: dealHandsWrapper,
       shuffle: (cards) => cards,
       timerSeconds: 30,
       nextRoundSeconds: 15,
@@ -155,6 +162,10 @@ describe("RoundService", () => {
     });
 
     await expect(service.advanceIfReady(loaded)).resolves.toBe(true);
+    expect(dealHandsWrapper).toHaveBeenCalledWith(
+      ["player-1", "player-2"],
+      loaded.game,
+    );
     expect(standardDealHands).not.toHaveBeenCalled();
     expect(beginNextRound).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -19,7 +19,6 @@ export function StartLobbyButton({
   minPlayers = 2,
   robotsChosen,
   isDemo = false,
-  gameId,
 }: {
   lobbyId: string;
   playerCount: number;
@@ -43,22 +42,6 @@ export function StartLobbyButton({
     setError(null);
 
     try {
-      if (isDemo && gameId) {
-        const response = await fetch(`/api/games/${gameId}/demo`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "start-game" }),
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          setError(data.error ?? "Could not start demo game.");
-          setIsStarting(false);
-          return;
-        }
-        window.location.assign(`/games/${gameId}`);
-        return;
-      }
-
       const supabase = createClient();
       const { data: startedGameId, error: rpcError } = await supabase.rpc(
         "start_lobby",
@@ -69,7 +52,7 @@ export function StartLobbyButton({
         const errorKey = rpcError?.message ?? "";
         setError(
           errorKey === "not_enough_players"
-            ? `At least ${minPlayers} players are needed to start.`
+            ? `At least ${effectiveMin} player${effectiveMin > 1 ? "s are" : " is"} needed to start.`
             : (MESSAGES[errorKey] ?? "Could not start the game."),
         );
         setIsStarting(false);

@@ -15,6 +15,7 @@ import {
   type LoadedGame,
 } from "@/lib/game/store";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createDemoHands, isDemoBoard } from "@/demo";
 
 class SupabaseRoundRepository implements RoundRepository {
   async applyRoundResult(result: RoundResult): Promise<boolean> {
@@ -56,26 +57,6 @@ class SupabaseRoundRepository implements RoundRepository {
       })),
     });
     if (error) throw error;
-
-    // In demo games, clear board.demoPrograms for the next round
-    const { data: game } = await service
-      .from("games")
-      .select("board")
-      .eq("id", nextRound.gameId)
-      .maybeSingle();
-
-    if (
-      game?.board &&
-      (game.board as { demoPrograms?: unknown }).demoPrograms
-    ) {
-      const updatedBoard = { ...(game.board as Record<string, unknown>) };
-      delete updatedBoard.demoPrograms;
-      await service
-        .from("games")
-        .update({ board: updatedBoard })
-        .eq("id", nextRound.gameId);
-    }
-
     return data === true;
   }
 }
@@ -86,7 +67,10 @@ function createRoundService() {
     repository: new SupabaseRoundRepository(),
     toGameState: (loaded) => toGameState(loaded, ""),
     resolveRound,
-    dealHands,
+    dealHands: (playerIds, game) =>
+      isDemoBoard(game?.board)
+        ? createDemoHands(playerIds)
+        : dealHands(playerIds),
     shuffle,
     timerSeconds: TIMER_SECONDS,
     nextRoundSeconds: NEXT_ROUND_SECONDS,

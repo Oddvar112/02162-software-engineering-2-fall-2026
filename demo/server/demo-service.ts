@@ -1,28 +1,24 @@
-import { getDemoBoard, isDemoBoard, DEFAULT_DEMO_MAP_ID } from "../maps";
-import type { DemoBoard } from "../types";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { ActionCard } from "@/lib/game/types";
+import { DEFAULT_DEMO_MAP_ID, getDemoBoard, isDemoBoard } from "../maps";
+import type { DemoBoard } from "../types";
 
 export class DemoServiceError extends Error {
   constructor(
     message: string,
-    public status = 400,
+    public readonly status: number = 400,
   ) {
     super(message);
+    this.name = "DemoServiceError";
   }
 }
-
-export type DemoStatusResponse = {
-  isDemo: boolean;
-  mapId: string | null;
-  board: DemoBoard | null;
-};
 
 export async function verifyLobbyHost(
   gameId: string,
   userId: string,
-): Promise<{ lobbyId: string; isHost: boolean; isOpen: boolean }> {
+): Promise<{ isHost: boolean; lobbyId: string; isOpen: boolean }> {
   const service = createServiceClient();
+
   const { data: lobby, error } = await service
     .from("lobbies")
     .select("id, created_by, status")
@@ -33,37 +29,36 @@ export async function verifyLobbyHost(
   if (!lobby) throw new DemoServiceError("Lobby not found for this game.", 404);
 
   return {
-    lobbyId: lobby.id,
     isHost: lobby.created_by === userId,
+    lobbyId: lobby.id,
     isOpen: lobby.status === "open",
   };
 }
 
 export async function getGameDemoStatus(
   gameId: string,
-): Promise<DemoStatusResponse> {
+): Promise<{ isDemo: boolean; mapId: string | null; board: DemoBoard | null }> {
+  const service = createServiceClient();
+
   try {
-    const service = createServiceClient();
     const { data: game, error } = await service
       .from("games")
-      .select("board")
+      .select("board, mode")
       .eq("id", gameId)
       .maybeSingle();
 
     if (error) throw error;
     if (!game) throw new DemoServiceError("Game does not exist.", 404);
 
-    const board = game.board;
-    const isDemo = isDemoBoard(board);
-
+    const isDemo = isDemoBoard(game.board) || game.mode === "demo";
     return {
       isDemo,
-      mapId: isDemo ? (board?.id ?? null) : null,
-      board: isDemo ? (board as DemoBoard) : null,
+      mapId: isDemo && game.board ? game.board.id : null,
+      board: isDemo && isDemoBoard(game.board) ? game.board : null,
     };
   } catch (err) {
     if (err instanceof DemoServiceError) throw err;
-    return { isDemo: false, mapId: null, board: null };
+    throw new DemoServiceError("Failed to check game demo status.", 500);
   }
 }
 
@@ -72,11 +67,12 @@ export async function setGameDemoBoard(
   userId: string,
   enabled: boolean,
   mapId?: string,
-): Promise<DemoStatusResponse> {
+): Promise<{ isDemo: boolean; mapId: string | null; board: DemoBoard | null }> {
   const { isHost, isOpen } = await verifyLobbyHost(gameId, userId);
+
   if (!isHost) {
     throw new DemoServiceError(
-      "Only the lobby host can configure demo mode.",
+      "Only the lobby host can toggle demo mode.",
       403,
     );
   }
@@ -92,7 +88,11 @@ export async function setGameDemoBoard(
   if (!enabled) {
     const { error } = await service
       .from("games")
-      .update({ board: null, updated_at: new Date().toISOString() })
+      .update({
+        board: null,
+        mode: "classic",
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", gameId);
 
     if (error) throw error;
@@ -112,7 +112,11 @@ export async function setGameDemoBoard(
 
   const { error } = await service
     .from("games")
-    .update({ board: demoBoard, updated_at: new Date().toISOString() })
+    .update({
+      board: demoBoard,
+      mode: "demo",
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", gameId);
 
   if (error) throw error;
@@ -136,11 +140,15 @@ export async function submitDemoProgram(
     );
   }
 
+  if (new Set(cardIds).size !== cardIds.length) {
+    throw new DemoServiceError("Each card can only be used once.", 409);
+  }
+
   const service = createServiceClient();
 
   const { data: game, error: gameError } = await service
     .from("games")
-    .select("id, phase, round, board, timer_started_at")
+    .select("id, phase, round, timer_started_at")
     .eq("id", gameId)
     .maybeSingle();
 
@@ -166,11 +174,15 @@ export async function submitDemoProgram(
   if (player.lives === 0)
     throw new DemoServiceError("This robot has no lives remaining.", 409);
 
-  const currentBoard = (game.board ?? {}) as {
-    demoPrograms?: Record<string, ActionCard[]>;
-  };
+  const { data: existingProgram } = await service
+    .from("programs")
+    .select("user_id")
+    .eq("game_id", gameId)
+    .eq("user_id", userId)
+    .eq("round", game.round)
+    .maybeSingle();
 
-  if (currentBoard.demoPrograms?.[userId]) {
+  if (existingProgram) {
     throw new DemoServiceError("Your program is already locked in.", 409);
   }
 
@@ -207,18 +219,22 @@ export async function submitDemoProgram(
     programCards.push(card);
   }
 
-  const updatedBoard = {
-    ...currentBoard,
-    demoPrograms: {
-      ...(currentBoard.demoPrograms ?? {}),
-      [userId]: programCards,
+  // Atomically insert into programs table
+  const { error: insertProgramError } = await service.from("programs").upsert(
+    {
+      game_id: gameId,
+      user_id: userId,
+      round: game.round,
+      cards: programCards,
     },
-  };
+    { onConflict: "game_id,user_id" },
+  );
+
+  if (insertProgramError) throw insertProgramError;
 
   const { error: updateGameError } = await service
     .from("games")
     .update({
-      board: updatedBoard,
       updated_at: new Date().toISOString(),
       timer_started_at: game.timer_started_at ?? new Date().toISOString(),
     })
@@ -260,40 +276,32 @@ export async function startDemoLobby(
     throw new DemoServiceError("Every player must choose a robot first.", 400);
   }
 
-  // Ensure game has a demo board configured
+  // Ensure game has a demo board and mode configured
   const { data: game } = await service
     .from("games")
-    .select("board")
+    .select("board, mode")
     .eq("id", gameId)
     .maybeSingle();
 
-  if (!game || !isDemoBoard(game.board)) {
+  if (!game || !isDemoBoard(game.board) || game.mode !== "demo") {
     const defaultBoard = getDemoBoard(DEFAULT_DEMO_MAP_ID)!;
     await service
       .from("games")
-      .update({ board: defaultBoard, updated_at: new Date().toISOString() })
+      .update({
+        board: defaultBoard,
+        mode: "demo",
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", gameId);
   }
 
-  try {
-    const { error: updateError } = await service
-      .from("lobbies")
-      .update({ status: "started" })
-      .eq("id", lobby.id);
+  const { error: updateError } = await service
+    .from("lobbies")
+    .update({ status: "started" })
+    .eq("id", lobby.id);
 
-    if (
-      updateError &&
-      updateError.code !== "42501" &&
-      !updateError.message?.includes("permission denied")
-    ) {
-      throw updateError;
-    }
-  } catch (err: unknown) {
-    const code = (err as { code?: string })?.code;
-    const msg = (err as { message?: string })?.message;
-    if (code !== "42501" && !msg?.includes("permission denied")) {
-      throw err;
-    }
+  if (updateError) {
+    throw updateError;
   }
 
   return { ok: true, gameId: lobby.game };

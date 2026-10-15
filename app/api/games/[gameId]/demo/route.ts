@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import {
-  DemoServiceError,
-  getGameDemoStatus,
-  setGameDemoBoard,
-  startDemoLobby,
-} from "@/demo/server/demo-service";
+import { DemoServiceError, setGameDemoBoard } from "@/demo/server";
 
 const headers = { "Cache-Control": "no-store, max-age=0" };
 
@@ -34,20 +29,6 @@ async function currentUserId(): Promise<string> {
   return userId;
 }
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ gameId: string }> },
-) {
-  try {
-    const { gameId } = await params;
-    await currentUserId();
-    const status = await getGameDemoStatus(gameId);
-    return NextResponse.json(status, { headers });
-  } catch (error) {
-    return failure(error);
-  }
-}
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ gameId: string }> },
@@ -56,16 +37,11 @@ export async function POST(
     const { gameId } = await params;
     const userId = await currentUserId();
 
-    let body: { action?: unknown; enabled?: unknown; mapId?: unknown };
+    let body: { enabled?: unknown; mapId?: unknown };
     try {
       body = await request.json();
     } catch {
       throw new DemoServiceError("Invalid JSON body.", 400);
-    }
-
-    if (body.action === "start-game") {
-      const result = await startDemoLobby(gameId, userId);
-      return NextResponse.json(result, { headers });
     }
 
     if (typeof body.enabled !== "boolean") {

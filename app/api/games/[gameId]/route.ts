@@ -8,7 +8,6 @@ import {
   type LoadedGame,
 } from "@/lib/game/store";
 import { createClient } from "@/lib/supabase/server";
-import { DemoServiceError, getGameDemoStatus, submitDemoProgram } from "@/demo";
 
 const headers = { "Cache-Control": "no-store, max-age=0" };
 
@@ -26,7 +25,7 @@ const SUBMIT_MESSAGES: Record<string, string> = {
 };
 
 function failure(error: unknown) {
-  if (error instanceof GameError || error instanceof DemoServiceError) {
+  if (error instanceof GameError) {
     return NextResponse.json(
       { error: error.message },
       { status: error.status, headers },
@@ -108,12 +107,6 @@ export async function POST(
     }
 
     if (body.action === "lock-in") {
-      const demoStatus = await getGameDemoStatus(gameId);
-      if (demoStatus.isDemo) {
-        await submitDemoProgram(gameId, userId, body.cardIds);
-        return await snapshot(gameId, userId);
-      }
-
       const supabase = await createClient();
       const { error } = await supabase.rpc("submit_program", {
         p_game_id: gameId,

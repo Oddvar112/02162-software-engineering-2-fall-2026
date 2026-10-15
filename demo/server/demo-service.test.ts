@@ -28,6 +28,7 @@ type DbState = {
   player: { user_id: string; lives: number } | null;
   hand: { cards: unknown[] } | null;
   program: { user_id: string } | null;
+  error: { message: string; code?: string } | null;
   updates: {
     table: string;
     values: unknown;
@@ -46,6 +47,7 @@ const db = vi.hoisted((): DbState => ({
   player: null,
   hand: null,
   program: null,
+  error: null,
   updates: [],
   upserts: [],
 }));
@@ -63,6 +65,7 @@ vi.mock("@/lib/supabase/service", () => ({
           return builder;
         },
         maybeSingle: async () => {
+          if (db.error) return { data: null, error: db.error };
           let data: unknown = null;
           if (table === "lobbies") data = db.lobby;
           else if (table === "games") data = db.game;
@@ -78,11 +81,19 @@ vi.mock("@/lib/supabase/service", () => ({
             eqKey: currentEqKey,
             eqVal: currentEqVal,
           });
-          return builder;
+          const updateBuilder = {
+            eq: () => updateBuilder,
+            then: (resolve: (res: { error: unknown }) => void) =>
+              resolve({ error: db.error }),
+          };
+          return updateBuilder;
         },
         upsert: (values: unknown) => {
           db.upserts.push({ table, values });
-          return builder;
+          return {
+            then: (resolve: (res: { error: unknown }) => void) =>
+              resolve({ error: db.error }),
+          };
         },
         then: (resolve: (res: { error: null }) => void) =>
           resolve({ error: null }),
@@ -206,15 +217,14 @@ describe("demo-service", () => {
       const hand = db.hand!.cards as { id: string }[];
       await submitDemoProgram("game-123", "host-user", [hand[0].id]);
 
-      const gameUpdate = db.updates.find((u) => u.table === "games");
-      expect(gameUpdate).toBeDefined();
-      expect(
-        (
-          gameUpdate?.values as {
-            board: { demoPrograms: Record<string, unknown[]> };
-          }
-        ).board.demoPrograms["host-user"],
-      ).toEqual([hand[0]]);
+      const programUpsert = db.upserts.find((u) => u.table === "programs");
+      expect(programUpsert).toBeDefined();
+      expect(programUpsert?.values).toMatchObject({
+        game_id: "game-123",
+        user_id: "host-user",
+        round: 1,
+        cards: [hand[0]],
+      });
     });
 
     it("submits a program with 7 cards (unlimited cards)", async () => {
@@ -222,14 +232,18 @@ describe("demo-service", () => {
       const chosenIds = hand.slice(0, 7).map((c) => c.id);
       await submitDemoProgram("game-123", "host-user", chosenIds);
 
-      const gameUpdate = db.updates.find((u) => u.table === "games");
-      expect(gameUpdate).toBeDefined();
-      const insertedCards = (
-        gameUpdate?.values as {
-          board: { demoPrograms: Record<string, unknown[]> };
-        }
-      ).board.demoPrograms["host-user"];
-      expect(insertedCards).toHaveLength(7);
+      const programUpsert = db.upserts.find((u) => u.table === "programs");
+      expect(programUpsert).toBeDefined();
+      expect(
+        (programUpsert?.values as { cards: unknown[] }).cards,
+      ).toHaveLength(7);
+    });
+
+    it("rejects duplicate cards with 409", async () => {
+      const hand = db.hand!.cards as { id: string }[];
+      await expect(
+        submitDemoProgram("game-123", "host-user", [hand[0].id, hand[0].id]),
+      ).rejects.toMatchObject({ status: 409 });
     });
 
     it("rejects an empty program with 400", async () => {
@@ -239,9 +253,7 @@ describe("demo-service", () => {
     });
 
     it("rejects when player is already locked in with 409", async () => {
-      db.game!.board = {
-        demoPrograms: { "host-user": [] },
-      };
+      db.program = { user_id: "host-user" };
       const hand = db.hand!.cards as { id: string }[];
       await expect(
         submitDemoProgram("game-123", "host-user", [hand[0].id]),
@@ -306,6 +318,18 @@ describe("demo-service", () => {
       ).rejects.toMatchObject({
         message: "This game has already started.",
         status: 409,
+      });
+    });
+
+    it("propagates database errors instead of swallowing them", async () => {
+      db.error = {
+        message: "permission denied for table lobbies",
+        code: "42501",
+      };
+      await expect(
+        startDemoLobby("game-123", "host-user"),
+      ).rejects.toMatchObject({
+        code: "42501",
       });
     });
   });
