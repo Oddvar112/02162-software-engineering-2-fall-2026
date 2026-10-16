@@ -72,10 +72,11 @@ export async function setGameDemoBoard(
 
   if (enabled) {
     targetMapId = mapId ?? DEFAULT_DEMO_MAP_ID;
-    demoBoard = getDemoBoard(targetMapId);
-    if (!demoBoard) {
+    const foundBoard = getDemoBoard(targetMapId);
+    if (!foundBoard) {
       throw new DemoServiceError(`Unknown demo map: ${targetMapId}`, 400);
     }
+    demoBoard = foundBoard;
   }
 
   const service = createServiceClient();
@@ -112,4 +113,3 @@ export async function setGameDemoBoard(
     board: demoBoard,
   };
 }
-

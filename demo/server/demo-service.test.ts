@@ -136,7 +136,7 @@ beforeEach(() => {
     timer_started_at: null,
   };
   db.player = { user_id: "host-user", lives: 3 };
-  db.hand = { cards: createDemoHand("host-user", 2) };
+  db.hand = null;
   db.program = null;
   db.updates = [];
   db.upserts = [];
