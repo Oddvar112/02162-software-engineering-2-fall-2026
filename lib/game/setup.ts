@@ -9,16 +9,10 @@ import type { Board } from "@/lib/board";
 export async function initialiseGame(gameId: string): Promise<void> {
   const service = createServiceClient();
 
-  const { data: lobby } = await service
-    .from("lobbies")
-    .select("id, status, lobby_players(user_id, joined_at, robot_model)")
-    .eq("game", gameId)
-    .maybeSingle();
-  if (!lobby) throw new GameError("This game has no lobby.", 404);
-  if (lobby.status !== "started") {
-    throw new GameError("This game has not been started.", 409);
-  }
-
+  // Bug 2 fix: check whether the game is already set up BEFORE testing lobby
+  // status. Once a lobby moves to "finished" the status check would otherwise
+  // throw 409 for every player except the one whose request resolved the last
+  // round — breaking the game page for everyone else.
   const { data: existing } = await service
     .from("games")
     .select("board")
@@ -28,14 +22,27 @@ export async function initialiseGame(gameId: string): Promise<void> {
 
   if (existing.board) {
     if (!isDemoBoard(existing.board)) return;
+    // Bug 3 fix: drop the round = 1 filter. begin_next_round advances hand
+    // rows to the current round number, so after round 1 there are no round-1
+    // rows and the check would always be false — causing demo setup to re-run
+    // on every GET from round 2 onwards.
     const { data: hand } = await service
       .from("hands")
       .select("user_id")
       .eq("game_id", gameId)
-      .eq("round", 1)
       .limit(1)
       .maybeSingle();
     if (hand) return;
+  }
+
+  const { data: lobby } = await service
+    .from("lobbies")
+    .select("id, status, lobby_players(user_id, joined_at, robot_model)")
+    .eq("game", gameId)
+    .maybeSingle();
+  if (!lobby) throw new GameError("This game has no lobby.", 404);
+  if (lobby.status !== "started") {
+    throw new GameError("This game has not been started.", 409);
   }
 
   const board: Board = existing.board ?? staticBoard;

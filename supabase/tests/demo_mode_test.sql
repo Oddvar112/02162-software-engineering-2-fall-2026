@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(13);
 
 -- Fixture users
 insert into auth.users (id, email) values
@@ -98,22 +98,31 @@ select throws_ok(
   'P0001', 'already_locked_in', 'cannot resubmit once locked in'
 );
 
--- 10: Non-creator cannot change demo settings
+-- 10: Authenticated role cannot call set_game_demo_board directly
+select throws_ok(
+  $$select public.set_game_demo_board('e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', true)$$,
+  '42501', null, 'authenticated users cannot call set_game_demo_board directly'
+);
+
+set local role service_role;
+
+-- 11: Non-creator cannot change demo settings
 select throws_ok(
   $$select public.set_game_demo_board('e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000002', true)$$,
   'P0001', 'not_creator', 'non-creator cannot change demo settings'
 );
 
--- 11: Demo settings cannot be changed once lobby is started
+-- 12: Demo settings cannot be changed once lobby is started
 select throws_ok(
   $$select public.set_game_demo_board('e0000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000001', false)$$,
   'P0001', 'already_started', 'demo settings cannot be changed after lobby is started'
 );
 
--- 12: Creator can change demo settings while lobby is open
+-- 13: Creator can change demo settings while lobby is open
 select lives_ok(
   $$select public.set_game_demo_board('e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', true, '{"id":"custom-demo"}'::jsonb)$$,
   'creator can change demo settings while open'
 );
 
 rollback;
+

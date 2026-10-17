@@ -138,6 +138,7 @@ beforeEach(() => {
   db.player = { user_id: "host-user", lives: 3 };
   db.hand = null;
   db.program = null;
+  db.error = null;
   db.updates = [];
   db.upserts = [];
 });

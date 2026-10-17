@@ -188,7 +188,7 @@ describe("initialiseGame", () => {
     expect(dealt.every(({ cards }) => cards.length === 35)).toBe(true);
   });
 
-  it("does nothing once a demo game has round 1 hands dealt", async () => {
+  it("does nothing once a demo game has hands already dealt (any round)", async () => {
     db.game = { board: gearWorksBoard };
     db.hand = { user_id: "host" };
     await initialiseGame("game-1");
@@ -218,6 +218,18 @@ describe("initialiseGame", () => {
     await expect(initialiseGame("game-1")).rejects.toMatchObject({
       status: 409,
     });
+    expect(db.writes).toEqual([]);
+  });
+
+  it("does nothing when the lobby is finished but the game board is already set", async () => {
+    // Regression for bug 2: after the last round the lobby transitions to
+    // "finished". The board check must run first so the function returns
+    // early instead of throwing 409.
+    db.game = { board: staticBoard };
+    db.lobby = lobby("finished", [
+      ["host", "2026-09-29T10:00:01+00:00", "bolt"],
+    ]);
+    await initialiseGame("game-1");
     expect(db.writes).toEqual([]);
   });
 

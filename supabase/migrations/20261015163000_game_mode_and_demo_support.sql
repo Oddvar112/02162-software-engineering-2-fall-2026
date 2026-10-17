@@ -153,7 +153,11 @@ grant execute on function public.submit_program(uuid, text[]) to authenticated, 
 revoke all on function public.start_lobby(uuid) from public;
 grant execute on function public.start_lobby(uuid) to authenticated, service_role;
 
--- Atomic update of demo mode and board while locking lobby row
+-- Atomic update of demo mode and board while locking lobby row.
+-- Security: execute is granted to service_role ONLY (revoked from public, anon, authenticated).
+-- Authenticated users cannot invoke this RPC directly over the PostgREST API.
+-- All calls must go through the Next.js API route (/api/games/[gameId]/demo), which
+-- authenticates the user via their session claims and passes the verified userId as p_user_id.
 create or replace function public.set_game_demo_board(
   p_game_id uuid,
   p_user_id uuid,
@@ -202,4 +206,7 @@ end;
 $$;
 
 revoke all on function public.set_game_demo_board(uuid, uuid, boolean, jsonb) from public;
-grant execute on function public.set_game_demo_board(uuid, uuid, boolean, jsonb) to authenticated, service_role;
+revoke all on function public.set_game_demo_board(uuid, uuid, boolean, jsonb) from anon;
+revoke all on function public.set_game_demo_board(uuid, uuid, boolean, jsonb) from authenticated;
+grant execute on function public.set_game_demo_board(uuid, uuid, boolean, jsonb) to service_role;
+
