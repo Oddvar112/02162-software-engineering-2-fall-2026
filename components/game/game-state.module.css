@@ -403,6 +403,14 @@
   scrollbar-color: #38515b transparent;
 }
 
+.demoActionCards {
+  max-height: 9.8rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--amber) #181d1e;
+}
+
 .actionCard {
   min-width: 0;
   display: grid;

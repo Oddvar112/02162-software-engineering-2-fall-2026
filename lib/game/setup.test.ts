@@ -3,6 +3,7 @@ import { Direction } from "@/lib/direction";
 import { HAND_SIZE } from "@/lib/game/deck";
 import { staticBoard } from "@/lib/game/game-model";
 import type { ActionCard } from "@/lib/game/types";
+import { gearWorksBoard } from "@/demo";
 
 type Write = {
   table: string;
@@ -15,6 +16,8 @@ type Write = {
 const db = vi.hoisted(() => ({
   game: null as { board: unknown } | null,
   lobby: null as unknown,
+  player: null as unknown,
+  hand: null as unknown,
   failingTable: null as string | null,
   writes: [] as Write[],
 }));
@@ -34,8 +37,16 @@ vi.mock("@/lib/supabase/service", () => ({
           write.filters.push(["is", ...args]);
           return builder;
         },
+        limit: () => builder,
         maybeSingle: async () => ({
-          data: table === "games" ? db.game : db.lobby,
+          data:
+            table === "games"
+              ? db.game
+              : table === "lobbies"
+                ? db.lobby
+                : table === "hands"
+                  ? db.hand
+                  : db.player,
           error: null,
         }),
         upsert: (values: unknown, options: unknown) => {
@@ -79,6 +90,7 @@ beforeEach(() => {
     ["guest", "2026-09-29T10:00:05.000000+00:00", "pixel"],
     ["host", "2026-09-29T10:00:01.000000+00:00", "glitch"],
   ]);
+  db.hand = null;
   db.failingTable = null;
   db.writes = [];
 });
@@ -143,6 +155,57 @@ describe("initialiseGame", () => {
     expect(db.writes).toEqual([]);
   });
 
+  it("initialises demo games with demo board start positions and full card decks", async () => {
+    db.game = { board: gearWorksBoard };
+    await initialiseGame("game-1");
+
+    expect(db.writes.map(({ op, table }) => `${op} ${table}`)).toEqual([
+      "upsert game_players",
+      "upsert hands",
+      "update games",
+    ]);
+
+    const [players, hands] = db.writes;
+    expect(players.values).toEqual(
+      [
+        ["host", "glitch"],
+        ["guest", "pixel"],
+      ].map(([user_id, robot_model], seat) => ({
+        game_id: "game-1",
+        user_id,
+        seat,
+        robot_model,
+        x: gearWorksBoard.startpositions[seat].x,
+        z: gearWorksBoard.startpositions[seat].y,
+        direction: Direction.Up,
+      })),
+    );
+
+    const dealt = hands.values as {
+      user_id: string;
+      cards: ActionCard[];
+    }[];
+    expect(dealt.every(({ cards }) => cards.length === 35)).toBe(true);
+  });
+
+  it("does nothing once a demo game has hands already dealt (any round)", async () => {
+    db.game = { board: gearWorksBoard };
+    db.hand = { user_id: "host" };
+    await initialiseGame("game-1");
+    expect(db.writes).toEqual([]);
+  });
+
+  it("re-initialises demo game if previous setup was partial (no hands)", async () => {
+    db.game = { board: gearWorksBoard };
+    db.hand = null;
+    await initialiseGame("game-1");
+    expect(db.writes.map(({ op, table }) => `${op} ${table}`)).toEqual([
+      "upsert game_players",
+      "upsert hands",
+      "update games",
+    ]);
+  });
+
   it("refuses a game that does not exist", async () => {
     db.game = null;
     await expect(initialiseGame("game-1")).rejects.toMatchObject({
@@ -155,6 +218,18 @@ describe("initialiseGame", () => {
     await expect(initialiseGame("game-1")).rejects.toMatchObject({
       status: 409,
     });
+    expect(db.writes).toEqual([]);
+  });
+
+  it("does nothing when the lobby is finished but the game board is already set", async () => {
+    // Regression for bug 2: after the last round the lobby transitions to
+    // "finished". The board check must run first so the function returns
+    // early instead of throwing 409.
+    db.game = { board: staticBoard };
+    db.lobby = lobby("finished", [
+      ["host", "2026-09-29T10:00:01+00:00", "bolt"],
+    ]);
+    await initialiseGame("game-1");
     expect(db.writes).toEqual([]);
   });
 

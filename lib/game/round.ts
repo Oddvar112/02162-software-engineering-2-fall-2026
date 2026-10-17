@@ -15,6 +15,7 @@ import {
   type LoadedGame,
 } from "@/lib/game/store";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createDemoHands, isDemoBoard } from "@/demo";
 
 class SupabaseRoundRepository implements RoundRepository {
   async applyRoundResult(result: RoundResult): Promise<boolean> {
@@ -46,17 +47,15 @@ class SupabaseRoundRepository implements RoundRepository {
   }
 
   async beginNextRound(nextRound: NextRound): Promise<boolean> {
-    const { data, error } = await createServiceClient().rpc(
-      "begin_next_round",
-      {
-        p_game_id: nextRound.gameId,
-        p_round: nextRound.round,
-        p_hands: Object.entries(nextRound.hands).map(([userId, cards]) => ({
-          user_id: userId,
-          cards,
-        })),
-      },
-    );
+    const service = createServiceClient();
+    const { data, error } = await service.rpc("begin_next_round", {
+      p_game_id: nextRound.gameId,
+      p_round: nextRound.round,
+      p_hands: Object.entries(nextRound.hands).map(([userId, cards]) => ({
+        user_id: userId,
+        cards,
+      })),
+    });
     if (error) throw error;
     return data === true;
   }
@@ -68,7 +67,10 @@ function createRoundService() {
     repository: new SupabaseRoundRepository(),
     toGameState: (loaded) => toGameState(loaded, ""),
     resolveRound,
-    dealHands,
+    dealHands: (playerIds, game) =>
+      isDemoBoard(game?.board)
+        ? createDemoHands(playerIds)
+        : dealHands(playerIds),
     shuffle,
     timerSeconds: TIMER_SECONDS,
     nextRoundSeconds: NEXT_ROUND_SECONDS,

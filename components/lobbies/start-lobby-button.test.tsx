@@ -94,4 +94,45 @@ describe("StartLobbyButton", () => {
       ).toBeDefined();
     });
   });
+
+  describe("demo mode 1-player start", () => {
+    it("is enabled for 1 player when isDemo is true and robot is chosen", () => {
+      render(
+        <StartLobbyButton
+          lobbyId="lobby-1"
+          playerCount={1}
+          minPlayers={2}
+          robotsChosen={true}
+          isDemo={true}
+          gameId="game-1"
+        />,
+      );
+
+      const button = screen.getByRole("button", { name: /start game/i });
+      expect((button as HTMLButtonElement).disabled).toBe(false);
+      expect(screen.queryByText(/waiting/i)).toBeNull();
+    });
+
+    it("starts game through start_lobby rpc when isDemo is true", async () => {
+      render(
+        <StartLobbyButton
+          lobbyId="lobby-1"
+          playerCount={1}
+          minPlayers={2}
+          robotsChosen={true}
+          isDemo={true}
+          gameId="game-1"
+        />,
+      );
+
+      const button = screen.getByRole("button", { name: /start game/i });
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        expect(rpc).toHaveBeenCalledWith("start_lobby", {
+          p_lobby_id: "lobby-1",
+        });
+      });
+    });
+  });
 });

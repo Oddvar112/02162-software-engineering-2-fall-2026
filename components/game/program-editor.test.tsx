@@ -108,4 +108,167 @@ describe("program editor", () => {
     rerender(<ProgramEditor {...props} isSubmitting />);
     expect(card.disabled).toBe(true);
   });
+
+  describe("demo mode card selection and lock in", () => {
+    it("allows submitting just 1 card while displaying 1/5 in heading", () => {
+      const gameState = buildGameState();
+      gameState.board = {
+        ...gameState.board,
+        id: "demo-test",
+        isDemo: true as const,
+        name: "Demo",
+        description: "Test",
+      } as unknown as typeof gameState.board;
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      render(
+        <ProgramEditor
+          gameState={gameState}
+          isSubmitting={false}
+          onSubmit={onSubmit}
+        />,
+      );
+
+      const lockIn = screen.getByRole("button", {
+        name: "Lock In",
+      }) as HTMLButtonElement;
+      expect(lockIn.disabled).toBe(true);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Move 3, priority 840" }),
+      );
+      expect(screen.getByText("YOUR PROGRAM · 1/5")).toBeDefined();
+      expect(lockIn.disabled).toBe(false);
+
+      fireEvent.click(lockIn);
+      expect(onSubmit).toHaveBeenCalledWith(["card-1"]);
+    });
+
+    it("allows submitting unlimited cards (> 5) while displaying x/5 without disabling unselected cards", () => {
+      const gameState = buildGameState();
+      gameState.board = {
+        ...gameState.board,
+        id: "demo-test",
+        isDemo: true as const,
+        name: "Demo",
+        description: "Test",
+      } as unknown as typeof gameState.board;
+      // Provide 7 cards in hand
+      gameState.currentPlayerCards.push({
+        id: "card-7",
+        name: "U-turn",
+        type: "rotate",
+        value: 2,
+        priority: 100,
+      });
+
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      render(
+        <ProgramEditor
+          gameState={gameState}
+          isSubmitting={false}
+          onSubmit={onSubmit}
+        />,
+      );
+
+      const lockIn = screen.getByRole("button", {
+        name: "Lock In",
+      }) as HTMLButtonElement;
+
+      // Select 6 cards (all except card-7)
+      for (let i = 1; i <= 6; i++) {
+        const card = gameState.currentPlayerCards.find(
+          (c) => c.id === `card-${i}`,
+        )!;
+        fireEvent.click(
+          screen.getByRole("button", {
+            name: `${card.name}, priority ${card.priority}`,
+          }),
+        );
+      }
+
+      // Check header shows 6/5
+      expect(screen.getByText("YOUR PROGRAM · 6/5")).toBeDefined();
+
+      // The 7th card should NOT be disabled in demo mode
+      const card7 = screen.getByRole("button", {
+        name: "U-turn, priority 100",
+      }) as HTMLButtonElement;
+      expect(card7.disabled).toBe(false);
+
+      // Lock in button should be enabled
+      expect(lockIn.disabled).toBe(false);
+
+      fireEvent.click(lockIn);
+      expect(onSubmit).toHaveBeenCalledWith([
+        "card-1",
+        "card-2",
+        "card-3",
+        "card-4",
+        "card-5",
+        "card-6",
+      ]);
+    });
+
+    it("renders demo preset bar and loads preset directly into program", () => {
+      const gameState = buildGameState();
+      gameState.board = {
+        ...gameState.board,
+        id: "demo-test",
+        isDemo: true as const,
+        name: "Demo",
+        description: "Test",
+      } as unknown as typeof gameState.board;
+
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      render(
+        <ProgramEditor
+          gameState={gameState}
+          isSubmitting={false}
+          onSubmit={onSubmit}
+        />,
+      );
+
+      // Verify preset selector is present
+      const select = screen.getByRole("combobox", {
+        name: "Demo Presets Selector",
+      });
+      expect(select).toBeDefined();
+
+      // Select Single Step (1)
+      fireEvent.change(select, { target: { value: "preset-single-1" } });
+
+      // Heading updates to 1/5
+      expect(screen.getByText("YOUR PROGRAM · 1/5")).toBeDefined();
+
+      // Lock in button is enabled and submits with matched card-3 (Move 1)
+      const lockIn = screen.getByRole("button", { name: "Lock In" });
+      expect(lockIn).toBeDefined();
+      fireEvent.click(lockIn);
+      expect(onSubmit).toHaveBeenCalledWith(["card-3"]);
+    });
+
+    it("applies scrollable demoActionCards class in demo mode", () => {
+      const gameState = buildGameState();
+      gameState.board = {
+        ...gameState.board,
+        id: "demo-test",
+        isDemo: true as const,
+        name: "Demo",
+        description: "Test",
+      } as unknown as typeof gameState.board;
+
+      const { container } = render(
+        <ProgramEditor
+          gameState={gameState}
+          isSubmitting={false}
+          onSubmit={vi.fn()}
+        />,
+      );
+
+      const cardsContainer = container.querySelector(
+        '[class*="demoActionCards"]',
+      );
+      expect(cardsContainer).not.toBeNull();
+    });
+  });
 });

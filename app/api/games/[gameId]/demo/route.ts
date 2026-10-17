@@ -1,0 +1,57 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { DemoServiceError, setGameDemoBoard } from "@/demo/server";
+
+const headers = { "Cache-Control": "no-store, max-age=0" };
+
+function failure(error: unknown) {
+  if (error instanceof DemoServiceError) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.status, headers },
+    );
+  }
+  console.error("Demo API error:", error);
+  return NextResponse.json(
+    { error: "Could not update demo mode settings." },
+    { status: 500, headers },
+  );
+}
+
+async function currentUserId(): Promise<string> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+  if (typeof userId !== "string") {
+    throw new DemoServiceError("Sign in to access demo settings.", 401);
+  }
+  return userId;
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ gameId: string }> },
+) {
+  try {
+    const { gameId } = await params;
+    const userId = await currentUserId();
+
+    let body: { enabled?: unknown; mapId?: unknown };
+    try {
+      body = await request.json();
+    } catch {
+      throw new DemoServiceError("Invalid JSON body.", 400);
+    }
+
+    if (typeof body.enabled !== "boolean") {
+      throw new DemoServiceError("Field 'enabled' must be a boolean.", 400);
+    }
+
+    const mapId = typeof body.mapId === "string" ? body.mapId : undefined;
+    const result = await setGameDemoBoard(gameId, userId, body.enabled, mapId);
+
+    return NextResponse.json(result, { headers });
+  } catch (error) {
+    return failure(error);
+  }
+}

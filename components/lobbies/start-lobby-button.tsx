@@ -18,17 +18,21 @@ export function StartLobbyButton({
   playerCount,
   minPlayers = 2,
   robotsChosen,
+  isDemo = false,
 }: {
   lobbyId: string;
   playerCount: number;
   minPlayers?: number;
   robotsChosen: boolean;
+  isDemo?: boolean;
+  gameId?: string;
 }) {
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const effectiveMin = isDemo ? 1 : minPlayers;
   const waitingFor =
-    playerCount < minPlayers
-      ? `Waiting for at least ${minPlayers - playerCount} more player${minPlayers - playerCount > 1 ? "s" : ""} to reach minimum (${minPlayers}).`
+    playerCount < effectiveMin
+      ? `Waiting for at least ${effectiveMin - playerCount} more player${effectiveMin - playerCount > 1 ? "s" : ""} to reach minimum (${effectiveMin}).`
       : robotsChosen
         ? null
         : "Waiting for every player to choose a robot.";
@@ -39,23 +43,23 @@ export function StartLobbyButton({
 
     try {
       const supabase = createClient();
-      const { data: gameId, error: rpcError } = await supabase.rpc(
+      const { data: startedGameId, error: rpcError } = await supabase.rpc(
         "start_lobby",
         { p_lobby_id: lobbyId },
       );
 
-      if (rpcError || typeof gameId !== "string") {
+      if (rpcError || typeof startedGameId !== "string") {
         const errorKey = rpcError?.message ?? "";
         setError(
           errorKey === "not_enough_players"
-            ? `At least ${minPlayers} players are needed to start.`
+            ? `At least ${effectiveMin} player${effectiveMin > 1 ? "s are" : " is"} needed to start.`
             : (MESSAGES[errorKey] ?? "Could not start the game."),
         );
         setIsStarting(false);
         return;
       }
 
-      window.location.assign(`/games/${gameId}`);
+      window.location.assign(`/games/${startedGameId}`);
     } catch {
       setError("Could not start the game. Try again.");
       setIsStarting(false);
