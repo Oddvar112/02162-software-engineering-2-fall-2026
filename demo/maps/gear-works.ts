@@ -7,8 +7,6 @@ const LEGEND: Record<string, Tile> = {
   "#": { kind: "pit" },
   "1": { kind: "checkpoint", number: 1 },
   "2": { kind: "checkpoint", number: 2 },
-  "3": { kind: "checkpoint", number: 3 },
-  "4": { kind: "checkpoint", number: 4 },
   "^": { kind: "conveyor", direction: Direction.Up, express: false },
   ">": { kind: "conveyor", direction: Direction.Right, express: false },
   v: { kind: "conveyor", direction: Direction.Down, express: false },
@@ -33,7 +31,7 @@ const LAYOUT = [
   "..<.RRRRR.", // y=1: Floor at (1,1), Express conveyor highway
   "..<<...a..", // y=2: Floor at (1,2), Conveyor West at (2,2) returning to col 1
   ".#..##....", // y=3: Pit at (1,3), Floor bypass lane at (2,3), center pits
-  ".>..34..c.", // y=4: Conveyor East at (1,4) detouring to col 2, Checkpoints 3 & 4
+  ".>......c.", // y=4: Conveyor East at (1,4) detouring to col 2
   "..<.##....", // y=5: Floor at (1,5), Conveyor West at (2,5) returning to col 1
   ".caa>>>c..", // y=6: Clockwise Gear at (1,6), Counter-Clockwise Gear at (2,6)
   ".E.....##.", // y=7: Express Conveyor Up at (1,7)

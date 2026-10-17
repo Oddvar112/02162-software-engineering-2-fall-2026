@@ -137,7 +137,7 @@ describe("Demo Maps Catalog", () => {
       const meta = getDemoMapMeta(gearWorksBoard);
       expect(meta.id).toBe("demo-gear-works");
       expect(meta.name).toBe("Gearworks & Pits");
-      expect(meta.checkpointCount).toBe(4);
+      expect(meta.checkpointCount).toBe(2);
       expect(meta.features).toContain("Conveyors");
       expect(meta.features).toContain("Gears");
       expect(meta.features).toContain("Pits");
